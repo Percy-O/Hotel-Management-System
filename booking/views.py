@@ -183,17 +183,22 @@ def create_booking(request, room_type_id):
                     
                     # Notify Staff of New Pending Booking
                     staff_users = User.objects.filter(role__in=[User.Role.MANAGER, User.Role.RECEPTIONIST])
+                    # Save the booking first so it gets a pk
+                    booking.save()
+
+                    # Notify Staff of New Pending Booking
+                    if booking.status == Booking.Status.PENDING:
+                        staff_users = User.objects.filter(role__in=[User.Role.MANAGER, User.Role.RECEPTIONIST])
+                        booking_link = reverse('booking_detail', kwargs={'pk': booking.pk})
                     for staff in staff_users:
                         Notification.objects.create(
                             recipient=staff,
                             title="New Booking Request",
                             message=f"New booking from {booking.guest_name} for {room_type.name}.",
                             notification_type=Notification.Type.INFO,
-                            link=reverse('booking_detail', kwargs={'pk': booking.pk})
+                            link= booking_link
                         )
-                
                 booking.save()
-                
                 # Generate Invoice
                 invoice = Invoice.objects.create(
                     booking=booking,
@@ -243,7 +248,7 @@ def create_booking(request, room_type_id):
                 else:
                     # Redirect to Payment Selection
                     # For staff selecting ONLINE, or regular guests
-                    return redirect('payment_selection', booking_id=booking.pk)
+                    return redirect('payment_selection', invoice_id=invoice.pk)
             else:
                 messages.error(request, "Sorry, no rooms available for the selected dates.")
     else:
