@@ -1,0 +1,8 @@
+Django>=5.0
+psycopg2-binary
+Pillow
+django-environ
+xhtml2pdf
+requests
+fpdf2
+qrcode
