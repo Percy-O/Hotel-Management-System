@@ -1,0 +1,146 @@
+{% extends 'base_layout.html' %}
+{% load static %}
+
+{% block body_content %}
+<div class="flex h-screen w-full overflow-hidden bg-background-dark">
+    <!-- Sidebar -->
+    {% include 'includes/sidebar.html' %}
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden relative">
+        <!-- Header -->
+        <header class="flex items-center justify-between border-b border-border-dark bg-surface-dark px-6 py-4 sticky top-0 z-20">
+            <div class="flex items-center gap-4">
+                <button id="mobile-sidebar-toggle" class="lg:hidden text-text-main">
+                    <span class="material-symbols-outlined">menu</span>
+                </button>
+                <div>
+                    <h2 class="text-text-main text-xl font-bold leading-tight">{% block header_title %}Dashboard{% endblock %}</h2>
+                    <p class="text-text-secondary-dark text-xs">{% block header_subtitle %}Overview{% endblock %}</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                {% block header_actions %}{% endblock %}
+            </div>
+        </header>
+
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto p-6">
+            {% block dashboard_content %}{% endblock %}
+
+            <!-- Footer -->
+            <div class="mt-8 pt-6 border-t border-border-dark flex flex-col items-center justify-center gap-2">
+                <p class="text-sm text-text-secondary-dark font-medium flex items-center gap-1">
+                    Powered by 
+                    <a href="https://techohr.com.ng" target="_blank" class="text-primary hover:underline font-bold">TechOhr</a>
+                </p>
+                <p class="text-xs text-text-secondary-dark opacity-70">
+                    &copy; {% now "Y" %} {{ site_settings.hotel_name }}
+                </p>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Mobile Sidebar Overlay -->
+<div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-30 hidden lg:hidden transition-opacity duration-300 opacity-0"></div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const toggleBtn = document.getElementById('mobile-sidebar-toggle');
+        const sidebar = document.querySelector('aside');
+        const overlay = document.getElementById('sidebar-overlay');
+        
+        if (!toggleBtn || !sidebar || !overlay) return;
+
+        function openSidebar() {
+            sidebar.classList.remove('hidden');
+            sidebar.classList.add('fixed', 'inset-y-0', 'left-0', 'z-40', 'w-64', 'bg-surface-dark', 'shadow-2xl', 'transform', 'transition-transform', 'duration-300', '-translate-x-full');
+            // Small delay to allow transition to work
+            requestAnimationFrame(() => {
+                sidebar.classList.remove('-translate-x-full');
+            });
+            
+            overlay.classList.remove('hidden');
+            // Small delay for fade in
+            requestAnimationFrame(() => {
+                overlay.classList.remove('opacity-0');
+            });
+        }
+
+        function closeSidebar() {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('opacity-0');
+            
+            setTimeout(() => {
+                sidebar.classList.add('hidden');
+                sidebar.classList.remove('fixed', 'inset-y-0', 'left-0', 'z-40', 'shadow-2xl', 'transform', 'transition-transform', 'duration-300');
+                overlay.classList.add('hidden');
+            }, 300);
+        }
+
+        toggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openSidebar();
+        });
+
+        overlay.addEventListener('click', closeSidebar);
+        
+        // Close on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !sidebar.classList.contains('hidden')) {
+                closeSidebar();
+            }
+        });
+    });
+</script>
+
+<!-- Global Barcode Scanner Listener -->
+<script>
+    (function() {
+        let buffer = "";
+        let lastKeyTime = Date.now();
+        const SCAN_TIMEOUT = 100; // ms between keys for it to be considered a scan
+        const MIN_LENGTH = 3; // Minimum length of a barcode
+        
+        document.addEventListener('keydown', (e) => {
+            const currentTime = Date.now();
+            const target = e.target;
+            
+            // Ignore if user is typing in an input field (unless we want to force redirect, but usually bad UX)
+            if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+                return;
+            }
+            
+            // Calculate time since last keypress
+            const timeDiff = currentTime - lastKeyTime;
+            lastKeyTime = currentTime;
+            
+            // If time difference is too large, reset buffer (it's manual typing)
+            if (timeDiff > SCAN_TIMEOUT) {
+                buffer = "";
+            }
+            
+            if (e.key === 'Enter') {
+                // Check if buffer contains a valid scan code
+                if (buffer.length >= MIN_LENGTH) {
+                    // Logic to detect if it's a barcode
+                    // Simple check: assume anything scanned rapidly ending in Enter is a barcode
+                    console.log("Global Scanner Detected:", buffer);
+                    
+                    // Redirect to verify page
+                    const verifyUrl = "{% url 'verify_booking' %}";
+                    window.location.href = `${verifyUrl}?code=${encodeURIComponent(buffer)}`;
+                    
+                    // Prevent default Enter behavior (like form submission if any)
+                    e.preventDefault();
+                }
+                buffer = "";
+            } else if (e.key.length === 1) {
+                // Add printable characters to buffer
+                buffer += e.key;
+            }
+        });
+    })();
+</script>
+{% endblock %}

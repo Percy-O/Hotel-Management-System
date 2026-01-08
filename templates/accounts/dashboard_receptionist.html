@@ -1,0 +1,108 @@
+{% extends 'dashboard_base.html' %}
+
+{% block header_title %}Front Desk{% endblock %}
+{% block header_subtitle %}Reception Overview{% endblock %}
+
+{% block header_actions %}
+<div class="flex gap-2">
+    <a href="{% url 'add_booking_selection' %}" class="flex items-center gap-2 px-3 py-2 sm:px-4 bg-primary text-slate-900 rounded-lg text-sm font-bold hover:bg-primary-hover transition-colors shadow-lg shadow-primary/20 whitespace-nowrap">
+        <span class="material-symbols-outlined text-[18px]">add</span>
+        <span class="hidden sm:inline">New Booking</span>
+    </a>
+    <a href="{% url 'verify_booking' %}" class="flex items-center gap-2 px-3 py-2 sm:px-4 bg-surface-dark border border-border-dark rounded-lg text-sm font-medium text-text-main hover:bg-primary/5 transition-colors whitespace-nowrap">
+        <span class="material-symbols-outlined text-[18px]">qr_code_scanner</span>
+        <span class="hidden sm:inline">Verify</span>
+    </a>
+</div>
+{% endblock %}
+
+{% block dashboard_content %}
+    <!-- Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-surface-dark p-5 rounded-xl border border-border-dark shadow-sm">
+            <div class="flex items-center gap-3 mb-2">
+                <span class="material-symbols-outlined text-green-500">login</span>
+                <span class="text-xs font-medium text-text-secondary-dark uppercase tracking-wider">Arrivals Today</span>
+            </div>
+            <h3 class="text-3xl font-bold text-text-main">{{ check_ins.count }}</h3>
+        </div>
+        
+        <div class="bg-surface-dark p-5 rounded-xl border border-border-dark shadow-sm">
+            <div class="flex items-center gap-3 mb-2">
+                <span class="material-symbols-outlined text-orange-500">logout</span>
+                <span class="text-xs font-medium text-text-secondary-dark uppercase tracking-wider">Departures Today</span>
+            </div>
+            <h3 class="text-3xl font-bold text-text-main">{{ check_outs.count }}</h3>
+        </div>
+        
+        <div class="bg-surface-dark p-5 rounded-xl border border-border-dark shadow-sm">
+            <div class="flex items-center gap-3 mb-2">
+                <span class="material-symbols-outlined text-primary">bed</span>
+                <span class="text-xs font-medium text-text-secondary-dark uppercase tracking-wider">Available Rooms</span>
+            </div>
+            <h3 class="text-3xl font-bold text-text-main">{{ available_rooms_count }}</h3>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Arrivals -->
+        <div class="bg-surface-dark rounded-xl border border-border-dark overflow-hidden">
+            <div class="p-4 border-b border-border-dark flex justify-between items-center">
+                <h3 class="font-bold text-text-main">Expected Arrivals</h3>
+                <span class="text-xs text-text-secondary-dark">{{ check_ins.count }} guests</span>
+            </div>
+            <div class="divide-y divide-border-dark max-h-[400px] overflow-y-auto">
+                {% for booking in check_ins %}
+                <div class="p-4 hover:bg-white/5 transition-colors flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <div class="size-10 rounded-full bg-green-500/10 flex items-center justify-center text-green-500 font-bold">
+                            {{ booking.guest_name|slice:":1" }}
+                        </div>
+                        <div>
+                            <p class="font-medium text-text-main">{{ booking.guest_name }}</p>
+                            <p class="text-xs text-text-secondary-dark">Ref: {{ booking.booking_id }}</p>
+                        </div>
+                    </div>
+                    <a href="{% url 'booking_detail' booking.pk %}" class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded transition-colors">
+                        Check In
+                    </a>
+                </div>
+                {% empty %}
+                <div class="p-8 text-center text-text-secondary-dark">
+                    No arrivals scheduled for today.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Departures -->
+        <div class="bg-surface-dark rounded-xl border border-border-dark overflow-hidden">
+            <div class="p-4 border-b border-border-dark flex justify-between items-center">
+                <h3 class="font-bold text-text-main">Expected Departures</h3>
+                <span class="text-xs text-text-secondary-dark">{{ check_outs.count }} guests</span>
+            </div>
+            <div class="divide-y divide-border-dark max-h-[400px] overflow-y-auto">
+                {% for booking in check_outs %}
+                <div class="p-4 hover:bg-white/5 transition-colors flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <div class="size-10 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-500 font-bold">
+                            {{ booking.guest_name|slice:":1" }}
+                        </div>
+                        <div>
+                            <p class="font-medium text-text-main">{{ booking.guest_name }}</p>
+                            <p class="text-xs text-text-secondary-dark">Room {{ booking.room.room_number }}</p>
+                        </div>
+                    </div>
+                    <a href="{% url 'booking_detail' booking.pk %}" class="px-3 py-1.5 bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold rounded transition-colors">
+                        Check Out
+                    </a>
+                </div>
+                {% empty %}
+                <div class="p-8 text-center text-text-secondary-dark">
+                    No departures scheduled for today.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

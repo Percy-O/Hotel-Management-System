@@ -1,0 +1,363 @@
+{% extends 'guest_dashboard_base.html' %}
+
+{% block header_title %}Overview{% endblock %}
+{% block header_subtitle %}Welcome to your personal portal{% endblock %}
+
+{% block dashboard_content %}
+    <!-- Welcome Banner -->
+    <div class="relative overflow-hidden rounded-2xl bg-surface-dark border border-border-dark shadow-lg mb-8">
+        <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-primary/20 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-blue-500/20 rounded-full blur-3xl"></div>
+        
+        <div class="relative p-8 sm:p-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+            <div>
+                <h2 class="text-3xl font-bold text-text-main mb-2">Hello, {{ user.first_name }}! 👋</h2>
+                <p class="text-text-secondary-dark text-base max-w-xl">
+                    {% if welcome_mode == 'event' %}
+                        Welcome to your Event Portal! Ready to plan your perfect event?
+                    {% elif welcome_mode == 'gym' %}
+                        Welcome to the Fitness Center! Ready to start your fitness journey?
+                    {% else %}
+                        Ready for your next getaway? Check your upcoming stays or book a new adventure with us.
+                    {% endif %}
+                </p>
+            </div>
+            
+            {% if welcome_mode == 'event' %}
+            <a href="{% url 'event_hall_list' %}" class="px-6 py-3 bg-purple-500 hover:bg-purple-600 text-white font-bold rounded-xl transition-all shadow-lg shadow-purple-500/20 flex items-center gap-2 group">
+                Book an Event
+                <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">celebration</span>
+            </a>
+            {% elif welcome_mode == 'gym' %}
+            <a href="{% url 'gym_membership_list' %}" class="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl transition-all shadow-lg shadow-green-500/20 flex items-center gap-2 group">
+                Join Gym
+                <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">fitness_center</span>
+            </a>
+            {% else %}
+            <a href="{% url 'room_list' %}" class="px-6 py-3 bg-primary hover:bg-primary-hover text-slate-900 font-bold rounded-xl transition-all shadow-lg shadow-primary/20 flex items-center gap-2 group">
+                Book a New Stay
+                <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if welcome_mode == 'event' %}
+    <!-- EVENT VIEW -->
+    <div class="grid grid-cols-1 gap-8">
+        <!-- Event Bookings List -->
+        <div>
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-text-main">Your Events</h3>
+                <a href="{% url 'event_booking_list' %}" class="text-sm text-primary hover:underline">View All History</a>
+            </div>
+            
+            {% if event_bookings %}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% for event in event_bookings %}
+                <div class="bg-surface-dark p-6 rounded-xl border border-border-dark hover:border-purple-500/50 transition-all group">
+                    <div class="flex justify-between items-start mb-4">
+                        <h4 class="text-lg font-bold text-text-main">{{ event.event_name }}</h4>
+                        <span class="px-2 py-1 rounded text-xs font-bold 
+                            {% if event.status == 'CONFIRMED' %}bg-green-500/10 text-green-500
+                            {% elif event.status == 'PENDING' %}bg-yellow-500/10 text-yellow-500
+                            {% else %}bg-slate-700 text-slate-400{% endif %}">
+                            {{ event.status }}
+                        </span>
+                    </div>
+                    <div class="space-y-2 text-sm text-text-secondary-dark">
+                        <p class="flex items-center gap-2"><span class="material-symbols-outlined text-purple-500">location_on</span> {{ event.hall.name }}</p>
+                        <p class="flex items-center gap-2"><span class="material-symbols-outlined text-purple-500">calendar_today</span> {{ event.start_time|date:"M d, Y" }}</p>
+                        <p class="flex items-center gap-2"><span class="material-symbols-outlined text-purple-500">schedule</span> {{ event.start_time|time:"H:i" }} - {{ event.end_time|time:"H:i" }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+                </div>
+            {% else %}
+                <div class="bg-surface-dark p-12 rounded-xl border border-border-dark text-center">
+                    <div class="size-16 bg-purple-500/10 rounded-full flex items-center justify-center mx-auto mb-4 text-purple-500">
+                        <span class="material-symbols-outlined text-3xl">event_busy</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-text-main mb-2">No Events Yet</h3>
+                    <p class="text-text-secondary-dark mb-6">You haven't booked any events with us yet.</p>
+                    <a href="{% url 'event_hall_list' %}" class="px-6 py-2 bg-purple-500 hover:bg-purple-600 text-white font-bold rounded-lg transition-colors">Browse Halls</a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Hotel Upsell -->
+        <div class="bg-gradient-to-r from-blue-900/20 to-purple-900/20 p-8 rounded-2xl border border-white/10 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div>
+                <h3 class="text-xl font-bold text-white mb-2">Need a place to stay during your event?</h3>
+                <p class="text-gray-400">Book a luxury room for yourself or your guests at a special rate.</p>
+            </div>
+            <a href="{% url 'room_list' %}" class="px-6 py-3 bg-surface-dark hover:bg-white/10 border border-white/10 text-white font-bold rounded-xl transition-all flex items-center gap-2">
+                <span class="material-symbols-outlined">hotel</span>
+                Book Accommodation
+            </a>
+        </div>
+    </div>
+
+    {% elif welcome_mode == 'gym' %}
+    <!-- GYM VIEW -->
+    <div class="grid grid-cols-1 gap-8">
+        <!-- Gym Stats/Memberships -->
+        <div>
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-text-main">Your Fitness Journey</h3>
+                <a href="{% url 'gym_membership_list' %}" class="text-sm text-primary hover:underline">View Details</a>
+            </div>
+
+            {% if gym_memberships %}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% for membership in gym_memberships %}
+                <div class="bg-surface-dark p-6 rounded-xl border border-border-dark hover:border-green-500/50 transition-all relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-green-500/5 rounded-full -mr-10 -mt-10 blur-xl"></div>
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h4 class="text-lg font-bold text-text-main">{{ membership.plan.name }}</h4>
+                                <p class="text-xs text-green-500 font-bold uppercase tracking-wider">Active Membership</p>
+                            </div>
+                            <span class="size-10 bg-green-500/10 rounded-full flex items-center justify-center text-green-500">
+                                <span class="material-symbols-outlined">fitness_center</span>
+                            </span>
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-white/5 flex justify-between items-center text-sm">
+                            <span class="text-text-secondary-dark">Expires</span>
+                            <span class="font-mono text-white">{{ membership.end_date|date:"M d, Y" }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                </div>
+            {% else %}
+                <div class="bg-surface-dark p-12 rounded-xl border border-border-dark text-center">
+                    <div class="size-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4 text-green-500">
+                        <span class="material-symbols-outlined text-3xl">directions_run</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-text-main mb-2">Start Your Journey</h3>
+                    <p class="text-text-secondary-dark mb-6">Join our state-of-the-art gym today.</p>
+                    <a href="{% url 'gym_plan_list' %}" class="px-6 py-2 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg transition-colors">View Plans</a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Hotel Upsell -->
+        <div class="bg-gradient-to-r from-blue-900/20 to-green-900/20 p-8 rounded-2xl border border-white/10 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div>
+                <h3 class="text-xl font-bold text-white mb-2">Relax after your workout</h3>
+                <p class="text-gray-400">Experience our spa and luxury rooms for ultimate recovery.</p>
+            </div>
+            <a href="{% url 'room_list' %}" class="px-6 py-3 bg-surface-dark hover:bg-white/10 border border-white/10 text-white font-bold rounded-xl transition-all flex items-center gap-2">
+                <span class="material-symbols-outlined">bathtub</span>
+                Book a Stay
+            </a>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- STANDARD HOTEL VIEW -->
+    <!-- Stats & Quick Actions Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <!-- Stats Column -->
+        <div class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <!-- Active Bookings -->
+            <div class="bg-surface-dark p-5 rounded-xl border border-border-dark shadow-sm hover:border-primary/30 transition-colors group">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="size-10 rounded-lg bg-green-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <span class="material-symbols-outlined text-green-500">event_available</span>
+                    </div>
+                    {% if active_bookings > 0 %}
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-green-500/20 text-green-500">ACTIVE</span>
+                    {% endif %}
+                </div>
+                <h3 class="text-2xl font-bold text-text-main mb-0.5">{{ active_bookings }}</h3>
+                <p class="text-text-secondary-dark text-xs">Upcoming Stays</p>
+            </div>
+
+            <!-- Total Bookings -->
+            <div class="bg-surface-dark p-5 rounded-xl border border-border-dark shadow-sm hover:border-blue-500/30 transition-colors group">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="size-10 rounded-lg bg-blue-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <span class="material-symbols-outlined text-blue-500">history_edu</span>
+                    </div>
+                </div>
+                <h3 class="text-2xl font-bold text-text-main mb-0.5">{{ total_bookings }}</h3>
+                <p class="text-text-secondary-dark text-xs">Total Trips</p>
+            </div>
+
+            <!-- Total Spent -->
+            <div class="bg-surface-dark p-5 rounded-xl border border-border-dark shadow-sm hover:border-purple-500/30 transition-colors group">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="size-10 rounded-lg bg-purple-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <span class="material-symbols-outlined text-purple-500">savings</span>
+                    </div>
+                </div>
+                <h3 class="text-2xl font-bold text-text-main mb-0.5">{{ site_settings.currency_symbol }}{{ total_spent }}</h3>
+                <p class="text-text-secondary-dark text-xs">Total Spent</p>
+            </div>
+        </div>
+
+        <!-- Quick Profile Card -->
+        <div class="bg-surface-dark p-6 rounded-xl border border-border-dark shadow-sm flex flex-col justify-center items-center text-center">
+            <div class="size-20 rounded-full bg-background-dark p-1 mb-4 border-2 border-border-dark">
+                <div class="w-full h-full rounded-full bg-center bg-cover" style='background-image: url("https://ui-avatars.com/api/?name={{ user.first_name }}+{{ user.last_name }}&background=random&size=128");'></div>
+            </div>
+            <h3 class="text-lg font-bold text-text-main">{{ user.first_name }} {{ user.last_name }}</h3>
+            <p class="text-text-secondary-dark text-sm mb-4">{{ user.email }}</p>
+            <a href="{% url 'profile' %}" class="text-primary hover:text-primary-hover text-sm font-medium hover:underline">Manage Profile</a>
+        </div>
+    </div>
+
+    <!-- Services Section -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <!-- Room Service Card -->
+        <a href="{% url 'menu_list' %}" class="bg-surface-dark p-6 rounded-xl border border-border-dark shadow-sm hover:border-primary transition-all group relative overflow-hidden">
+            <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-orange-500/10 rounded-full blur-2xl group-hover:bg-orange-500/20 transition-colors"></div>
+            
+            <div class="flex items-start justify-between mb-4">
+                <div class="size-12 rounded-lg bg-orange-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <span class="material-symbols-outlined text-orange-500 text-2xl">restaurant</span>
+                </div>
+                <span class="material-symbols-outlined text-text-secondary-dark group-hover:translate-x-1 transition-transform">arrow_forward</span>
+            </div>
+            
+            <h3 class="text-xl font-bold text-text-main mb-2">Room Service</h3>
+            <p class="text-text-secondary-dark text-sm">Hungry? Order food & drinks directly to your room.</p>
+        </a>
+        
+        <!-- Housekeeping Request -->
+        <a href="{% url 'request_housekeeping' %}" class="bg-surface-dark p-6 rounded-xl border border-border-dark shadow-sm hover:border-blue-500 transition-all group relative overflow-hidden">
+            <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-colors"></div>
+            
+            <div class="flex items-start justify-between mb-4">
+                <div class="size-12 rounded-lg bg-blue-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <span class="material-symbols-outlined text-blue-500 text-2xl">cleaning_services</span>
+                </div>
+                <span class="material-symbols-outlined text-text-secondary-dark group-hover:translate-x-1 transition-transform">arrow_forward</span>
+            </div>
+            
+            <h3 class="text-xl font-bold text-text-main mb-2">Housekeeping</h3>
+            <p class="text-text-secondary-dark text-sm">Request cleaning or extra amenities for your room.</p>
+        </a>
+    </div>
+
+    <!-- Recent Activity Section -->
+    <div class="flex flex-col gap-6">
+        
+        <!-- Gym Upsell for Hotel Guests -->
+        {% if site_settings.enable_gym %}
+        <div class="bg-surface-dark p-6 rounded-xl border border-border-dark flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div class="size-12 bg-green-500/10 rounded-lg flex items-center justify-center text-green-500">
+                    <span class="material-symbols-outlined">fitness_center</span>
+                </div>
+                <div>
+                    <h4 class="font-bold text-white">Keep fit during your stay?</h4>
+                    <p class="text-sm text-gray-400">Join our gym for daily or weekly access.</p>
+                </div>
+            </div>
+            <a href="{% url 'gym_plan_list' %}" class="text-green-500 font-bold hover:text-white transition-colors">Join Now</a>
+        </div>
+        {% endif %}
+
+        <div class="flex items-center justify-between">
+            <h3 class="text-lg font-bold text-text-main">Recent Room Bookings</h3>
+            <a href="{% url 'my_bookings' %}" class="text-sm text-primary hover:text-primary-hover font-medium flex items-center gap-1">
+                View All History
+                <span class="material-symbols-outlined text-[16px]">arrow_right_alt</span>
+            </a>
+        </div>
+
+        {% if recent_bookings %}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {% for booking in recent_bookings %}
+            <div class="bg-surface-dark p-5 rounded-xl border border-border-dark hover:border-primary/50 transition-all group">
+                <div class="flex flex-col sm:flex-row items-start justify-between gap-4">
+                    <div class="flex gap-4 w-full sm:w-auto">
+                        <!-- Room Image/Icon -->
+                        <div class="size-16 rounded-lg bg-background-dark overflow-hidden flex-shrink-0">
+                            {% if booking.room.room_type.image %}
+                            <img src="{{ booking.room.room_type.image.url }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                            {% else %}
+                            <div class="w-full h-full flex items-center justify-center text-text-secondary-dark">
+                                <span class="material-symbols-outlined">bed</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Details -->
+                        <div>
+                            <h4 class="text-text-main font-bold text-base mb-1">{{ booking.room.room_type.name }}</h4>
+                            <div class="flex flex-col gap-1">
+                                <span class="text-text-secondary-dark text-xs flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[14px]">calendar_month</span>
+                                    {{ booking.check_in_date|date:"M d" }} - {{ booking.check_out_date|date:"M d, Y" }}
+                                </span>
+                                <span class="text-text-secondary-dark text-xs flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[14px]">door_front</span>
+                                    Room {{ booking.room.room_number }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status & Price -->
+                    <div class="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 w-full sm:w-auto mt-2 sm:mt-0">
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border
+                            {% if booking.status == 'CONFIRMED' %}bg-green-500/10 text-green-500 border-green-500/20
+                            {% elif booking.status == 'PENDING' %}bg-yellow-500/10 text-yellow-500 border-yellow-500/20
+                            {% elif booking.status == 'CHECKED_IN' %}bg-blue-500/10 text-blue-500 border-blue-500/20
+                            {% elif booking.status == 'CHECKED_OUT' %}bg-gray-500/10 text-gray-400 border-gray-500/20
+                            {% else %}bg-red-500/10 text-red-500 border-red-500/20{% endif %}">
+                            {{ booking.get_status_display }}
+                        </span>
+                        <span class="text-text-main font-bold text-sm">{{ site_settings.currency_symbol }}{{ booking.total_price }}</span>
+                    </div>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-border-dark flex flex-wrap justify-end gap-2">
+                    {% if booking.status == 'PENDING' or booking.status == 'CONFIRMED' %}
+                        {% if booking.invoices.exists and booking.invoices.first.status == 'PENDING' %}
+
+                        <a href="{% url 'make_payment' booking.invoices.first.pk %}" class="px-3 py-1.5 bg-primary hover:bg-primary-hover text-slate-900 text-xs font-bold rounded-lg transition-colors flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[14px]">credit_card</span>
+                            Pay Now
+                        </a>
+                        {% endif %}
+                    {% endif %}
+                    
+                    <a href="{% url 'view_barcode_pass' booking.pk %}" class="px-3 py-1.5 bg-surface-light/10 hover:bg-surface-light/20 text-text-main text-xs font-medium rounded-lg transition-colors flex items-center gap-1 border border-border-dark">
+                        <span class="material-symbols-outlined text-[14px]">qr_code</span>
+                        Pass
+                    </a>
+
+                    {% if booking.invoices.exists and booking.invoices.first.status == 'PAID' %}
+                    <a href="{% url 'download_receipt' booking.pk %}" class="px-3 py-1.5 bg-surface-light/10 hover:bg-surface-light/20 text-text-main text-xs font-medium rounded-lg transition-colors flex items-center gap-1 border border-border-dark">
+                        <span class="material-symbols-outlined text-[14px]">download</span>
+                        Receipt
+                    </a>
+                    {% endif %}
+
+                    <a href="{% url 'booking_detail' booking.pk %}" class="px-3 py-1.5 border border-border-dark rounded-lg text-xs font-medium text-text-secondary-dark hover:text-text-main hover:bg-surface-dark transition-colors flex items-center gap-1">
+                        Details
+                        <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="bg-surface-dark rounded-xl border border-border-dark p-12 text-center">
+            <div class="size-16 rounded-full bg-background-dark mx-auto flex items-center justify-center mb-4">
+                <span class="material-symbols-outlined text-text-secondary-dark text-3xl">sentiment_content</span>
+            </div>
+            <h3 class="text-text-main font-bold text-lg mb-2">No bookings yet</h3>
+            <p class="text-text-secondary-dark text-sm mb-6">It looks quiet here. Start your journey by booking a room!</p>
+            <a href="{% url 'room_list' %}" class="text-primary hover:text-primary-hover font-medium hover:underline">Browse Rooms</a>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+{% endblock %}

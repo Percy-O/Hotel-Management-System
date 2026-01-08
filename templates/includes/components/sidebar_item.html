@@ -1,0 +1,29 @@
+{% comment %}
+    Reusable Sidebar Item Component
+    Arguments:
+        url: The URL to link to
+        icon: Material symbol icon name
+        label: Text to display
+        active_name: The URL name to check for active state (optional)
+        extra_classes: Additional CSS classes (optional)
+        badge_count: Number to show in a badge (optional)
+{% endcomment %}
+
+<a href="{{ url }}" 
+   class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors 
+   {% if request.resolver_match.url_name == active_name %}
+       bg-primary/10 text-primary
+   {% else %}
+       text-text-secondary-dark hover:bg-primary/5
+   {% endif %} 
+   {{ extra_classes }} relative">
+    <span class="material-symbols-outlined">{{ icon }}</span>
+    <span class="text-sm font-medium">{{ label }}</span>
+    
+    {% if active_name == 'notifications' or badge_count %}
+        <span {% if active_name == 'notifications' %}id="notification-badge"{% endif %} 
+              class="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 bg-red-500 text-white text-[10px] rounded-full font-bold {% if not badge_count %}hidden{% endif %}">
+            {{ badge_count|default:"0" }}
+        </span>
+    {% endif %}
+</a>

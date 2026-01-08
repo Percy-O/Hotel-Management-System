@@ -1,0 +1,79 @@
+{% extends 'dashboard_base.html' %}
+
+{% block header_title %}Room Types{% endblock %}
+{% block header_subtitle %}Manage hotel room categories{% endblock %}
+
+{% block header_actions %}
+<div class="flex gap-2">
+    <a href="{% url 'room_type_create' %}" class="flex items-center gap-2 px-4 py-2 bg-primary text-slate-900 rounded-lg text-sm font-bold hover:bg-primary-hover transition-colors shadow-lg shadow-primary/20 whitespace-nowrap">
+        <span class="material-symbols-outlined text-[18px]">add</span>
+        Add Room Type
+    </a>
+</div>
+{% endblock %}
+
+{% block dashboard_content %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for room_type in room_types %}
+        <div class="bg-surface-dark rounded-xl border border-border-dark overflow-hidden shadow-sm group hover:shadow-md transition-shadow">
+            <!-- Image -->
+            <div class="h-48 bg-background-dark relative overflow-hidden">
+                {% if room_type.image %}
+                    <img src="{{ room_type.image.url }}" alt="{{ room_type.name }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                {% else %}
+                    <div class="w-full h-full flex items-center justify-center bg-surface-dark/50">
+                        <span class="material-symbols-outlined text-4xl text-text-secondary-dark">image</span>
+                    </div>
+                {% endif %}
+                <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                <div class="absolute bottom-4 left-4">
+                    <h3 class="text-xl font-bold text-white">{{ room_type.name }}</h3>
+                    <p class="text-sm text-gray-300">{{ room_type.total_rooms }} Rooms</p>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="p-5">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <p class="text-xs text-text-secondary-dark uppercase tracking-wider mb-1">Price</p>
+                        <p class="text-lg font-bold text-primary">{{ site_settings.currency_symbol }}{{ room_type.price_per_night }}<span class="text-sm text-text-secondary-dark font-normal">/night</span></p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs text-text-secondary-dark uppercase tracking-wider mb-1">Capacity</p>
+                        <div class="flex items-center gap-1 text-text-main">
+                            <span class="material-symbols-outlined text-[16px]">group</span>
+                            <span class="font-bold">{{ room_type.capacity }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center py-3 border-t border-border-dark mb-4">
+                    <div class="text-center flex-1 border-r border-border-dark">
+                        <p class="text-xs text-text-secondary-dark uppercase mb-1">Available</p>
+                        <p class="font-bold text-green-500">{{ room_type.available_rooms }}</p>
+                    </div>
+                    <div class="text-center flex-1">
+                        <p class="text-xs text-text-secondary-dark uppercase mb-1">Total</p>
+                        <p class="font-bold text-text-main">{{ room_type.total_rooms }}</p>
+                    </div>
+                </div>
+
+                <div class="flex gap-2">
+                    <a href="{% url 'room_detail' room_type.pk %}" class="flex-1 px-4 py-2 bg-background-dark text-text-main text-sm font-medium rounded-lg hover:bg-primary/10 transition-colors text-center border border-border-dark">
+                        View Details
+                    </a>
+                    <a href="{% url 'room_type_delete' room_type.pk %}" class="px-3 py-2 border border-border-dark text-red-500 hover:bg-red-500/10 transition-colors rounded-lg flex items-center justify-center" title="Delete Room Type">
+                        <span class="material-symbols-outlined text-[20px]">delete</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full py-12 text-center">
+            <span class="material-symbols-outlined text-4xl text-text-secondary-dark mb-2">category</span>
+            <p class="text-text-secondary-dark">No room types found. Add your first one!</p>
+        </div>
+        {% endfor %}
+    </div>
+{% endblock %}

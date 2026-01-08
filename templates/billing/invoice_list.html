@@ -1,0 +1,210 @@
+{% extends 'dashboard_base.html' %}
+
+{% block header_title %}Billing & Invoices{% endblock %}
+{% block header_subtitle %}Manage payments and financial records.{% endblock %}
+
+{% block header_actions %}
+{% if user.is_staff %}
+<div class="hidden md:flex gap-3">
+    <!-- Placeholder for staff actions if needed -->
+</div>
+{% else %}
+<div class="hidden md:flex gap-3">
+    <!-- User specific invoice actions if any -->
+</div>
+{% endif %}
+{% endblock %}
+
+{% block dashboard_content %}
+    
+    {% if user.is_staff %}
+    <!-- Financial Overview Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <!-- Monthly Sales -->
+        <div class="bg-surface-dark p-6 rounded-xl border border-border-dark shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-xs font-medium text-text-secondary-dark uppercase tracking-wider">Monthly Sales</span>
+                <div class="p-2 bg-green-500/10 rounded-lg">
+                    <span class="material-symbols-outlined text-green-500">calendar_month</span>
+                </div>
+            </div>
+            <h3 class="text-3xl font-bold text-text-main">{{ site_settings.currency_symbol }}{{ monthly_sales }}</h3>
+            <p class="text-xs text-text-secondary-dark mt-1">Current Month Revenue</p>
+        </div>
+
+        <!-- Weekly Sales -->
+        <div class="bg-surface-dark p-6 rounded-xl border border-border-dark shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-xs font-medium text-text-secondary-dark uppercase tracking-wider">Weekly Sales</span>
+                <div class="p-2 bg-blue-500/10 rounded-lg">
+                    <span class="material-symbols-outlined text-blue-500">date_range</span>
+                </div>
+            </div>
+            <h3 class="text-3xl font-bold text-text-main">{{ site_settings.currency_symbol }}{{ weekly_sales }}</h3>
+            <p class="text-xs text-text-secondary-dark mt-1">Current Week Revenue</p>
+        </div>
+
+        <!-- Yearly Sales -->
+        <div class="bg-surface-dark p-6 rounded-xl border border-border-dark shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-xs font-medium text-text-secondary-dark uppercase tracking-wider">Yearly Sales</span>
+                <div class="p-2 bg-purple-500/10 rounded-lg">
+                    <span class="material-symbols-outlined text-purple-500">trending_up</span>
+                </div>
+            </div>
+            <h3 class="text-3xl font-bold text-text-main">{{ site_settings.currency_symbol }}{{ yearly_sales }}</h3>
+            <p class="text-xs text-text-secondary-dark mt-1">Current Year Revenue</p>
+        </div>
+    </div>
+
+    <!-- Recent Transactions -->
+    <div class="mb-8">
+        <h3 class="text-lg font-bold text-text-main mb-4">Recent Transactions</h3>
+        <div class="bg-surface-dark rounded-xl border border-border-dark shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-background-dark/50 border-b border-border-dark">
+                        <tr>
+                            <th class="px-6 py-3 text-xs font-semibold text-text-secondary-dark uppercase">Transaction ID</th>
+                            <th class="px-6 py-3 text-xs font-semibold text-text-secondary-dark uppercase">Date</th>
+                            <th class="px-6 py-3 text-xs font-semibold text-text-secondary-dark uppercase">Method</th>
+                            <th class="px-6 py-3 text-xs font-semibold text-text-secondary-dark uppercase text-right">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-border-dark">
+                        {% for payment in transactions|slice:":5" %}
+                        <tr>
+                            <td class="px-6 py-4 text-sm font-mono text-text-main">{{ payment.transaction_id }}</td>
+                            <td class="px-6 py-4 text-sm text-text-secondary-dark">{{ payment.payment_date|date:"M d, Y H:i" }}</td>
+                            <td class="px-6 py-4 text-sm text-text-main">{{ payment.get_payment_method_display }}</td>
+                            <td class="px-6 py-4 text-sm font-bold text-green-500 text-right">+{{ site_settings.currency_symbol }}{{ payment.amount }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="px-6 py-8 text-center text-text-secondary-dark">No transactions found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <h3 class="text-lg font-bold text-text-main mb-4">All Invoices</h3>
+    <!-- Invoice Table -->
+    <div class="bg-surface-dark rounded-xl border border-border-dark shadow-sm overflow-hidden">
+        <div class="p-6 border-b border-border-dark flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center bg-background-dark border border-border-dark rounded-lg px-3 py-2 w-full sm:w-80">
+                <span class="material-symbols-outlined text-text-secondary-dark">search</span>
+                <form method="GET" class="w-full">
+                    <input type="text" name="search" placeholder="Search invoices..." class="bg-transparent border-none text-sm text-text-main placeholder-text-secondary-dark focus:ring-0 w-full ml-2" value="{{ request.GET.search|default:'' }}" />
+                </form>
+            </div>
+            <div class="flex gap-2">
+                <button class="p-2 text-text-secondary-dark hover:text-text-main">
+                    <span class="material-symbols-outlined">filter_list</span>
+                </button>
+            </div>
+        </div>
+        <div class="overflow-x-auto hidden md:block">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-background-dark/50 border-b border-border-dark">
+                        <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Invoice #</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Date Issued</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Amount</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-border-dark">
+                    {% for invoice in invoices %}
+                    <tr class="hover:bg-primary/5 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="flex flex-col">
+                                <span class="text-sm font-medium text-text-main">#{{ invoice.id }}</span>
+                                <span class="text-xs text-text-secondary-dark">Ref: {{ invoice.booking.id }}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="text-sm text-text-main">{{ invoice.issued_date|date:"M d, Y" }}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="text-sm font-bold text-text-main">${{ invoice.amount }}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border
+                                {% if invoice.status == 'PAID' %}bg-green-500/10 text-green-500 border-green-500/20
+                                {% elif invoice.status == 'PENDING' %}bg-yellow-500/10 text-yellow-500 border-yellow-500/20
+                                {% else %}bg-red-500/10 text-red-500 border-red-500/20{% endif %}">
+                                {{ invoice.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-right flex justify-end gap-2">
+                            <a href="{% url 'invoice_detail' invoice.pk %}" class="text-text-secondary-dark hover:text-primary transition-colors">
+                                <span class="material-symbols-outlined text-[20px]">visibility</span>
+                            </a>
+                            {% if invoice.status == 'PENDING' %}
+                            <a href="{% url 'make_payment' invoice.pk %}" class="text-text-secondary-dark hover:text-green-500 transition-colors" title="Pay Now">
+                                <span class="material-symbols-outlined text-[20px]">credit_card</span>
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-8 text-center text-text-secondary-dark">
+                            No invoices found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Mobile Card View -->
+        <div class="md:hidden divide-y divide-border-dark">
+            {% for invoice in invoices %}
+            <div class="p-4 space-y-3">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="font-mono text-xs font-medium text-text-main bg-background-dark px-2 py-0.5 rounded border border-border-dark">
+                                #{{ invoice.id }}
+                            </span>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border
+                                {% if invoice.status == 'PAID' %}bg-green-500/10 text-green-500 border-green-500/20
+                                {% elif invoice.status == 'PENDING' %}bg-yellow-500/10 text-yellow-500 border-yellow-500/20
+                                {% else %}bg-red-500/10 text-red-500 border-red-500/20{% endif %}">
+                                {{ invoice.get_status_display }}
+                            </span>
+                        </div>
+                        <p class="text-xs text-text-secondary-dark">Ref: {{ invoice.booking.id }}</p>
+                    </div>
+                    <span class="text-sm font-bold text-text-main">{{ site_settings.currency_symbol }}{{ invoice.amount }}</span>
+                </div>
+
+                <div class="flex justify-between items-center text-xs text-text-secondary-dark">
+                    <span>Issued: {{ invoice.issued_date|date:"M d, Y" }}</span>
+                </div>
+
+                <div class="pt-3 border-t border-border-dark flex gap-2">
+                    <a href="{% url 'invoice_detail' invoice.pk %}" class="flex-1 py-2 text-center bg-surface-dark border border-border-dark rounded-lg text-xs font-bold text-text-main hover:bg-background-dark transition-colors">
+                        View Details
+                    </a>
+                    {% if invoice.status == 'PENDING' %}
+                    <a href="{% url 'make_payment' invoice.pk %}" class="flex-1 py-2 text-center bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-bold transition-colors shadow-lg shadow-green-600/20">
+                        Pay Now
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="p-8 text-center text-text-secondary-dark">
+                No invoices found.
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

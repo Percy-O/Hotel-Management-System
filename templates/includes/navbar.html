@@ -1,0 +1,105 @@
+<nav class="bg-background-dark/95 backdrop-blur-sm border-b border-border-dark sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-20">
+            <div class="flex items-center">
+                <a href="/" class="flex items-center gap-3 group">
+                    <div class="size-10 rounded-full bg-primary flex items-center justify-center text-slate-900 overflow-hidden">
+                        {% if site_settings.hotel_logo %}
+                            <img src="{{ site_settings.hotel_logo.url }}" alt="{{ site_settings.hotel_name }}" class="w-full h-full object-cover">
+                        {% else %}
+                            <span class="material-symbols-outlined text-[24px]">hotel</span>
+                        {% endif %}
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-xl font-bold text-text-main leading-none">{{ site_settings.hotel_name }}</span>
+                        <span class="text-[10px] uppercase tracking-[0.2em] text-primary font-medium mt-1 group-hover:text-text-main transition-colors">Luxury Stay</span>
+                    </div>
+                </a>
+                
+                <div class="hidden md:flex ml-16 space-x-8">
+                    <a href="/" class="text-sm font-medium text-text-main hover:text-primary transition-colors py-2 border-b-2 border-transparent hover:border-primary">Home</a>
+                    <a href="{% url 'room_list' %}" class="text-sm font-medium text-text-secondary-dark hover:text-text-main transition-colors py-2 border-b-2 border-transparent hover:border-text-main">Rooms & Suites</a>
+                    <a href="#" class="text-sm font-medium text-text-secondary-dark hover:text-text-main transition-colors py-2 border-b-2 border-transparent hover:border-text-main">Dining</a>
+                    <a href="#" class="text-sm font-medium text-text-secondary-dark hover:text-text-main transition-colors py-2 border-b-2 border-transparent hover:border-text-main">Spa & Wellness</a>
+                    <a href="#" class="text-sm font-medium text-text-secondary-dark hover:text-text-main transition-colors py-2 border-b-2 border-transparent hover:border-text-main">Contact</a>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-6">
+                {% if user.is_authenticated %}
+                    <div class="hidden md:flex items-center gap-4">
+                        <a href="{% url 'dashboard' %}" class="text-sm font-medium text-text-secondary-dark hover:text-text-main transition-colors">
+                            Dashboard
+                        </a>
+                        <form action="{% url 'logout' %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="text-sm font-medium text-text-secondary-dark hover:text-text-main transition-colors">
+                                Logout
+                            </button>
+                        </form>
+                    </div>
+                {% else %}
+                    <div class="hidden md:flex items-center gap-6">
+                        <a href="{% url 'login' %}" class="text-sm font-medium text-text-main hover:text-primary transition-colors">Sign In</a>
+                    </div>
+                {% endif %}
+                
+                <button id="mobile-menu-btn" class="md:hidden text-text-main p-2">
+                    <span class="material-symbols-outlined">menu</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="hidden md:hidden border-t border-border-dark bg-surface-dark">
+        <div class="px-4 pt-2 pb-6 space-y-1">
+            <a href="/" class="block px-3 py-3 text-base font-medium text-text-main hover:bg-primary/10 hover:text-primary rounded-lg transition-colors">Home</a>
+            <a href="{% url 'room_list' %}" class="block px-3 py-3 text-base font-medium text-text-main hover:bg-primary/10 hover:text-primary rounded-lg transition-colors">Rooms & Suites</a>
+            <a href="#" class="block px-3 py-3 text-base font-medium text-text-main hover:bg-primary/10 hover:text-primary rounded-lg transition-colors">Dining</a>
+            <a href="#" class="block px-3 py-3 text-base font-medium text-text-main hover:bg-primary/10 hover:text-primary rounded-lg transition-colors">Spa & Wellness</a>
+            <a href="#" class="block px-3 py-3 text-base font-medium text-text-main hover:bg-primary/10 hover:text-primary rounded-lg transition-colors">Contact</a>
+            
+            <div class="border-t border-border-dark my-2 pt-2">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'dashboard' %}" class="block px-3 py-3 text-base font-medium text-text-secondary-dark hover:text-text-main rounded-lg transition-colors">
+                        <span class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[20px]">dashboard</span>
+                            Dashboard
+                        </span>
+                    </a>
+                    <form action="{% url 'logout' %}" method="post" class="block w-full">
+                        {% csrf_token %}
+                        <button type="submit" class="w-full text-left px-3 py-3 text-base font-medium text-text-secondary-dark hover:text-text-main rounded-lg transition-colors">
+                            <span class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[20px]">logout</span>
+                                Logout
+                            </span>
+                        </button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'login' %}" class="block px-3 py-3 text-base font-medium text-primary hover:bg-primary/10 rounded-lg transition-colors">Sign In</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const btn = document.getElementById('mobile-menu-btn');
+            const menu = document.getElementById('mobile-menu');
+            
+            if (btn && menu) {
+                btn.addEventListener('click', () => {
+                    menu.classList.toggle('hidden');
+                    const icon = btn.querySelector('.material-symbols-outlined');
+                    if (menu.classList.contains('hidden')) {
+                        icon.textContent = 'menu';
+                    } else {
+                        icon.textContent = 'close';
+                    }
+                });
+            }
+        });
+    </script>
+</nav>

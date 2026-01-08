@@ -1,0 +1,61 @@
+{% extends 'dashboard_base.html' %}
+
+{% block header_title %}Gym Memberships{% endblock %}
+{% block header_subtitle %}View active subscriptions{% endblock %}
+{% block header_actions %}
+    <a href="{% url 'gym_plan_list' %}" class="btn btn-primary flex items-center gap-2">
+        <span class="material-symbols-outlined">add</span>
+        New Membership
+    </a>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="bg-surface-dark rounded-2xl border border-border-dark overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+            <thead>
+                <tr class="bg-background-dark border-b border-border-dark text-text-secondary-dark uppercase tracking-wider text-xs font-semibold">
+                    <th class="px-6 py-4">Member</th>
+                    <th class="px-6 py-4">Plan</th>
+                    <th class="px-6 py-4">Validity Period</th>
+                    <th class="px-6 py-4">Status</th>
+                    <th class="px-6 py-4 text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-border-dark">
+                {% for membership in memberships %}
+                <tr class="hover:bg-background-dark/50 transition-colors">
+                    <td class="px-6 py-4 font-medium text-text-main">
+                        {{ membership.user.get_full_name|default:membership.user.username }}
+                    </td>
+                    <td class="px-6 py-4 text-text-secondary-light dark:text-text-secondary-dark">
+                        {{ membership.plan.name }}
+                    </td>
+                    <td class="px-6 py-4 text-text-secondary-light dark:text-text-secondary-dark">
+                        {{ membership.start_date|date:"M d, Y" }} - {{ membership.end_date|date:"M d, Y" }}
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="px-2.5 py-1 rounded-full text-xs font-medium 
+                            {% if membership.status == 'ACTIVE' %}bg-green-500/10 text-green-400
+                            {% elif membership.status == 'EXPIRED' %}bg-gray-500/10 text-gray-400
+                            {% else %}bg-red-500/10 text-red-400{% endif %}">
+                            {{ membership.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <a href="{% url 'gym_membership_detail' membership.pk %}" class="btn btn-ghost btn-sm text-primary hover:bg-primary/10">View</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-6 py-12 text-center text-text-secondary-dark">
+                        <span class="material-symbols-outlined text-4xl mb-2 block">card_membership</span>
+                        No memberships found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

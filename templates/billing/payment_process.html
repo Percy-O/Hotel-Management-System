@@ -1,0 +1,48 @@
+{% extends 'dashboard_base.html' %}
+
+{% block header_title %}Complete Payment{% endblock %}
+{% block header_subtitle %}Secure Payment Gateway{% endblock %}
+
+{% block dashboard_content %}
+<div class="flex justify-center items-center min-h-[60vh]">
+    <div class="w-full max-w-md bg-surface-dark rounded-xl border border-border-dark p-8 shadow-xl text-center">
+        
+        <div class="mb-8">
+            {% if payment_method == 'PAYSTACK' %}
+                <div class="size-16 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="material-symbols-outlined text-3xl text-blue-500">credit_card</span>
+                </div>
+                <h3 class="text-xl font-bold text-text-main">Pay with Paystack</h3>
+            {% elif payment_method == 'FLUTTERWAVE' %}
+                <div class="size-16 bg-orange-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="material-symbols-outlined text-3xl text-orange-500">payments</span>
+                </div>
+                <h3 class="text-xl font-bold text-text-main">Pay with Flutterwave</h3>
+            {% endif %}
+            <p class="text-text-secondary-dark mt-2">You are about to pay <span class="text-primary font-bold">{{ site_settings.currency_symbol }}{{ amount }}</span></p>
+        </div>
+
+        <!-- Simulation Buttons (Since we are in test mode without real JS SDKs setup fully) -->
+        <div class="space-y-4">
+            <p class="text-xs text-text-secondary-dark bg-background-dark p-3 rounded-lg border border-border-dark">
+                <span class="font-bold text-yellow-500">TEST MODE:</span> This will simulate a successful transaction callback.
+            </p>
+            
+            <a href="{% url 'payment_callback' invoice.pk %}?method={{ payment_method }}&ref=SIM-{{ invoice.id }}" class="block w-full py-3 bg-primary text-slate-900 font-bold rounded-lg hover:bg-primary-hover transition-colors shadow-lg shadow-primary/20">
+                Simulate Successful Payment
+            </a>
+            
+            <a href="{% url 'make_payment' invoice.pk %}" class="block w-full py-3 bg-background-dark border border-border-dark text-text-main font-bold rounded-lg hover:bg-border-dark transition-colors">
+                Cancel Transaction
+            </a>
+        </div>
+        
+        <!-- 
+        Real Integration Notes:
+        1. For Paystack: Use Paystack Inline JS with {{ paystack_public_key }}
+        2. For Flutterwave: Use Flutterwave Inline JS with {{ flutterwave_public_key }}
+        3. On success, redirect to {% url 'payment_callback' invoice.pk %}?ref=...
+        -->
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,168 @@
+{% extends 'dashboard_base.html' %}
+{% load widget_tweaks %}
+
+{% block header_title %}Create Booking{% endblock %}
+{% block header_subtitle %}New reservation for {{ room_type.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-4xl mx-auto">
+    <!-- Progress Steps -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between relative">
+            <div class="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-border-dark -z-10"></div>
+            <div class="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-slate-900 font-bold transition-colors step-indicator" data-step="1">1</div>
+            <div class="flex items-center justify-center w-10 h-10 rounded-full bg-border-dark text-text-secondary-dark font-bold transition-colors step-indicator" data-step="2">2</div>
+        </div>
+        <div class="flex justify-between mt-2 text-xs font-medium text-text-secondary-dark">
+            <span>Stay Dates</span>
+            <span>Guest Details</span>
+        </div>
+    </div>
+
+    <form class="bg-surface-dark p-8 rounded-2xl border border-border-dark shadow-sm" method="POST" id="bookingForm">
+        {% csrf_token %}
+        
+        <!-- Step 1: Dates -->
+        <div class="step-content" data-step="1">
+            <h3 class="text-lg font-bold text-text-main mb-6">Stay Information</h3>
+            
+            <div class="bg-primary/10 border border-primary/20 rounded-lg p-4 mb-6 flex items-start gap-3">
+                <span class="material-symbols-outlined text-primary mt-0.5">info</span>
+                <div>
+                    <h4 class="text-sm font-bold text-text-main">Selected Room Type: {{ room_type.name }}</h4>
+                    <p class="text-xs text-text-secondary-dark mt-1">Price: {{ site_settings.currency_symbol }}{{ room_type.price_per_night }}/night • Capacity: {{ room_type.capacity }} Persons</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-text-main mb-2">Check-in Date</label>
+                    {% render_field form.check_in_date class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm" %}
+                    {{ form.check_in_date.errors }}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-text-main mb-2">Check-out Date</label>
+                    {% render_field form.check_out_date class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm" %}
+                    {{ form.check_out_date.errors }}
+                </div>
+            </div>
+
+            <div class="mt-8 flex justify-end">
+                <button type="button" class="btn-next px-6 py-2.5 bg-primary text-slate-900 font-bold rounded-lg hover:bg-primary-hover transition-colors">
+                    Next Step
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 2: Guest Details -->
+        <div class="step-content hidden" data-step="2">
+            <h3 class="text-lg font-bold text-text-main mb-6">Guest Information</h3>
+            
+            <div class="space-y-6">
+                {% if form.user %}
+                <div>
+                    <label class="block text-sm font-medium text-text-main mb-2">Registered Guest (Optional)</label>
+                    {% render_field form.user class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm" %}
+                    <p class="mt-1 text-xs text-text-secondary-dark">Select an existing user to auto-fill details (optional)</p>
+                    {{ form.user.errors }}
+                </div>
+                <div class="relative flex items-center py-2">
+                    <div class="flex-grow border-t border-border-dark"></div>
+                    <span class="flex-shrink-0 mx-4 text-text-secondary-dark text-xs uppercase font-bold">Or Enter Manually</span>
+                    <div class="flex-grow border-t border-border-dark"></div>
+                </div>
+                {% endif %}
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-text-main mb-2">First Name</label>
+                        {% render_field form.first_name class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm" placeholder="John" %}
+                        {{ form.first_name.errors }}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-text-main mb-2">Last Name</label>
+                        {% render_field form.last_name class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm" placeholder="Doe" %}
+                        {{ form.last_name.errors }}
+                    </div>
+                    
+                    {{ form.guest_name }}
+
+                    <div class="md:col-span-2">
+                        <p class="text-xs text-primary mb-2">
+                            <strong>Note:</strong> If "Registered Guest" is not selected, a new Guest Account will be created using the Email (username) and First Name (password).
+                        </p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-text-main mb-2">Email Address</label>
+                        {% render_field form.guest_email class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm" placeholder="john@example.com" %}
+                        {{ form.guest_email.errors }}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-text-main mb-2">Phone Number</label>
+                        {% render_field form.guest_phone class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm" placeholder="+1 234 567 890" %}
+                        {{ form.guest_phone.errors }}
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-text-main mb-2">Payment Method</label>
+                        {% render_field form.payment_method class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm" %}
+                        <p class="mt-1 text-xs text-text-secondary-dark">Select 'Cash' or 'Transfer' to mark as Paid immediately.</p>
+                        {{ form.payment_method.errors }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 flex justify-between">
+                <button type="button" class="btn-prev px-6 py-2.5 border border-border-dark text-text-main font-medium rounded-lg hover:bg-primary/10 transition-colors">
+                    Back
+                </button>
+                <button type="submit" class="px-6 py-2.5 bg-primary text-slate-900 font-bold rounded-lg hover:bg-primary-hover transition-colors shadow-lg shadow-primary/20">
+                    Confirm Booking
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Multi-step Logic
+    const steps = document.querySelectorAll('.step-content');
+    const indicators = document.querySelectorAll('.step-indicator');
+    const nextBtn = document.querySelector('.btn-next');
+    const prevBtn = document.querySelector('.btn-prev');
+
+    nextBtn.addEventListener('click', () => {
+        // Basic validation for dates
+        const checkIn = document.getElementById('id_check_in_date').value;
+        const checkOut = document.getElementById('id_check_out_date').value;
+        
+        if (!checkIn || !checkOut) {
+            alert('Please select both check-in and check-out dates.');
+            return;
+        }
+
+        steps[0].classList.add('hidden');
+        steps[1].classList.remove('hidden');
+        updateIndicators(2);
+    });
+
+    prevBtn.addEventListener('click', () => {
+        steps[1].classList.add('hidden');
+        steps[0].classList.remove('hidden');
+        updateIndicators(1);
+    });
+
+    function updateIndicators(step) {
+        indicators.forEach((ind, index) => {
+            if (index + 1 <= step) {
+                ind.classList.add('bg-primary', 'text-slate-900');
+                ind.classList.remove('bg-border-dark', 'text-text-secondary-dark');
+            } else {
+                ind.classList.remove('bg-primary', 'text-slate-900');
+                ind.classList.add('bg-border-dark', 'text-text-secondary-dark');
+            }
+        });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends 'dashboard_base.html' %}
+
+{% block header_title %}Notifications{% endblock %}
+{% block header_subtitle %}System alerts and updates{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-4xl mx-auto">
+    {% if notifications %}
+        <div class="space-y-4">
+            {% for notification in notifications %}
+            <div class="p-4 bg-surface-dark rounded-xl border border-border-dark shadow-sm flex gap-4 transition-all hover:border-primary/50 {% if not notification.is_read %}border-l-4 border-l-primary{% endif %}">
+                <div class="flex-shrink-0 pt-1">
+                    {% if notification.notification_type == 'INFO' %}
+                    <span class="material-symbols-outlined text-blue-500">info</span>
+                    {% elif notification.notification_type == 'SUCCESS' %}
+                    <span class="material-symbols-outlined text-green-500">check_circle</span>
+                    {% elif notification.notification_type == 'WARNING' %}
+                    <span class="material-symbols-outlined text-orange-500">warning</span>
+                    {% elif notification.notification_type == 'ERROR' %}
+                    <span class="material-symbols-outlined text-red-500">error</span>
+                    {% endif %}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h4 class="text-sm font-bold text-text-main mb-1">{{ notification.title }}</h4>
+                    <p class="text-sm text-text-secondary-dark mb-2">{{ notification.message }}</p>
+                    <p class="text-xs text-text-secondary-dark">{{ notification.created_at|timesince }} ago</p>
+                </div>
+                {% if notification.link %}
+                <div class="flex-shrink-0 self-center">
+                    <a href="{{ notification.link }}" class="px-4 py-2 text-xs font-bold bg-background-dark text-text-main rounded-lg border border-border-dark hover:bg-primary/10 transition-colors">
+                        View
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-16">
+            <div class="size-16 rounded-full bg-surface-dark flex items-center justify-center mx-auto mb-4 border border-border-dark">
+                <span class="material-symbols-outlined text-3xl text-text-secondary-dark">notifications_off</span>
+            </div>
+            <h3 class="text-lg font-bold text-text-main">No Notifications</h3>
+            <p class="text-text-secondary-dark">You're all caught up! Check back later for updates.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

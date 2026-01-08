@@ -1,0 +1,43 @@
+{% extends 'dashboard_base.html' %}
+{% load widget_tweaks %}
+
+{% block header_title %}Update Room Status{% endblock %}
+{% block header_subtitle %}Room {{ room.room_number }} - {{ room.room_type.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-xl mx-auto">
+    <div class="bg-surface-dark p-8 rounded-2xl border border-border-dark shadow-sm">
+        <div class="text-center mb-8">
+            <div class="size-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <span class="material-symbols-outlined text-3xl text-primary">cleaning_services</span>
+            </div>
+            <h2 class="text-2xl font-bold text-text-main">
+                Change Status
+            </h2>
+            <p class="mt-2 text-sm text-text-secondary-dark">
+                Update the current condition of this room
+            </p>
+        </div>
+
+        <form class="space-y-6" method="POST">
+            {% csrf_token %}
+            <div>
+                <label for="id_status" class="block text-sm font-medium text-text-main mb-2">Select New Status</label>
+                {% render_field form.status class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm" %}
+                {% if form.status.errors %}
+                    <p class="mt-1 text-red-500 text-xs">{{ form.status.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div class="flex items-center gap-4 pt-6 border-t border-border-dark mt-6">
+                <a href="{% url 'staff_room_list' %}" class="flex-1 py-3 px-4 border border-border-dark rounded-lg text-sm font-semibold text-text-main hover:bg-background-dark transition-colors text-center">
+                    Cancel
+                </a>
+                <button type="submit" class="flex-1 py-3 px-4 bg-primary hover:bg-primary-hover text-slate-900 text-sm font-semibold rounded-lg transition-all shadow-lg shadow-primary/20">
+                    Update Status
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

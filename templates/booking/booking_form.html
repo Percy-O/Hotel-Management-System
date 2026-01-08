@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="min-h-screen bg-background-dark py-20 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-3xl mx-auto">
+        <!-- Breadcrumb -->
+        <nav class="flex mb-8" aria-label="Breadcrumb">
+            <ol role="list" class="flex items-center space-x-4">
+                <li>
+                    <a href="/" class="text-text-secondary-dark hover:text-text-main transition-colors">Home</a>
+                </li>
+                <li>
+                    <span class="text-text-secondary-dark">/</span>
+                </li>
+                <li>
+                    <a href="{% url 'room_list' %}" class="text-text-secondary-dark hover:text-text-main transition-colors">Rooms</a>
+                </li>
+                <li>
+                    <span class="text-text-secondary-dark">/</span>
+                </li>
+                <li>
+                    <a href="{% url 'room_detail' room_type.pk %}" class="text-text-secondary-dark hover:text-text-main transition-colors">{{ room_type.name }}</a>
+                </li>
+                <li>
+                    <span class="text-text-secondary-dark">/</span>
+                </li>
+                <li>
+                    <span class="text-primary font-medium" aria-current="page">Booking</span>
+                </li>
+            </ol>
+        </nav>
+
+        <div class="bg-surface-dark shadow-xl overflow-hidden sm:rounded-2xl border border-border-dark">
+            <div class="px-6 py-8 border-b border-border-dark sm:px-8 bg-surface-dark/50">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-2xl leading-6 font-bold text-text-main">
+                            Book {{ room_type.name }}
+                        </h3>
+                        <p class="mt-2 max-w-2xl text-sm text-text-secondary-dark">
+                            Please fill in the details below to complete your reservation.
+                        </p>
+                    </div>
+                    <div class="hidden sm:block">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
+                            {{ site_settings.currency_symbol }}{{ room_type.price_per_night }} / night
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="px-6 py-8 sm:p-8">
+                <form method="POST" class="space-y-8">
+                    {% csrf_token %}
+                    
+                    <!-- Dates Section -->
+                    <div>
+                        <h4 class="text-sm font-bold text-text-main uppercase tracking-wider mb-4 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary">calendar_month</span>
+                            Dates & Room
+                        </h4>
+                        <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
+                            <div>
+                                <label for="id_check_in_date" class="block text-xs font-medium text-text-secondary-dark mb-1 uppercase">Check-in Date</label>
+                                <div class="relative">
+                                    {% render_field form.check_in_date class="block w-full bg-background-dark border border-border-dark rounded-lg py-3 px-4 text-text-main focus:ring-primary focus:border-primary sm:text-sm placeholder-gray-500 transition-colors" %}
+                                </div>
+                                {% if form.check_in_date.errors %}
+                                    <p class="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[14px]">error</span>
+                                        {{ form.check_in_date.errors.0 }}
+                                    </p>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <label for="id_check_out_date" class="block text-xs font-medium text-text-secondary-dark mb-1 uppercase">Check-out Date</label>
+                                <div class="relative">
+                                    {% render_field form.check_out_date class="block w-full bg-background-dark border border-border-dark rounded-lg py-3 px-4 text-text-main focus:ring-primary focus:border-primary sm:text-sm placeholder-gray-500 transition-colors" %}
+                                </div>
+                                {% if form.check_out_date.errors %}
+                                    <p class="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[14px]">error</span>
+                                        {{ form.check_out_date.errors.0 }}
+                                    </p>
+                                {% endif %}
+                            </div>
+
+                            {% if available_rooms %}
+                            <div class="sm:col-span-2">
+                                <label for="selected_room" class="block text-xs font-medium text-text-secondary-dark mb-1 uppercase">Select Room (Optional)</label>
+                                <select name="selected_room" id="selected_room" class="block w-full bg-background-dark border border-border-dark rounded-lg py-3 px-4 text-text-main focus:ring-primary focus:border-primary sm:text-sm transition-colors">
+                                    <option value="">Auto-assign best available room</option>
+                                    {% for room in available_rooms %}
+                                        <option value="{{ room.id }}">Room {{ room.room_number }} {% if room.floor %}- Floor {{ room.floor }}{% endif %}</option>
+                                    {% endfor %}
+                                </select>
+                                <p class="mt-2 text-xs text-text-secondary-dark flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[14px]">info</span>
+                                    If you don't select a room, we will automatically assign the best one for you.
+                                </p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="border-t border-border-dark pt-8">
+                        <h4 class="text-sm font-bold text-text-main uppercase tracking-wider mb-4 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary">person</span>
+                            Guest Information
+                        </h4>
+                        
+                        {% if not user.is_authenticated %}
+                        <div class="mb-6 p-4 bg-primary/10 rounded-lg border border-primary/20">
+                            <p class="text-sm text-text-main">
+                                <span class="font-bold text-primary">New Account:</span> We will automatically create an account for you. 
+                                Use your <strong>Email</strong> and <strong>First Name</strong> to login later to view your booking details.
+                            </p>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
+                            <div>
+                                <label for="id_first_name" class="block text-xs font-medium text-text-secondary-dark mb-1 uppercase">First Name</label>
+                                {% render_field form.first_name class="block w-full bg-background-dark border border-border-dark rounded-lg py-3 px-4 text-text-main focus:ring-primary focus:border-primary sm:text-sm placeholder-gray-500 transition-colors" placeholder="e.g. John" %}
+                                {% if form.first_name.errors %}
+                                    <p class="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[14px]">error</span>
+                                        {{ form.first_name.errors.0 }}
+                                    </p>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <label for="id_last_name" class="block text-xs font-medium text-text-secondary-dark mb-1 uppercase">Last Name</label>
+                                {% render_field form.last_name class="block w-full bg-background-dark border border-border-dark rounded-lg py-3 px-4 text-text-main focus:ring-primary focus:border-primary sm:text-sm placeholder-gray-500 transition-colors" placeholder="e.g. Doe" %}
+                                {% if form.last_name.errors %}
+                                    <p class="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[14px]">error</span>
+                                        {{ form.last_name.errors.0 }}
+                                    </p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Render hidden guest_name -->
+                            {{ form.guest_name }}
+
+                            <div>
+                                <label for="id_guest_email" class="block text-xs font-medium text-text-secondary-dark mb-1 uppercase">Email Address</label>
+                                {% render_field form.guest_email class="block w-full bg-background-dark border border-border-dark rounded-lg py-3 px-4 text-text-main focus:ring-primary focus:border-primary sm:text-sm placeholder-gray-500 transition-colors" placeholder="john@example.com" %}
+                                {% if form.guest_email.errors %}
+                                    <p class="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[14px]">error</span>
+                                        {{ form.guest_email.errors.0 }}
+                                    </p>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <label for="id_guest_phone" class="block text-xs font-medium text-text-secondary-dark mb-1 uppercase">Phone Number</label>
+                                {% render_field form.guest_phone class="block w-full bg-background-dark border border-border-dark rounded-lg py-3 px-4 text-text-main focus:ring-primary focus:border-primary sm:text-sm placeholder-gray-500 transition-colors" placeholder="+1 (555) 000-0000" %}
+                                {% if form.guest_phone.errors %}
+                                    <p class="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[14px]">error</span>
+                                        {{ form.guest_phone.errors.0 }}
+                                    </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Price Summary -->
+                    <div class="mt-8 bg-background-dark/50 p-6 rounded-xl border border-border-dark">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-medium text-text-secondary-dark">Price per night</span>
+                            <span class="text-sm font-bold text-text-main">{{ site_settings.currency_symbol }}{{ room_type.price_per_night }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-text-secondary-dark">Estimated Total</span>
+                            <span class="text-lg font-bold text-primary" id="estimated-total">Calculated at checkout</span>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 flex items-center justify-end gap-4">
+                        <a href="{% url 'room_detail' room_type.pk %}" class="px-6 py-3 border border-border-dark rounded-lg shadow-sm text-sm font-bold text-text-secondary-dark hover:bg-white/5 hover:text-text-main focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all">
+                            Cancel
+                        </a>
+                        <button type="submit" class="px-8 py-3 border border-transparent shadow-lg shadow-primary/20 text-sm font-bold rounded-lg text-slate-900 bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all flex items-center gap-2">
+                            Confirm Booking
+                            <span class="material-symbols-outlined text-[20px]">check</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

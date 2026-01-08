@@ -1,0 +1,153 @@
+{% extends 'dashboard_base.html' %}
+{% load static %}
+
+{% block header_title %}Order History{% endblock %}
+{% block header_subtitle %}View completed and cancelled orders{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'staff_order_list' %}" class="flex items-center gap-2 px-4 py-2 bg-surface-dark border border-border-dark rounded-lg hover:bg-background-dark transition-colors text-text-main text-sm font-medium">
+    <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+    Active Orders
+</a>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-8">
+    
+    <!-- Tab Navigation (Simple JS toggle could be added, but for now stacked is clear) -->
+    
+    <!-- My Deliveries Section -->
+    <div class="space-y-4">
+        <h3 class="text-lg font-bold text-text-main flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary">person_check</span>
+            My Deliveries
+        </h3>
+        
+        {% if my_orders %}
+        <div class="bg-surface-dark border border-border-dark rounded-xl overflow-hidden shadow-sm">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-background-dark/50 border-b border-border-dark">
+                        <tr>
+                            <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Order ID</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Date</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Room</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Items</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Total</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-border-dark">
+                        {% for order in my_orders %}
+                        <tr class="hover:bg-white/5 transition-colors">
+                            <td class="px-6 py-4 text-sm font-mono text-text-main">#{{ order.id }}</td>
+                            <td class="px-6 py-4 text-sm text-text-secondary-dark">
+                                {{ order.created_at|date:"M d, Y" }}<br>
+                                <span class="text-xs opacity-70">{{ order.created_at|date:"H:i" }}</span>
+                            </td>
+                            <td class="px-6 py-4 text-sm font-bold text-text-main">
+                                <span class="bg-background-dark px-2 py-1 rounded border border-border-dark">
+                                    {{ order.room_number }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-text-secondary-dark">
+                                {{ order.items.count }} items
+                            </td>
+                            <td class="px-6 py-4 text-sm font-bold text-text-main">
+                                {{ site_settings.currency_symbol }}{{ order.total_price|floatformat:2 }}
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                    {% if order.status == 'DELIVERED' %}bg-green-500/10 text-green-500
+                                    {% else %}bg-red-500/10 text-red-500{% endif %}">
+                                    {{ order.get_status_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% else %}
+        <div class="bg-surface-dark border border-border-dark rounded-xl p-8 text-center text-text-secondary-dark">
+            <p>You haven't completed any orders yet.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Divider -->
+    <hr class="border-border-dark">
+
+    <!-- Global History Section -->
+    <div class="space-y-4">
+        <h3 class="text-lg font-bold text-text-main flex items-center gap-2">
+            <span class="material-symbols-outlined text-purple-500">history</span>
+            Global Order History
+        </h3>
+
+        {% if all_orders %}
+        <div class="bg-surface-dark border border-border-dark rounded-xl overflow-hidden shadow-sm">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-background-dark/50 border-b border-border-dark">
+                        <tr>
+                            <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Order ID</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Date</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Room</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Guest</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Total</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Handled By</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-border-dark">
+                        {% for order in all_orders %}
+                        <tr class="hover:bg-white/5 transition-colors">
+                            <td class="px-6 py-4 text-sm font-mono text-text-main">#{{ order.id }}</td>
+                            <td class="px-6 py-4 text-sm text-text-secondary-dark">
+                                {{ order.created_at|date:"M d, Y" }}
+                            </td>
+                            <td class="px-6 py-4 text-sm font-bold text-text-main">
+                                {{ order.room_number }}
+                            </td>
+                            <td class="px-6 py-4 text-sm text-text-main">
+                                {{ order.user.get_full_name|default:order.user.username }}
+                            </td>
+                            <td class="px-6 py-4 text-sm font-bold text-text-main">
+                                {{ site_settings.currency_symbol }}{{ order.total_price|floatformat:2 }}
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                    {% if order.status == 'DELIVERED' %}bg-green-500/10 text-green-500
+                                    {% else %}bg-red-500/10 text-red-500{% endif %}">
+                                    {{ order.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-text-secondary-dark">
+                                {% if order.assigned_staff %}
+                                    <span class="flex items-center gap-1">
+                                        {% if order.assigned_staff == request.user %}
+                                        <span class="text-primary font-bold">(You)</span>
+                                        {% else %}
+                                        {{ order.assigned_staff.first_name }}
+                                        {% endif %}
+                                    </span>
+                                {% else %}
+                                    <span class="opacity-50">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% else %}
+        <div class="bg-surface-dark border border-border-dark rounded-xl p-8 text-center text-text-secondary-dark">
+            <p>No global history records found.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends 'guest_dashboard_base.html' %}
+{% load static %}
+
+{% block header_title %}My Requests{% endblock %}
+{% block header_subtitle %}Track your housekeeping and maintenance requests{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'request_housekeeping' %}" class="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors shadow-lg shadow-primary/20 text-sm font-medium">
+    <span class="material-symbols-outlined text-[20px]">add</span>
+    New Request
+</a>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+    {% if requests %}
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {% for req in requests %}
+            <div class="bg-surface-dark border border-border-dark rounded-xl p-5 hover:border-primary/50 transition-colors group">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="p-2 rounded-lg bg-background-dark text-primary">
+                        {% if req.request_type == 'CLEANING' %}
+                            <span class="material-symbols-outlined">cleaning_services</span>
+                        {% elif req.request_type == 'TOWELS' %}
+                            <span class="material-symbols-outlined">dry_cleaning</span>
+                        {% elif req.request_type == 'TOILETRIES' %}
+                            <span class="material-symbols-outlined">soap</span>
+                        {% elif req.request_type == 'MAINTENANCE' %}
+                            <span class="material-symbols-outlined">build</span>
+                        {% else %}
+                            <span class="material-symbols-outlined">room_service</span>
+                        {% endif %}
+                    </div>
+                    <span class="px-3 py-1 rounded-full text-xs font-medium 
+                        {% if req.status == 'PENDING' %}bg-yellow-500/10 text-yellow-500
+                        {% elif req.status == 'IN_PROGRESS' %}bg-blue-500/10 text-blue-500
+                        {% elif req.status == 'COMPLETED' %}bg-green-500/10 text-green-500
+                        {% else %}bg-red-500/10 text-red-500{% endif %}">
+                        {{ req.get_status_display }}
+                    </span>
+                </div>
+
+                <h3 class="text-text-main font-semibold text-lg mb-1">{{ req.get_request_type_display }}</h3>
+                <p class="text-text-secondary-dark text-sm mb-4 line-clamp-2">
+                    {% if req.note %}
+                        {{ req.note }}
+                    {% else %}
+                        No additional notes.
+                    {% endif %}
+                </p>
+
+                <div class="pt-4 border-t border-border-dark flex items-center justify-between text-xs text-text-secondary-dark">
+                    <div class="flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[16px]">schedule</span>
+                        {{ req.created_at|date:"M d, H:i" }}
+                    </div>
+                    {% if req.assigned_staff %}
+                    <div class="flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[16px]">person</span>
+                        {{ req.assigned_staff.get_full_name|default:req.assigned_staff.username }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="flex flex-col items-center justify-center py-20 text-center">
+            <div class="w-20 h-20 bg-surface-dark rounded-full flex items-center justify-center mb-4">
+                <span class="material-symbols-outlined text-4xl text-text-secondary-dark opacity-50">cleaning_services</span>
+            </div>
+            <h3 class="text-text-main text-lg font-semibold mb-2">No Requests Found</h3>
+            <p class="text-text-secondary-dark max-w-sm mb-6">You haven't made any housekeeping requests yet.</p>
+            <a href="{% url 'request_housekeeping' %}" class="px-6 py-2.5 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors font-medium">
+                Request Service
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

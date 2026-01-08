@@ -1,0 +1,64 @@
+{% extends 'guest_dashboard_base.html' %}
+
+{% block header_title %}My Profile{% endblock %}
+{% block header_subtitle %}Manage your personal information{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-3xl">
+    <div class="bg-surface-dark rounded-xl border border-border-dark shadow-sm overflow-hidden">
+        <form method="POST" class="p-8 space-y-8">
+            {% csrf_token %}
+            
+            <!-- Personal Info Section -->
+            <div>
+                <h3 class="text-lg font-bold text-text-main mb-6 flex items-center gap-2">
+                    <span class="material-symbols-outlined">person</span>
+                    Personal Information
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-text-main mb-2">First Name</label>
+                        <input type="text" name="first_name" value="{{ user.first_name }}" class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-text-main mb-2">Last Name</label>
+                        <input type="text" name="last_name" value="{{ user.last_name }}" class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-text-main mb-2">Email Address</label>
+                        <input type="email" name="email" value="{{ user.email }}" class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-text-main mb-2">Phone Number</label>
+                        <input type="tel" name="phone_number" value="{{ user.phone_number|default:'' }}" class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-border-dark"></div>
+
+            <!-- Security Section -->
+            <div>
+                <h3 class="text-lg font-bold text-text-main mb-6 flex items-center gap-2">
+                    <span class="material-symbols-outlined">lock</span>
+                    Security
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-text-main mb-2">New Password</label>
+                        <input type="password" name="new_password" placeholder="Leave blank to keep current" class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
+                        <p class="mt-1 text-xs text-text-secondary-dark">Min. 8 characters</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center justify-end gap-4 pt-4">
+                <button type="submit" class="px-6 py-2.5 bg-primary text-slate-900 font-bold rounded-lg hover:bg-primary-hover transition-colors shadow-lg shadow-primary/20">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

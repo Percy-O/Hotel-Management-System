@@ -1,0 +1,33 @@
+---
+deployment:
+  tasks:
+    # Set your deployment path
+    - export DEPLOYPATH=/home/techohrc/hotel.techohr.com.ng
+    - export VENV_PATH=/home/techohrc/virtualenv/hotel.techohr.com.ng/3.12
+    
+    # Copy files to server
+    - /bin/rsync -av --exclude='.git' --exclude='*.pyc' --exclude='__pycache__' ./ $DEPLOYPATH/
+    
+    # Go to deployment folder
+    - cd $DEPLOYPATH
+    
+    # Activate Python virtual environment
+    - source $VENV_PATH/bin/activate
+    
+    # Install/update packages
+    - pip install --upgrade pip
+    - pip install -r requirements.txt
+    
+    # Run Django commands
+    - python manage.py migrate --noinput
+    - python manage.py collectstatic --noinput
+    
+    # Create folders if they don't exist
+    - mkdir -p static media logs tmp
+    
+    # Set permissions
+    - chmod -R 755 $DEPLOYPATH
+    
+    # Restart the application
+    - touch passenger_wsgi.py
+    - touch tmp/restart.txt

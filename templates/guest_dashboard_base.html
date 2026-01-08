@@ -1,0 +1,97 @@
+{% extends 'base_layout.html' %}
+{% load static %}
+
+{% block body_content %}
+<div class="flex h-screen w-full overflow-hidden bg-background-dark">
+    <!-- Sidebar -->
+    {% include 'includes/guest_sidebar.html' %}
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden relative">
+        <!-- Header -->
+        <header class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-border-dark bg-surface-dark px-6 py-4 sticky top-0 z-20 gap-4 sm:gap-0">
+            <div class="flex items-center gap-4 w-full sm:w-auto">
+                <button id="mobile-sidebar-toggle" class="lg:hidden text-text-main">
+                    <span class="material-symbols-outlined">menu</span>
+                </button>
+                <div>
+                    <h2 class="text-text-main text-xl font-bold leading-tight">{% block header_title %}Guest Dashboard{% endblock %}</h2>
+                    <p class="text-text-secondary-dark text-xs">{% block header_subtitle %}Welcome back, {{ user.first_name }}{% endblock %}</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4 w-full sm:w-auto justify-start sm:justify-end">
+                {% block header_actions %}{% endblock %}
+            </div>
+        </header>
+
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto p-6">
+            {% block dashboard_content %}{% endblock %}
+
+            <!-- Footer -->
+            <div class="mt-8 pt-6 border-t border-border-dark flex flex-col items-center justify-center gap-2">
+                <p class="text-sm text-text-secondary-dark font-medium flex items-center gap-1">
+                    Powered by 
+                    <a href="https://techohr.com.ng" target="_blank" class="text-primary hover:underline font-bold">TechOhr</a>
+                </p>
+                <p class="text-xs text-text-secondary-dark opacity-70">
+                    &copy; {% now "Y" %} {{ site_settings.hotel_name }}
+                </p>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Mobile Sidebar Overlay -->
+<div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-30 hidden lg:hidden transition-opacity duration-300 opacity-0"></div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const toggleBtn = document.getElementById('mobile-sidebar-toggle');
+        const sidebar = document.querySelector('aside');
+        const overlay = document.getElementById('sidebar-overlay');
+        
+        if (!toggleBtn || !sidebar || !overlay) return;
+
+        function openSidebar() {
+            sidebar.classList.remove('hidden');
+            sidebar.classList.add('fixed', 'inset-y-0', 'left-0', 'z-40', 'w-64', 'bg-surface-dark', 'shadow-2xl', 'transform', 'transition-transform', 'duration-300', '-translate-x-full');
+            // Small delay to allow transition to work
+            requestAnimationFrame(() => {
+                sidebar.classList.remove('-translate-x-full');
+            });
+            
+            overlay.classList.remove('hidden');
+            // Small delay for fade in
+            requestAnimationFrame(() => {
+                overlay.classList.remove('opacity-0');
+            });
+        }
+
+        function closeSidebar() {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('opacity-0');
+            
+            setTimeout(() => {
+                sidebar.classList.add('hidden');
+                sidebar.classList.remove('fixed', 'inset-y-0', 'left-0', 'z-40', 'shadow-2xl', 'transform', 'transition-transform', 'duration-300');
+                overlay.classList.add('hidden');
+            }, 300);
+        }
+
+        toggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openSidebar();
+        });
+
+        overlay.addEventListener('click', closeSidebar);
+        
+        // Close on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !sidebar.classList.contains('hidden')) {
+                closeSidebar();
+            }
+        });
+    });
+</script>
+{% endblock %}

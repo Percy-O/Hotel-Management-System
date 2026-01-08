@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Our Rooms - Hotel Management System{% endblock %}
+
+{% block content %}
+<div class="bg-background-dark min-h-screen">
+    <!-- Header -->
+    <div class="relative py-24 px-4 sm:px-6 lg:px-8 bg-surface-dark overflow-hidden">
+        <div class="absolute inset-0 z-0 opacity-20">
+            <img src="https://images.unsplash.com/photo-1618773928121-c32242e63f39?q=80&w=2070&auto=format&fit=crop" alt="Background" class="w-full h-full object-cover">
+            <div class="absolute inset-0 bg-background-dark/80"></div>
+        </div>
+        <div class="relative z-10 text-center max-w-7xl mx-auto">
+            <span class="text-primary font-bold tracking-[0.2em] uppercase text-sm mb-4 block">Accommodations</span>
+            <h1 class="text-4xl font-extrabold text-white sm:text-5xl sm:tracking-tight lg:text-6xl mb-6">Find Your Perfect Room</h1>
+            <p class="max-w-2xl mx-auto text-xl text-gray-400">Choose from our variety of luxurious rooms and suites designed for your ultimate comfort and relaxation.</p>
+        </div>
+    </div>
+
+    <!-- Room Grid -->
+    <div class="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
+        <div class="grid gap-8 lg:grid-cols-3">
+            {% for room_type in room_types %}
+            <div class="bg-surface-dark rounded-2xl overflow-hidden border border-white/5 hover:border-primary/50 transition-all group flex flex-col">
+                <div class="relative h-64 overflow-hidden flex-shrink-0">
+                    {% if room_type.image %}
+                        <img src="{{ room_type.image.url }}" alt="{{ room_type.name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                    {% else %}
+                        <img src="https://images.unsplash.com/photo-1611892440504-42a792e24d32?q=80&w=2070&auto=format&fit=crop" alt="Room Placeholder" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                    {% endif %}
+                    <div class="absolute top-4 right-4 bg-black/50 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
+                        <span class="text-xs font-bold text-white">4.9 <span class="text-yellow-400">★</span></span>
+                    </div>
+                </div>
+                <div class="p-6 flex-1 flex flex-col">
+                    <div class="flex-1">
+                        <h3 class="text-xl font-bold text-white mb-2">{{ room_type.name }}</h3>
+                        <p class="text-gray-400 text-sm mb-4 line-clamp-3">{{ room_type.description }}</p>
+                        
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="flex items-center gap-1.5 text-xs text-gray-400">
+                                <span class="material-symbols-outlined text-[16px]">person</span>
+                                {{ room_type.capacity }} Guests
+                            </div>
+                            <div class="flex items-center gap-1.5 text-xs text-gray-400">
+                                <span class="material-symbols-outlined text-[16px]">door_front</span>
+                                {{ room_type.available_rooms }} Available
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between border-t border-white/5 pt-4 mt-auto">
+                        <div>
+                            <span class="text-sm text-gray-400">Starting from</span>
+                            <p class="text-xl font-bold text-primary">{{ site_settings.currency_symbol }}{{ room_type.price_per_night }}<span class="text-sm text-gray-400 font-normal">/night</span></p>
+                        </div>
+                        <a href="{% url 'room_detail' room_type.pk %}" class="px-4 py-2 bg-white/5 hover:bg-primary hover:text-slate-900 text-white font-medium rounded-lg transition-colors text-sm">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-span-3 text-center py-24">
+                <span class="material-symbols-outlined text-6xl text-gray-600 mb-4">bedroom_parent</span>
+                <p class="text-xl text-gray-400">No rooms available at the moment.</p>
+                <a href="/" class="inline-block mt-4 text-primary hover:text-white transition-colors">Return Home</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

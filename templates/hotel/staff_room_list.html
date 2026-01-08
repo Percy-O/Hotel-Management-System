@@ -1,0 +1,243 @@
+{% extends 'dashboard_base.html' %}
+
+{% block header_title %}Room Management{% endblock %}
+{% block header_subtitle %}Monitor status and housekeeping{% endblock %}
+
+{% block header_actions %}
+{% if user.role != 'CLEANER' %}
+<div class="hidden md:flex flex-wrap gap-2">
+    <a href="{% url 'room_create' %}" class="flex items-center gap-2 px-4 py-2 bg-primary text-slate-900 rounded-lg text-sm font-bold hover:bg-primary-hover transition-colors shadow-lg shadow-primary/20 whitespace-nowrap">
+        <span class="material-symbols-outlined text-[18px]">add</span>
+        Add Room
+    </a>
+    <a href="{% url 'bulk_room_create' %}" class="flex items-center gap-2 px-4 py-2 bg-surface-dark border border-border-dark rounded-lg text-sm font-medium text-text-main hover:bg-primary/5 transition-colors whitespace-nowrap">
+        <span class="material-symbols-outlined text-[18px]">library_add</span>
+        Bulk Create
+    </a>
+    <a href="{% url 'room_type_create' %}" class="flex items-center gap-2 px-4 py-2 bg-surface-dark border border-border-dark rounded-lg text-sm font-medium text-text-main hover:bg-primary/5 transition-colors whitespace-nowrap">
+        <span class="material-symbols-outlined text-[18px]">category</span>
+        Add Type
+    </a>
+    <button type="submit" form="bulkDeleteForm" onclick="return confirm('Are you sure you want to delete selected rooms?')" class="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-500 border border-red-500/20 rounded-lg text-sm font-medium hover:bg-red-500/20 transition-colors whitespace-nowrap">
+        <span class="material-symbols-outlined text-[18px]">delete</span>
+        Delete Selected
+    </button>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block dashboard_content %}
+    <!-- Mobile Actions Section -->
+    {% if user.role != 'CLEANER' %}
+    <div class="md:hidden mb-6 space-y-3">
+        <div class="grid grid-cols-2 gap-3">
+            <a href="{% url 'room_create' %}" class="flex flex-col items-center justify-center p-3 bg-primary text-slate-900 rounded-xl text-sm font-bold shadow-lg shadow-primary/20">
+                <span class="material-symbols-outlined text-[24px] mb-1">add</span>
+                Add Room
+            </a>
+            <a href="{% url 'bulk_room_create' %}" class="flex flex-col items-center justify-center p-3 bg-surface-dark border border-border-dark rounded-xl text-sm font-medium text-text-main">
+                <span class="material-symbols-outlined text-[24px] mb-1">library_add</span>
+                Bulk Create
+            </a>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+            <a href="{% url 'room_type_create' %}" class="flex flex-col items-center justify-center p-3 bg-surface-dark border border-border-dark rounded-xl text-sm font-medium text-text-main">
+                <span class="material-symbols-outlined text-[24px] mb-1">category</span>
+                Add Type
+            </a>
+            <button type="submit" form="bulkDeleteForm" onclick="return confirm('Are you sure you want to delete selected rooms?')" class="flex flex-col items-center justify-center p-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl text-sm font-medium">
+                <span class="material-symbols-outlined text-[24px] mb-1">delete</span>
+                Delete
+            </button>
+        </div>
+    </div>
+    {% endif %}
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <!-- Total Rooms -->
+        <div class="bg-surface-dark p-5 rounded-xl border border-border-dark shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-xs font-medium text-text-secondary-dark uppercase tracking-wider">Total Rooms</span>
+                <span class="material-symbols-outlined text-primary">door_front</span>
+            </div>
+            <h3 class="text-3xl font-bold text-text-main mb-1">{{ total_rooms }}</h3>
+        </div>
+
+        <!-- Available -->
+        <div class="bg-surface-dark p-5 rounded-xl border border-border-dark shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-xs font-medium text-text-secondary-dark uppercase tracking-wider">Available</span>
+                <span class="material-symbols-outlined text-green-500">check_circle</span>
+            </div>
+            <h3 class="text-3xl font-bold text-text-main mb-1">{{ available_rooms }}</h3>
+        </div>
+
+        <!-- Occupied -->
+        <div class="bg-surface-dark p-5 rounded-xl border border-border-dark shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-xs font-medium text-text-secondary-dark uppercase tracking-wider">Occupied</span>
+                <span class="material-symbols-outlined text-red-500">no_meeting_room</span>
+            </div>
+            <h3 class="text-3xl font-bold text-text-main mb-1">{{ occupied_rooms }}</h3>
+        </div>
+
+        <!-- Cleaning/Maintenance -->
+        <div class="bg-surface-dark p-5 rounded-xl border border-border-dark shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-xs font-medium text-text-secondary-dark uppercase tracking-wider">Housekeeping</span>
+                <span class="material-symbols-outlined text-yellow-500">cleaning_services</span>
+            </div>
+            <h3 class="text-3xl font-bold text-text-main mb-1">{{ cleaning_rooms }}</h3>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    {% if user.role != 'CLEANER' %}
+    <div class="mb-6 flex gap-2 overflow-x-auto pb-2">
+        <a href="{% url 'staff_room_list' %}" class="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors {% if not request.GET.status %}bg-primary text-slate-900 font-bold{% else %}bg-surface-dark text-text-secondary-dark border border-border-dark hover:text-text-main{% endif %}">
+            All Rooms
+        </a>
+        <a href="?status=AVAILABLE" class="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors {% if request.GET.status == 'AVAILABLE' %}bg-green-500 text-white{% else %}bg-surface-dark text-text-secondary-dark border border-border-dark hover:text-text-main{% endif %}">
+            Available
+        </a>
+        <a href="?status=OCCUPIED" class="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors {% if request.GET.status == 'OCCUPIED' %}bg-red-500 text-white{% else %}bg-surface-dark text-text-secondary-dark border border-border-dark hover:text-text-main{% endif %}">
+            Occupied
+        </a>
+        <a href="?status=CLEANING" class="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors {% if request.GET.status == 'CLEANING' %}bg-yellow-500 text-slate-900{% else %}bg-surface-dark text-text-secondary-dark border border-border-dark hover:text-text-main{% endif %}">
+            Cleaning
+        </a>
+        <a href="?status=MAINTENANCE" class="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors {% if request.GET.status == 'MAINTENANCE' %}bg-orange-500 text-white{% else %}bg-surface-dark text-text-secondary-dark border border-border-dark hover:text-text-main{% endif %}">
+            Maintenance
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- Rooms Grid -->
+    <form action="{% url 'bulk_delete_rooms' %}" method="POST" id="bulkDeleteForm">
+        {% csrf_token %}
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {% for room in rooms %}
+            <div class="bg-surface-dark rounded-xl border border-border-dark overflow-hidden shadow-sm group hover:shadow-md transition-shadow relative">
+                <div class="p-5">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="flex items-start gap-3">
+                            <input type="checkbox" name="selected_rooms" value="{{ room.pk }}" class="mt-1.5 w-4 h-4 rounded border-border-dark bg-background-dark text-primary focus:ring-primary cursor-pointer">
+                            <div>
+                                <h3 class="text-xl font-bold text-text-main">Room {{ room.room_number }}</h3>
+                                <p class="text-sm text-text-secondary-dark">{{ room.room_type.name }}</p>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wide border
+                            {% if room.status == 'AVAILABLE' %}bg-green-500/10 text-green-500 border-green-500/20
+                            {% elif room.status == 'OCCUPIED' %}bg-red-500/10 text-red-500 border-red-500/20
+                            {% elif room.status == 'CLEANING' %}bg-yellow-500/10 text-yellow-500 border-yellow-500/20
+                            {% else %}bg-orange-500/10 text-orange-500 border-orange-500/20{% endif %}">
+                            {{ room.get_status_display }}
+                        </span>
+                    </div>
+
+                <div class="space-y-3">
+                    {% if room.status == 'OCCUPIED' and room.current_booking %}
+                        <div class="flex items-center gap-3 p-3 rounded-lg bg-background-dark border border-border-dark">
+                            <div class="size-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs">
+                                {{ room.current_booking.guest_name|slice:":1" }}
+                            </div>
+                            <div class="overflow-hidden">
+                                <p class="text-sm font-medium text-text-main truncate">{{ room.current_booking.guest_name }}</p>
+                                <p class="text-xs text-text-secondary-dark">Out: {{ room.current_booking.check_out_date|date:"M d" }}</p>
+                            </div>
+                        </div>
+                    {% elif room.status == 'CLEANING' %}
+                        <div class="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                            <p class="text-sm text-yellow-500 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[18px]">cleaning_services</span>
+                                Housekeeping Required
+                            </p>
+                        </div>
+                    {% else %}
+                        <div class="p-3 rounded-lg bg-background-dark border border-border-dark h-[58px] flex items-center">
+                            <p class="text-sm text-text-secondary-dark italic">No active guests</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mt-5 pt-4 border-t border-border-dark flex gap-2">
+                    <button onclick="openStatusModal('{% url 'room_status_update' room.pk %}', '{{ room.status }}')" class="flex-1 px-4 py-2 bg-background-dark text-text-main text-sm font-medium rounded-lg hover:bg-primary/10 transition-colors text-center border border-border-dark">
+                        Update Status
+                    </button>
+                    {% if room.status == 'OCCUPIED' and room.current_booking %}
+                        <a href="{% url 'booking_detail' room.current_booking.pk %}" class="px-4 py-2 border border-border-dark text-text-secondary-dark hover:text-primary transition-colors rounded-lg flex items-center justify-center">
+                            <span class="material-symbols-outlined text-[20px]">visibility</span>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full py-12 text-center">
+            <span class="material-symbols-outlined text-4xl text-text-secondary-dark mb-2">meeting_room</span>
+            <p class="text-text-secondary-dark">No rooms found matching the selected status.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Status Update Modal -->
+    <div id="statusModal" class="fixed inset-0 z-50 hidden bg-black/50 backdrop-blur-sm flex items-center justify-center opacity-0 transition-opacity duration-300">
+        <div class="bg-surface-dark rounded-xl border border-border-dark p-6 w-full max-w-sm transform scale-95 transition-transform duration-300 shadow-2xl">
+            <h3 class="text-lg font-bold text-text-main mb-4">Update Room Status</h3>
+            <form id="statusForm" method="POST" action="">
+                {% csrf_token %}
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-text-secondary-dark mb-2">New Status</label>
+                    <select name="status" id="statusSelect" class="w-full rounded-lg bg-background-dark border-border-dark text-text-main focus:ring-primary focus:border-primary p-2.5">
+                        <option value="AVAILABLE">Available</option>
+                        <option value="OCCUPIED">Occupied</option>
+                        <option value="CLEANING">Cleaning</option>
+                        <option value="MAINTENANCE">Maintenance</option>
+                    </select>
+                </div>
+                <div class="flex justify-end gap-3">
+                    <button type="button" onclick="closeStatusModal()" class="px-4 py-2 text-sm font-medium text-text-secondary-dark hover:text-text-main transition-colors">Cancel</button>
+                    <button type="submit" class="px-4 py-2 text-sm font-medium bg-primary text-slate-900 font-bold rounded-lg hover:bg-primary-hover transition-colors shadow-lg shadow-primary/20">Update Status</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openStatusModal(url, currentStatus) {
+            const modal = document.getElementById('statusModal');
+            const form = document.getElementById('statusForm');
+            const select = document.getElementById('statusSelect');
+            
+            form.action = url;
+            select.value = currentStatus;
+            
+            modal.classList.remove('hidden');
+            // Small delay to allow display:block to apply before opacity transition
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modal.querySelector('div').classList.remove('scale-95');
+                modal.querySelector('div').classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeStatusModal() {
+            const modal = document.getElementById('statusModal');
+            modal.classList.add('opacity-0');
+            modal.querySelector('div').classList.remove('scale-100');
+            modal.querySelector('div').classList.add('scale-95');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+        
+        // Close modal on outside click
+        document.getElementById('statusModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeStatusModal();
+            }
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,89 @@
+<aside class="hidden lg:flex w-64 flex-col border-r border-border-dark bg-surface-dark h-full">
+    <div class="flex h-full flex-col justify-between p-4">
+        <div class="flex flex-col gap-6">
+            <!-- Brand -->
+            <div class="flex items-center gap-3 px-2">
+                {% if site_settings.hotel_logo %}
+                    <div class="bg-center bg-no-repeat bg-cover rounded-full size-10 border-2 border-primary" style='background-image: url("{{ site_settings.hotel_logo.url }}");'></div>
+                {% else %}
+                    <div class="bg-center bg-no-repeat bg-cover rounded-full size-10 border-2 border-primary" style='background-image: url("https://ui-avatars.com/api/?name={{ site_settings.hotel_name|urlencode }}&background=13ec6d&color=fff");'></div>
+                {% endif %}
+                <div class="flex flex-col">
+                    <h1 class="text-text-main text-base font-bold leading-normal">{{ site_settings.hotel_name }}</h1>
+                    <p class="text-text-secondary-dark text-xs font-medium uppercase tracking-wider">Guest Portal</p>
+                </div>
+            </div>
+            
+            <!-- Navigation -->
+            <nav class="flex flex-col gap-2 overflow-y-auto max-h-[calc(100vh-200px)]">
+                <!-- Dashboard/Overview -->
+                {% url 'guest_dashboard' as u %}
+                {% include "includes/components/sidebar_item.html" with url=u icon="dashboard" label="Overview" active_name="guest_dashboard" %}
+
+                {% if request.session.visit_purpose == 'event' %}
+                    <!-- Event Specific Menu -->
+                    {% url 'event_booking_list' as u %}
+                    {% include "includes/components/sidebar_item.html" with url=u icon="celebration" label="My Events" active_name="event_booking_list" %}
+                    
+                    {% url 'event_hall_list' as u %}
+                    {% include "includes/components/sidebar_item.html" with url=u icon="search" label="Browse Halls" active_name="event_hall_list" %}
+
+                {% elif request.session.visit_purpose == 'gym' %}
+                    <!-- Gym Specific Menu -->
+                    {% url 'gym_membership_list' as u %}
+                    {% include "includes/components/sidebar_item.html" with url=u icon="fitness_center" label="My Membership" active_name="gym_membership_list" %}
+                    
+                    {% url 'gym_plan_list' as u %}
+                    {% include "includes/components/sidebar_item.html" with url=u icon="list_alt" label="Gym Plans" active_name="gym_plan_list" %}
+
+                {% else %}
+                    <!-- Standard Hotel Menu -->
+                    
+                    <!-- My Bookings -->
+                    {% url 'my_bookings' as u %}
+                    {% include "includes/components/sidebar_item.html" with url=u icon="calendar_month" label="My Bookings" active_name="my_bookings" %}
+
+                    <!-- Room Service -->
+                    {% url 'menu_list' as u_menu %}
+                    {% url 'my_orders' as u_orders %}
+                    {% include "includes/components/sidebar_item.html" with url=u_menu icon="restaurant" label="Room Service" active_name="menu_list" %}
+                    {% include "includes/components/sidebar_item.html" with url=u_orders icon="receipt_long" label="My Orders" active_name="my_orders" %}
+
+                    <!-- Housekeeping -->
+                    {% url 'my_requests' as u_hk %}
+                    {% include "includes/components/sidebar_item.html" with url=u_hk icon="cleaning_services" label="Housekeeping" active_name="my_requests" %}
+                {% endif %}
+
+                <!-- My Invoices (Global) -->
+                {% url 'my_invoices' as u %}
+                {% include "includes/components/sidebar_item.html" with url=u icon="receipt" label="My Invoices" active_name="my_invoices" %}
+
+                <!-- Profile -->
+                {% url 'profile' as u %}
+                {% include "includes/components/sidebar_item.html" with url=u icon="person" label="My Profile" active_name="profile" %}
+
+                <!-- Public Site -->
+                {% url 'home' as u %}
+                {% include "includes/components/sidebar_item.html" with url=u icon="home" label="Back to Home" %}
+            </nav>
+        </div>
+
+        <!-- User Profile -->
+        <div class="mt-auto space-y-4">
+            <!-- User Info -->
+            <div class="flex items-center gap-3 px-3 py-3 rounded-xl bg-background-dark/50 border border-border-dark">
+                <div class="bg-center bg-no-repeat bg-cover rounded-full size-9" style='background-image: url("https://ui-avatars.com/api/?name={{ user.first_name }}+{{ user.last_name }}&background=random");'></div>
+                <div class="flex flex-col overflow-hidden">
+                    <p class="text-text-main text-sm font-semibold truncate">{{ user.first_name }}</p>
+                    <p class="text-text-secondary-dark text-xs truncate">Guest</p>
+                </div>
+                <form action="{% url 'logout' %}" method="post" class="ml-auto">
+                    {% csrf_token %}
+                    <button type="submit" class="text-text-secondary-dark hover:text-text-main" title="Logout">
+                        <span class="material-symbols-outlined text-[20px]">logout</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</aside>

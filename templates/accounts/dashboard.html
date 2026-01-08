@@ -1,0 +1,184 @@
+{% extends 'dashboard_base.html' %}
+
+{% block header_title %}Dashboard{% endblock %}
+{% block header_subtitle %}Today is <span id="current-date">{% now "l, d M Y" %}</span>{% endblock %}
+
+{% block header_actions %}
+<div class="flex items-center gap-6">
+    <!-- Search -->
+    <div class="hidden md:flex items-center bg-surface-dark border border-border-dark rounded-lg px-3 py-2 w-64">
+        <span class="material-symbols-outlined text-text-secondary-dark text-[20px]">search</span>
+        <input type="text" placeholder="Search..." class="bg-transparent border-none text-sm text-text-main placeholder-text-secondary-dark focus:ring-0 w-full ml-2" />
+    </div>
+    <!-- Notification -->
+    <button class="relative text-text-secondary-dark hover:text-primary transition-colors">
+        <span class="material-symbols-outlined">notifications</span>
+        <span class="absolute top-0 right-0 size-2 bg-red-500 rounded-full border-2 border-surface-dark"></span>
+    </button>
+</div>
+{% endblock %}
+
+{% block dashboard_content %}
+    <!-- Messages -->
+    {% if messages %}
+    <div class="mb-6">
+        {% for message in messages %}
+        <div class="p-4 rounded-lg {% if message.tags == 'error' %}bg-red-900/20 text-red-400 border border-red-900/50{% else %}bg-green-900/20 text-green-400 border border-green-900/50{% endif %} flex items-center gap-2">
+            <span class="material-symbols-outlined text-sm">info</span>
+            <span class="text-sm font-medium">{{ message }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Stat Card 1 -->
+        <div class="bg-surface-dark p-5 rounded-xl border border-border-dark shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <div class="size-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-primary">person</span>
+                </div>
+                <span class="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">+12%</span>
+            </div>
+            <h3 class="text-2xl font-bold text-text-main mb-1">{{ total_guests }}</h3>
+            <p class="text-text-secondary-dark text-sm">Total Guests</p>
+        </div>
+
+        <!-- Stat Card 2 -->
+        <div class="bg-surface-dark p-5 rounded-xl border border-border-dark shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <div class="size-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-purple-500">payments</span>
+                </div>
+                <span class="text-xs font-medium text-purple-500 bg-purple-500/10 px-2 py-1 rounded-full">+{{ revenue_growth }}%</span>
+            </div>
+            <h3 class="text-2xl font-bold text-text-main mb-1">{{ site_settings.currency_symbol }}{{ total_revenue }}</h3>
+            <p class="text-text-secondary-dark text-sm">Total Revenue</p>
+        </div>
+
+        <!-- Stat Card 3 -->
+        <div class="bg-surface-dark p-5 rounded-xl border border-border-dark shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <div class="size-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-blue-500">calendar_month</span>
+                </div>
+                <span class="text-xs font-medium text-blue-500 bg-blue-500/10 px-2 py-1 rounded-full">+24%</span>
+            </div>
+            <h3 class="text-2xl font-bold text-text-main mb-1">{{ total_bookings }}</h3>
+            <p class="text-text-secondary-dark text-sm">Total Bookings</p>
+        </div>
+
+        <!-- Stat Card 4 -->
+        <div class="bg-surface-dark p-5 rounded-xl border border-border-dark shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <div class="size-10 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-orange-500">bed</span>
+                </div>
+                <span class="text-xs font-medium text-orange-500 bg-orange-500/10 px-2 py-1 rounded-full">{{ occupied_rooms }} / {{ total_rooms }}</span>
+            </div>
+            <h3 class="text-2xl font-bold text-text-main mb-1">{{ available_rooms }}</h3>
+            <p class="text-text-secondary-dark text-sm">Available Rooms</p>
+        </div>
+    </div>
+
+    <!-- Charts & Quick Actions Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <!-- Occupancy Trends Chart -->
+        <div class="lg:col-span-2 bg-surface-dark p-6 rounded-xl border border-border-dark shadow-sm">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h3 class="text-lg font-bold text-text-main">Occupancy Trends</h3>
+                    <p class="text-text-secondary-dark text-sm">Weekly overview compared to last week</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="flex items-center gap-2 text-xs font-medium text-text-secondary-dark">
+                        <span class="size-2 rounded-full bg-primary"></span> This Week
+                    </span>
+                    <span class="flex items-center gap-2 text-xs font-medium text-text-secondary-dark">
+                        <span class="size-2 rounded-full bg-gray-500"></span> Last Week
+                    </span>
+                </div>
+            </div>
+            <!-- SVG Chart Placeholder -->
+            <div class="h-48 w-full relative">
+                <svg class="w-full h-full" viewBox="0 0 100 40" preserveAspectRatio="none">
+                    <!-- Grid Lines -->
+                    <line x1="0" y1="30" x2="100" y2="30" class="text-border-dark stroke-current" stroke-width="0.1" stroke-dasharray="2" />
+                    <line x1="0" y1="20" x2="100" y2="20" class="text-border-dark stroke-current" stroke-width="0.1" stroke-dasharray="2" />
+                    <line x1="0" y1="10" x2="100" y2="10" class="text-border-dark stroke-current" stroke-width="0.1" stroke-dasharray="2" />
+                    
+                    <!-- Last Week Path (Gray) -->
+                    <path d="M0,25 Q20,30 40,20 T80,15 T100,25" fill="none" stroke="#6b7280" stroke-width="0.5" stroke-opacity="0.3" />
+                    
+                    <!-- This Week Path (Green Gradient) -->
+                    <defs>
+                        <linearGradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+                            <stop offset="0%" stop-color="#13ec6d" stop-opacity="0.2"/>
+                            <stop offset="100%" stop-color="#13ec6d" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M0,25 Q20,15 40,25 T80,20 T100,10 V40 H0 Z" fill="url(#chartGradient)" />
+                    <path d="M0,25 Q20,15 40,25 T80,20 T100,10" fill="none" class="text-primary stroke-current" stroke-width="0.5" />
+                </svg>
+            </div>
+            <div class="flex justify-between mt-2 text-xs text-text-secondary-dark">
+                <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+            </div>
+        </div>
+
+        <!-- Revenue Overview & Quick Actions -->
+        <div class="flex flex-col gap-6">
+            <!-- Quick Actions -->
+            <div class="bg-surface-dark p-6 rounded-xl border border-border-dark shadow-sm">
+                <h3 class="text-lg font-bold text-text-main mb-4">Quick Actions</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                     <a href="{% url 'room_list' %}" class="flex flex-col items-center justify-center p-4 bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors group text-center">
+                        <span class="material-symbols-outlined text-primary text-3xl mb-2 group-hover:scale-110 transition-transform">add_box</span>
+                        <span class="text-sm font-bold text-primary">Walk-in Booking</span>
+                        <span class="text-[10px] text-text-secondary-dark mt-1">Register Guest & Room</span>
+                    </a>
+                    <a href="{% url 'booking_list' %}" class="flex flex-col items-center justify-center p-4 bg-blue-500/10 rounded-lg hover:bg-blue-500/20 transition-colors group text-center">
+                        <span class="material-symbols-outlined text-blue-500 text-3xl mb-2 group-hover:scale-110 transition-transform">list_alt</span>
+                        <span class="text-sm font-bold text-blue-500">All Bookings</span>
+                        <span class="text-[10px] text-text-secondary-dark mt-1">Manage Reservations</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Revenue Bars -->
+            <div class="bg-surface-dark p-6 rounded-xl border border-border-dark shadow-sm flex-1">
+                <h3 class="text-lg font-bold text-text-main mb-4">Revenue Overview</h3>
+                <div class="space-y-4">
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-text-main">Mon</span>
+                            <span class="text-text-main font-bold">{{ site_settings.currency_symbol }}12k</span>
+                        </div>
+                        <div class="h-2 w-full bg-background-dark/50 rounded-full overflow-hidden">
+                            <div class="h-full bg-primary rounded-full" style="width: 40%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-text-main">Tue</span>
+                            <span class="text-text-main font-bold">{{ site_settings.currency_symbol }}18k</span>
+                        </div>
+                        <div class="h-2 w-full bg-background-dark/50 rounded-full overflow-hidden">
+                            <div class="h-full bg-primary rounded-full" style="width: 65%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-text-main">Wed</span>
+                            <span class="text-text-main font-bold">{{ site_settings.currency_symbol }}8k</span>
+                        </div>
+                        <div class="h-2 w-full bg-background-dark/50 rounded-full overflow-hidden">
+                            <div class="h-full bg-primary rounded-full" style="width: 25%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

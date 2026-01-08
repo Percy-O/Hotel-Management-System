@@ -1,0 +1,46 @@
+{% extends 'dashboard_base.html' %}
+
+{% block header_title %}Housekeeping{% endblock %}
+{% block header_subtitle %}Rooms requiring attention{% endblock %}
+
+{% block dashboard_content %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for room in cleaning_rooms %}
+        <div class="bg-surface-dark rounded-xl border border-border-dark overflow-hidden shadow-sm p-6">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h3 class="text-2xl font-bold text-text-main">Room {{ room.room_number }}</h3>
+                    <p class="text-sm text-text-secondary-dark">{{ room.room_type.name }}</p>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wide bg-yellow-500/10 text-yellow-500 border border-yellow-500/20">
+                    Cleaning
+                </span>
+            </div>
+            
+            <div class="mb-6">
+                <p class="text-sm text-text-secondary-dark flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[18px]">schedule</span>
+                    Marked for cleaning
+                </p>
+            </div>
+            
+            <form action="{% url 'room_status_update' room.pk %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="status" value="AVAILABLE">
+                <button type="submit" class="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2 shadow-lg shadow-green-600/20">
+                    <span class="material-symbols-outlined">check_circle</span>
+                    Mark Ready
+                </button>
+            </form>
+        </div>
+        {% empty %}
+        <div class="col-span-full py-20 text-center">
+            <div class="size-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span class="material-symbols-outlined text-4xl text-green-500">cleaning_services</span>
+            </div>
+            <h3 class="text-xl font-bold text-text-main mb-2">All Caught Up!</h3>
+            <p class="text-text-secondary-dark">No rooms require cleaning at the moment.</p>
+        </div>
+        {% endfor %}
+    </div>
+{% endblock %}

@@ -1,0 +1,118 @@
+{% extends 'dashboard_base.html' %}
+{% load static %}
+
+{% block header_title %}Room Service Orders{% endblock %}
+{% block header_subtitle %}Manage guest requests and orders{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'staff_order_history' %}" class="flex items-center gap-2 px-4 py-2 bg-surface-dark border border-border-dark rounded-lg hover:bg-background-dark transition-colors text-text-main text-sm font-medium">
+    <span class="material-symbols-outlined text-[20px]">history</span>
+    Order History
+</a>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="grid grid-cols-1 gap-6">
+    <!-- Active Orders -->
+    <div class="space-y-6">
+        <h3 class="text-xl font-bold text-text-main mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-orange-500">pending_actions</span>
+            Active Orders
+        </h3>
+        
+        {% if orders %}
+        <div class="grid grid-cols-1 gap-6">
+            {% for order in orders %}
+            <div class="bg-surface-dark border border-border-dark rounded-xl p-6 shadow-sm hover:border-primary/30 transition-all">
+                <div class="flex flex-col md:flex-row justify-between items-start gap-4 mb-4 border-b border-border-dark pb-4">
+                    <div>
+                        <div class="flex items-center gap-3 mb-1">
+                            <span class="text-2xl font-bold text-text-main">Room {{ order.room_number }}</span>
+                            <span class="px-3 py-1 rounded-full text-xs font-bold 
+                                {% if order.status == 'PENDING' %}bg-yellow-500/20 text-yellow-500
+                                {% elif order.status == 'IN_PROGRESS' %}bg-blue-500/20 text-blue-500
+                                {% endif %}">
+                                {{ order.get_status_display }}
+                            </span>
+                        </div>
+                        <p class="text-text-secondary-dark text-sm flex items-center gap-2">
+                            Order #{{ order.id }} • {{ order.created_at|timesince }} ago • by {{ order.user.get_full_name|default:order.user.username }}
+                            {% if order.user.guest_profile.is_vip %}
+                                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-yellow-500/20 text-yellow-500 border border-yellow-500/30">VIP</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xl font-bold text-text-main">{{ site_settings.currency_symbol }}{{ order.total_price|floatformat:2 }}</span>
+                    </div>
+                </div>
+                
+                <div class="space-y-2 mb-4">
+                    {% for item in order.items.all %}
+                    <div class="flex justify-between text-sm">
+                        <span class="text-text-main">{{ item.quantity }}x {{ item.menu_item.name }}</span>
+                        <span class="text-text-secondary-dark">{{ site_settings.currency_symbol }}{{ item.subtotal|floatformat:2 }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                {% if order.note %}
+                <div class="bg-background-dark p-3 rounded-lg mb-4 text-sm text-text-secondary-dark italic border border-border-dark">
+                    <span class="font-bold not-italic text-text-main">Note:</span> {{ order.note }}
+                </div>
+                {% endif %}
+                
+                <div class="flex flex-wrap gap-2 justify-end mt-4">
+                    {% if order.assigned_staff %}
+                        <div class="mr-auto flex items-center gap-2 text-sm text-text-secondary-dark">
+                            <span class="material-symbols-outlined text-[16px]">person</span>
+                            Assigned to: <span class="text-text-main font-bold">{{ order.assigned_staff.first_name }}</span>
+                        </div>
+                    {% else %}
+                    <form action="{% url 'update_order_status' order.id %}" method="POST" class="mr-auto">
+                        {% csrf_token %}
+                        <input type="hidden" name="assign_me" value="true">
+                        <button type="submit" class="px-4 py-2 bg-purple-500/10 text-purple-500 hover:bg-purple-500 hover:text-white rounded-lg text-sm font-bold transition-colors border border-purple-500/20">
+                            Assign to Me
+                        </button>
+                    </form>
+                    {% endif %}
+
+                    {% if order.status == 'PENDING' %}
+                    <form action="{% url 'update_order_status' order.id %}" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="status" value="IN_PROGRESS">
+                        <button type="submit" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-bold transition-colors">
+                            Start Preparing
+                        </button>
+                    </form>
+                    {% endif %}
+                    
+                    <form action="{% url 'update_order_status' order.id %}" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="status" value="DELIVERED">
+                        <button type="submit" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-bold transition-colors">
+                            Mark Delivered
+                        </button>
+                    </form>
+                    
+                    <form action="{% url 'update_order_status' order.id %}" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="status" value="CANCELLED">
+                        <button type="submit" class="px-4 py-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-lg text-sm font-bold transition-colors border border-red-500/20">
+                            Cancel
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="bg-surface-dark border border-border-dark rounded-xl p-12 text-center text-text-secondary-dark">
+            <span class="material-symbols-outlined text-4xl mb-2 opacity-20">check_circle</span>
+            <p>No active orders.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

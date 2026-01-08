@@ -1,0 +1,315 @@
+{% extends 'dashboard_base.html' %}
+{% load widget_tweaks %}
+
+{% block header_title %}System Settings{% endblock %}
+{% block header_subtitle %}Manage hotel identity and visual preferences{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-4xl mx-auto">
+    <form method="POST" enctype="multipart/form-data" class="space-y-8">
+        {% csrf_token %}
+        
+        <!-- Theme Settings -->
+        <div class="bg-surface-dark p-8 rounded-2xl border border-border-dark shadow-sm">
+            <h3 class="text-xl font-bold text-text-main mb-6 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">palette</span>
+                Theme Configuration
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <label class="block text-sm font-medium text-text-main mb-4">Color Theme</label>
+                    <div class="grid grid-cols-3 sm:grid-cols-5 gap-3">
+                        {% for value, label in form.theme.field.choices %}
+                        <label class="relative cursor-pointer group">
+                            <input type="radio" name="theme" value="{{ value }}" class="peer sr-only" {% if form.theme.value == value %}checked{% endif %} onchange="updateThemePreview(this.value)">
+                            <div class="h-10 rounded-lg border-2 border-transparent peer-checked:border-primary peer-checked:ring-2 peer-checked:ring-primary/20 hover:scale-105 transition-all
+                                {% if value == 'theme-default' %}bg-[#102218]{% endif %}
+                                {% if value == 'theme-light' %}bg-white{% endif %}
+                                {% if value == 'theme-blue' %}bg-[#0f172a]{% endif %}
+                                {% if value == 'theme-luxury' %}bg-[#121212]{% endif %}
+                                {% if value == 'theme-forest' %}bg-[#052e16]{% endif %}
+                                {% if value == 'theme-ocean' %}bg-[#083344]{% endif %}
+                                {% if value == 'theme-sunset' %}bg-[#4a044e]{% endif %}
+                                {% if value == 'theme-royal' %}bg-[#2e1065]{% endif %}
+                                {% if value == 'theme-minimal' %}bg-[#18181b]{% endif %}
+                                {% if value == 'theme-rose' %}bg-[#881337]{% endif %}
+                                {% if value == 'theme-coffee' %}bg-[#451a03]{% endif %}
+                                {% if value == 'theme-lavender' %}bg-[#4c1d95]{% endif %}
+                                {% if value == 'theme-midnight' %}bg-[#020617]{% endif %}
+                                {% if value == 'theme-neon' %}bg-black border border-green-500{% endif %}
+                                {% if value == 'theme-retro' %}bg-[#2c003e]{% endif %}
+                                {% if value == 'theme-cherry' %}bg-[#2b0000]{% endif %}
+                                {% if value == 'theme-dracula' %}bg-[#282a36]{% endif %}
+                                {% if value == 'theme-corporate' %}bg-slate-50 border border-slate-200{% endif %}
+                                {% if value == 'theme-custom' %}bg-gradient-to-br from-gray-700 to-gray-900{% endif %}
+                            "></div>
+                            <span class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] whitespace-nowrap text-text-secondary-dark opacity-0 group-hover:opacity-100 transition-opacity">{{ label }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Custom Theme Controls -->
+                    <div id="custom-theme-controls" class="mt-6 space-y-4 p-4 bg-background-dark/50 rounded-xl border border-border-dark {% if form.theme.value != 'theme-custom' %}hidden{% endif %}">
+                        <h4 class="text-sm font-bold text-text-main">Custom Colors</h4>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs text-text-secondary-dark mb-1">Primary</label>
+                                {% render_field form.custom_primary_color class="h-10 w-full rounded cursor-pointer" oninput="updateCustomPreview()" %}
+                            </div>
+                            <div>
+                                <label class="block text-xs text-text-secondary-dark mb-1">Background</label>
+                                {% render_field form.custom_background_color class="h-10 w-full rounded cursor-pointer" oninput="updateCustomPreview()" %}
+                            </div>
+                            <div>
+                                <label class="block text-xs text-text-secondary-dark mb-1">Surface</label>
+                                {% render_field form.custom_surface_color class="h-10 w-full rounded cursor-pointer" oninput="updateCustomPreview()" %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-background-dark p-4 rounded-xl border border-border-dark" id="preview-container">
+                    <h4 class="text-sm font-semibold text-text-main mb-2">Live Preview</h4>
+                    <div class="p-4 rounded-lg border border-border-dark transition-colors duration-300" id="preview-card">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="size-10 rounded-full flex items-center justify-center text-white shadow-lg" id="preview-icon-bg">
+                                <span class="material-symbols-outlined text-xl">hotel</span>
+                            </div>
+                            <div class="flex-1">
+                                <div class="h-3 w-24 bg-current opacity-20 rounded mb-1.5" id="preview-text-main"></div>
+                                <div class="h-2 w-16 bg-current opacity-10 rounded" id="preview-text-sub"></div>
+                            </div>
+                            <button type="button" class="px-4 py-1.5 text-slate-900 text-xs font-bold rounded-lg shadow-md transition-transform active:scale-95" id="preview-button">
+                                Book Now
+                            </button>
+                        </div>
+                        <div class="h-20 rounded-md bg-black/10 border border-black/5 flex items-center justify-center">
+                            <span class="text-xs opacity-40">Content Area</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-text-secondary-dark mt-3 text-center">Preview updates automatically.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feature Modules -->
+        <div class="bg-surface-dark p-8 rounded-2xl border border-border-dark shadow-sm">
+            <h3 class="text-xl font-bold text-text-main mb-6 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">extension</span>
+                Module Management
+            </h3>
+            <p class="text-text-secondary-dark mb-6 text-sm">Enable or disable additional services offered by your hotel.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Events Module -->
+                <div class="bg-background-dark p-4 rounded-xl border border-border-dark flex items-start gap-4">
+                    <div class="p-3 bg-primary/10 rounded-lg text-primary">
+                        <span class="material-symbols-outlined">celebration</span>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="font-bold text-text-main">Events & Halls</h4>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                {% render_field form.enable_events class="sr-only peer" %}
+                                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                            </label>
+                        </div>
+                        <p class="text-xs text-text-secondary-dark">Manage event spaces, hall bookings, and scheduling for weddings, conferences, etc.</p>
+                    </div>
+                </div>
+
+                <!-- Gym Module -->
+                <div class="bg-background-dark p-4 rounded-xl border border-border-dark flex items-start gap-4">
+                    <div class="p-3 bg-primary/10 rounded-lg text-primary">
+                        <span class="material-symbols-outlined">fitness_center</span>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="font-bold text-text-main">Gym & Fitness</h4>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                {% render_field form.enable_gym class="sr-only peer" %}
+                                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                            </label>
+                        </div>
+                        <p class="text-xs text-text-secondary-dark">Manage gym memberships, plans, and member access tracking.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hotel Identity -->
+        <div class="bg-surface-dark p-8 rounded-2xl border border-border-dark shadow-sm">
+            <h3 class="text-xl font-bold text-text-main mb-6 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">storefront</span>
+                Hotel Identity
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-text-main mb-2">Hotel Name</label>
+                    {% render_field form.hotel_name class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm" %}
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-text-main mb-2">Currency</label>
+                    {% render_field form.currency class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm" %}
+                    <p class="text-xs text-text-secondary-dark mt-1">This currency symbol will be used across the site.</p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-text-main mb-2">Hotel Logo</label>
+                    <div class="flex items-center gap-4">
+                        {% if form.instance.hotel_logo %}
+                        <img src="{{ form.instance.hotel_logo.url }}" alt="Current Logo" class="h-12 w-12 rounded-lg object-cover bg-white">
+                        {% endif %}
+                        {% render_field form.hotel_logo class="text-sm text-text-secondary-dark file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-slate-900 hover:file:bg-primary-hover" %}
+                    </div>
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-text-main mb-2">Address</label>
+                    {% render_field form.address class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm" rows="2" %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact & Social -->
+        <div class="bg-surface-dark p-8 rounded-2xl border border-border-dark shadow-sm">
+            <h3 class="text-xl font-bold text-text-main mb-6 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">contact_support</span>
+                Contact & Social Media
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-text-main mb-2">Contact Email</label>
+                    {% render_field form.contact_email class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm" %}
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-text-main mb-2">Contact Phone</label>
+                    {% render_field form.contact_phone class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm" %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-text-main mb-2">Facebook URL</label>
+                    {% render_field form.facebook_url class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm" placeholder="https://facebook.com/..." %}
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-text-main mb-2">Twitter URL</label>
+                    {% render_field form.twitter_url class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm" placeholder="https://twitter.com/..." %}
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-text-main mb-2">Instagram URL</label>
+                    {% render_field form.instagram_url class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm" placeholder="https://instagram.com/..." %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex justify-end pt-4">
+            <button type="submit" class="px-8 py-3 bg-primary text-slate-900 font-bold rounded-xl hover:bg-primary-hover transition-colors shadow-lg shadow-primary/20 flex items-center gap-2">
+                <span class="material-symbols-outlined">save</span>
+                Save Changes
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Theme Configuration
+    const themeConfig = {
+        'theme-default': { primary: '#13ec6d', background: '#102218', surface: '#1a3326' },
+        'theme-light': { primary: '#13ec6d', background: '#ffffff', surface: '#f3f4f6', textMain: '#111827', textSub: '#6b7280' },
+        'theme-blue': { primary: '#3b82f6', background: '#0f172a', surface: '#1e293b' },
+        'theme-luxury': { primary: '#d4af37', background: '#121212', surface: '#1e1e1e' },
+        'theme-forest': { primary: '#4ade80', background: '#052e16', surface: '#064e3b' },
+        'theme-ocean': { primary: '#06b6d4', background: '#083344', surface: '#164e63' },
+        'theme-sunset': { primary: '#f472b6', background: '#4a044e', surface: '#701a75' },
+        'theme-royal': { primary: '#a78bfa', background: '#2e1065', surface: '#4c1d95' },
+        'theme-minimal': { primary: '#71717a', background: '#18181b', surface: '#27272a' },
+        'theme-rose': { primary: '#fb7185', background: '#881337', surface: '#9f1239' },
+        'theme-coffee': { primary: '#d6d3d1', background: '#451a03', surface: '#78350f' },
+        'theme-lavender': { primary: '#c084fc', background: '#4c1d95', surface: '#5b21b6' },
+        'theme-midnight': { primary: '#94a3b8', background: '#020617', surface: '#0f172a' },
+        'theme-neon': { primary: '#00ff00', background: '#000000', surface: '#111111' },
+        'theme-retro': { primary: '#ff00ff', background: '#2c003e', surface: '#4b006e' },
+        'theme-cherry': { primary: '#ff0055', background: '#2b0000', surface: '#4a0000' },
+        'theme-dracula': { primary: '#bd93f9', background: '#282a36', surface: '#44475a', textMain: '#f8f8f2', textSub: '#8be9fd' },
+        'theme-corporate': { primary: '#2563eb', background: '#f8fafc', surface: '#ffffff', textMain: '#0f172a', textSub: '#64748b' },
+    };
+
+    function updateThemePreview(theme) {
+        const previewCard = document.getElementById('preview-card');
+        const previewIconBg = document.getElementById('preview-icon-bg');
+        const previewButton = document.getElementById('preview-button');
+        const customControls = document.getElementById('custom-theme-controls');
+        
+        let config = themeConfig[theme];
+
+        if (theme === 'theme-custom') {
+            customControls.classList.remove('hidden');
+            updateCustomPreview(); // Use current custom values
+            return;
+        } else {
+            customControls.classList.add('hidden');
+        }
+
+        if (!config) return;
+
+        applyPreviewStyles(config);
+    }
+
+    function updateCustomPreview() {
+        const primary = document.querySelector('[name="custom_primary_color"]').value;
+        const background = document.querySelector('[name="custom_background_color"]').value;
+        const surface = document.querySelector('[name="custom_surface_color"]').value;
+
+        applyPreviewStyles({
+            primary: primary,
+            background: background,
+            surface: surface
+        });
+    }
+
+    function applyPreviewStyles(config) {
+        const previewCard = document.getElementById('preview-card');
+        const previewIconBg = document.getElementById('preview-icon-bg');
+        const previewButton = document.getElementById('preview-button');
+        const previewTextMain = document.getElementById('preview-text-main');
+        const previewTextSub = document.getElementById('preview-text-sub');
+
+        // Apply colors
+        previewCard.style.backgroundColor = config.surface;
+        previewCard.style.borderColor = config.primary + '40'; // 25% opacity
+        
+        previewIconBg.style.backgroundColor = config.primary + '20'; // 12% opacity
+        previewIconBg.style.color = config.primary;
+        
+        previewButton.style.backgroundColor = config.primary;
+        
+        // Text colors (handle light mode exception)
+        if (config.textMain) {
+            previewTextMain.style.backgroundColor = config.textMain;
+            previewTextSub.style.backgroundColor = config.textSub;
+            previewCard.style.color = config.textMain;
+        } else {
+            // Default dark mode text logic
+            previewTextMain.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
+            previewTextSub.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
+            previewCard.style.color = '#ffffff';
+        }
+    }
+
+    // Initialize on load
+    document.addEventListener('DOMContentLoaded', () => {
+        const currentTheme = document.querySelector('input[name="theme"]:checked').value;
+        updateThemePreview(currentTheme);
+    });
+</script>
+{% endblock %}

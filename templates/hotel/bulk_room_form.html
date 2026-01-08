@@ -1,0 +1,58 @@
+{% extends 'dashboard_base.html' %}
+{% load widget_tweaks %}
+
+{% block header_title %}Bulk Create Rooms{% endblock %}
+{% block header_subtitle %}Automatically generate rooms based on Room Type settings{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-3xl mx-auto">
+    <div class="bg-surface-dark p-8 rounded-2xl border border-border-dark shadow-sm">
+        <div class="mb-6 p-4 bg-primary/10 rounded-xl border border-primary/20">
+            <div class="flex items-start gap-3">
+                <span class="material-symbols-outlined text-primary">info</span>
+                <div>
+                    <h4 class="text-sm font-bold text-text-main mb-1">How this works</h4>
+                    <p class="text-xs text-text-secondary-dark">
+                        This tool will automatically create physical rooms to match the "Total Rooms" count defined in the Room Type. 
+                        It will start counting from the "Starting Number" provided and skip any room numbers that already exist.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <form class="space-y-6" method="POST">
+            {% csrf_token %}
+            
+            <div>
+                <label class="block text-sm font-medium text-text-main mb-2">Select Room Type</label>
+                {% render_field form.room_type class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm cursor-pointer" %}
+                {{ form.room_type.errors }}
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-text-main mb-2">Starting Room Number</label>
+                    {% render_field form.starting_number class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm" placeholder="e.g. 101" %}
+                    {{ form.starting_number.errors }}
+                </div>
+                
+                <div class="flex items-center pt-8">
+                    <label class="flex items-center gap-3 cursor-pointer group">
+                        {% render_field form.floor_prefix class="w-5 h-5 rounded border-border-dark bg-background-dark text-primary focus:ring-primary focus:ring-offset-background-dark" %}
+                        <span class="text-sm text-text-main group-hover:text-primary transition-colors">Use first digit(s) as Floor</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4 pt-6 border-t border-border-dark mt-6">
+                <a href="{% url 'staff_room_list' %}" class="flex-1 py-3 px-4 border border-border-dark rounded-lg text-sm font-semibold text-text-main hover:bg-background-dark transition-colors text-center">
+                    Cancel
+                </a>
+                <button type="submit" class="flex-1 py-3 px-4 bg-primary hover:bg-primary-hover text-slate-900 text-sm font-semibold rounded-lg transition-all shadow-lg shadow-primary/20">
+                    Generate Rooms
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

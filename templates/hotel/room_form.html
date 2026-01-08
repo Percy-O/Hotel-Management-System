@@ -1,0 +1,64 @@
+{% extends 'dashboard_base.html' %}
+{% load widget_tweaks %}
+
+{% block header_title %}Add New Room{% endblock %}
+{% block header_subtitle %}Register a new physical room{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-3xl mx-auto">
+    <div class="bg-surface-dark p-8 rounded-2xl border border-border-dark shadow-sm">
+        <form class="space-y-6" method="POST">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 gap-y-6 gap-x-6 sm:grid-cols-6">
+                {% for field in form %}
+                <div class="sm:col-span-6">
+                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-text-main mb-2">{{ field.label }}</label>
+                    {{ field|add_class:"w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-text-main placeholder-text-secondary-dark focus:ring-2 focus:ring-primary focus:border-transparent text-sm transition-all" }}
+                    {% if field.help_text %}
+                        <p class="text-text-secondary-dark text-xs mt-1">{{ field.help_text }}</p>
+                    {% endif %}
+                    {% if field.errors %}
+                        <p class="text-red-500 text-xs mt-1">{{ field.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="flex items-center gap-4 pt-6 border-t border-border-dark mt-6">
+                <a href="{% url 'staff_room_list' %}" class="flex-1 py-3 px-4 border border-border-dark rounded-lg text-sm font-semibold text-text-main hover:bg-background-dark transition-colors text-center">
+                    Cancel
+                </a>
+                <button type="submit" class="flex-1 py-3 px-4 bg-primary hover:bg-primary-hover text-slate-900 text-sm font-semibold rounded-lg transition-all shadow-lg shadow-primary/20">
+                    Create Room
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Auto-fill Floor based on Room Number
+    const roomInput = document.getElementById('id_room_number');
+    const floorInput = document.getElementById('id_floor');
+
+    if (roomInput && floorInput) {
+        roomInput.addEventListener('input', function() {
+            const val = this.value;
+            if (val.length >= 3) {
+                // Assuming format like 101, 205, 1201 etc.
+                // If 3 digits, first digit is floor. If 4 digits, first 2 are floor.
+                let floor = '';
+                if (val.length === 3) {
+                    floor = val[0];
+                } else if (val.length === 4) {
+                    floor = val.substring(0, 2);
+                }
+                
+                if (floor && !floorInput.value) {
+                    floorInput.value = floor;
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}

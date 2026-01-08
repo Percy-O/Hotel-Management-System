@@ -1,0 +1,53 @@
+{% extends 'guest_dashboard_base.html' %}
+{% load static %}
+
+{% block header_title %}Request Housekeeping{% endblock %}
+{% block header_subtitle %}Request cleaning, amenities, or maintenance{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-surface-dark border border-border-dark rounded-xl p-6 shadow-lg">
+        <form method="post" action="{% url 'request_housekeeping' %}" class="space-y-6">
+            {% csrf_token %}
+            
+            <div>
+                <label for="service_type" class="block text-sm font-medium text-text-secondary-dark mb-2">Request Type</label>
+                <select name="service_type" id="service_type" required 
+                    class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all">
+                    <option value="" disabled selected>Select a service...</option>
+                    {% for type in service_types %}
+                    <option value="{{ type.id }}">{{ type.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label for="note" class="block text-sm font-medium text-text-secondary-dark mb-2">Additional Notes</label>
+                <textarea name="note" id="note" rows="4" 
+                    class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                    placeholder="Please describe your request in detail..."></textarea>
+            </div>
+
+            <div class="pt-4 flex items-center justify-end gap-4">
+                <a href="{% url 'guest_dashboard' %}" class="px-6 py-2.5 rounded-lg border border-border-dark text-text-secondary-dark hover:bg-white/5 transition-colors">
+                    Cancel
+                </a>
+                <button type="submit" class="px-6 py-2.5 rounded-lg bg-primary text-white font-medium hover:bg-primary-dark transition-colors shadow-lg shadow-primary/20">
+                    Submit Request
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Info Card -->
+    <div class="mt-8 bg-surface-dark/50 border border-border-dark rounded-xl p-6">
+        <h3 class="text-text-main font-semibold mb-2 flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary">info</span>
+            Housekeeping Information
+        </h3>
+        <div class="text-sm text-text-secondary-dark whitespace-pre-line leading-relaxed">
+            {{ site_settings.housekeeping_info|default:"Standard cleaning is performed daily between 10:00 AM and 2:00 PM. Requests made after 8:00 PM may be attended to the following morning unless urgent." }}
+        </div>
+    </div>
+</div>
+{% endblock %}

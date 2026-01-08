@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-background-dark py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+    <div class="max-w-md w-full space-y-8">
+        <div class="text-center">
+            <h2 class="mt-6 text-3xl font-extrabold text-text-main">
+                Complete Your Payment
+            </h2>
+            <p class="mt-2 text-sm text-text-secondary-dark">
+                Please complete payment to confirm your {{ context_type }}.
+            </p>
+        </div>
+        
+        <div class="bg-surface-dark py-8 px-4 shadow rounded-lg sm:px-10 border border-border-dark">
+            <!-- Invoice Summary -->
+            <div class="mb-6 pb-6 border-b border-border-dark">
+                <div class="flex justify-between mb-2">
+                    <span class="text-text-secondary-dark">Invoice ID</span>
+                    <span class="text-text-main font-medium">#{{ invoice.id }}</span>
+                </div>
+                
+                <div class="flex justify-between mb-2">
+                    <span class="text-text-secondary-dark">Description</span>
+                    <span class="text-text-main font-medium text-right">{{ description }}</span>
+                </div>
+
+                {% if context_type == 'booking' %}
+                <div class="flex justify-between mb-2">
+                    <span class="text-text-secondary-dark">Room Type</span>
+                    <span class="text-text-main font-medium">{{ context_obj.room.room_type.name }}</span>
+                </div>
+                <div class="flex justify-between mb-2">
+                    <span class="text-text-secondary-dark">Dates</span>
+                    <span class="text-text-main font-medium text-xs">{{ context_obj.check_in_date|date:"M d" }} - {{ context_obj.check_out_date|date:"M d, Y" }}</span>
+                </div>
+                {% elif context_type == 'event' %}
+                <div class="flex justify-between mb-2">
+                    <span class="text-text-secondary-dark">Hall</span>
+                    <span class="text-text-main font-medium">{{ context_obj.hall.name }}</span>
+                </div>
+                <div class="flex justify-between mb-2">
+                    <span class="text-text-secondary-dark">Date</span>
+                    <span class="text-text-main font-medium">{{ context_obj.start_time|date:"M d, Y" }}</span>
+                </div>
+                {% elif context_type == 'gym' %}
+                <div class="flex justify-between mb-2">
+                    <span class="text-text-secondary-dark">Plan</span>
+                    <span class="text-text-main font-medium">{{ context_obj.plan.name }}</span>
+                </div>
+                <div class="flex justify-between mb-2">
+                    <span class="text-text-secondary-dark">Duration</span>
+                    <span class="text-text-main font-medium">{{ context_obj.plan.duration_days }} Days</span>
+                </div>
+                {% endif %}
+
+                <div class="flex justify-between mt-4 pt-4 border-t border-border-dark">
+                    <span class="text-lg font-bold text-text-main">Total Amount</span>
+                    <span class="text-lg font-bold text-primary">{{ site_settings.currency_symbol }}{{ invoice.amount }}</span>
+                </div>
+            </div>
+
+            <!-- Payment Options -->
+            <div class="space-y-4">
+                {% if paystack_enabled %}
+                <button onclick="payWithPaystack()" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                    Pay with Paystack
+                </button>
+                {% endif %}
+
+                {% if flutterwave_enabled %}
+                <button onclick="payWithFlutterwave()" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-colors">
+                    Pay with Flutterwave
+                </button>
+                {% endif %}
+                
+                {% if not paystack_enabled and not flutterwave_enabled %}
+                <div class="text-center p-4 bg-red-500/10 text-red-500 rounded-md border border-red-500/20">
+                    No online payment methods are currently active. Please contact support.
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="mt-6 text-center">
+                <a href="{% url 'home' %}" class="text-sm font-medium text-primary hover:text-primary-hover">
+                    Cancel and Return Home
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Paystack Inline -->
+{% if paystack_enabled %}
+<script src="https://js.paystack.co/v1/inline.js"></script>
+<script>
+    function payWithPaystack() {
+        let handler = PaystackPop.setup({
+            key: '{{ paystack_key }}', 
+            email: '{{ email }}',
+            amount: {{ amount }}, // in kobo
+            currency: '{{ currency }}',
+            ref: '{{ ref }}', 
+            callback: function(response) {
+                // Redirect to verify endpoint
+                window.location.href = "{% url 'verify_payment' 'paystack' %}?reference=" + response.reference + "&invoice_id={{ invoice.id }}";
+            },
+            onClose: function() {
+                alert('Transaction was not completed, window closed.');
+            }
+        });
+        handler.openIframe();
+    }
+</script>
+{% endif %}
+
+<!-- Flutterwave Inline -->
+{% if flutterwave_enabled %}
+<script src="https://checkout.flutterwave.com/v3.js"></script>
+<script>
+    function payWithFlutterwave() {
+        FlutterwaveCheckout({
+            public_key: '{{ flutterwave_key }}',
+            tx_ref: '{{ ref }}',
+            amount: {{ invoice.amount }},
+            currency: '{{ currency }}',
+            payment_options: "card, mobilemoneyghana, ussd",
+            customer: {
+                email: '{{ email }}',
+                phone_number: '{{ phone }}',
+                name: '{{ name }}',
+            },
+            callback: function (data) {
+                // Redirect to verify endpoint
+                window.location.href = "{% url 'verify_payment' 'flutterwave' %}?tx_ref=" + data.tx_ref + "&invoice_id={{ invoice.id }}";
+            },
+            customizations: {
+                title: "Payment for {{ description }}",
+                description: "Invoice #{{ invoice.id }}",
+                logo: "{{ site_settings.hotel_logo.url|default:'' }}",
+            },
+        });
+    }
+</script>
+{% endif %}
+
+{% endblock %}

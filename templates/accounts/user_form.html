@@ -1,0 +1,119 @@
+{% extends 'dashboard_base.html' %}
+{% load widget_tweaks %}
+
+{% block header_title %}{% if form.instance.pk %}Edit User{% else %}Add New User{% endif %}{% endblock %}
+{% block header_subtitle %}{% if form.instance.pk %}Update user details and permissions{% else %}Create a new staff or guest account{% endif %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-4xl mx-auto">
+    <div class="grid grid-cols-1 gap-8">
+        <!-- Main Form -->
+        <div>
+            <form method="post" class="bg-surface-dark p-8 rounded-2xl border border-border-dark shadow-sm">
+                {% csrf_token %}
+                
+                <h3 class="text-lg font-bold text-text-main mb-6">Account Information</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium text-text-main mb-2">Username</label>
+                        {% render_field form.username class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm" placeholder="username" %}
+                        {{ form.username.errors }}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-text-main mb-2">Email Address</label>
+                        {% render_field form.email class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm" placeholder="email@example.com" %}
+                        {{ form.email.errors }}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-text-main mb-2">First Name</label>
+                        {% render_field form.first_name class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm" placeholder="John" %}
+                        {{ form.first_name.errors }}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-text-main mb-2">Last Name</label>
+                        {% render_field form.last_name class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm" placeholder="Doe" %}
+                        {{ form.last_name.errors }}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-text-main mb-2">Phone Number</label>
+                        {% render_field form.phone_number class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm" placeholder="+1 234 567 890" %}
+                        {{ form.phone_number.errors }}
+                    </div>
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="block text-sm font-medium text-text-main">Role</label>
+                            <button type="button" onclick="toggleRoleGuide()" class="text-xs text-primary hover:text-primary-hover font-medium flex items-center gap-1 transition-colors">
+                                <span class="material-symbols-outlined text-[14px]">help</span>
+                                Role Guide
+                            </button>
+                        </div>
+                        {% render_field form.role class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm" %}
+                        {{ form.role.errors }}
+                    </div>
+                </div>
+
+                <!-- Collapsible Role Guide -->
+                <div id="roleGuide" class="hidden mb-6 bg-primary/5 border border-primary/20 rounded-xl p-4 transition-all duration-300">
+                    <h4 class="text-sm font-bold text-text-main mb-3 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary text-lg">verified_user</span>
+                        Role Permissions
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="flex items-start gap-2">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-purple-500/10 text-purple-500 mt-0.5">Admin</span>
+                            <p class="text-xs text-text-secondary-dark">Full access to settings, user management, and financial reports.</p>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-500/10 text-blue-500 mt-0.5">Manager</span>
+                            <p class="text-xs text-text-secondary-dark">Manage rooms & bookings. No access to system settings.</p>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-green-500/10 text-green-500 mt-0.5">Staff</span>
+                            <p class="text-xs text-text-secondary-dark">Front-desk operations: Check-in/out & bookings.</p>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-gray-500/10 text-gray-500 mt-0.5">Guest</span>
+                            <p class="text-xs text-text-secondary-dark">Limited personal booking access only.</p>
+                        </div>
+                    </div>
+                </div>
+
+                {% if not form.instance.pk %}
+                <div class="border-t border-border-dark pt-6 mb-6">
+                    <h3 class="text-lg font-bold text-text-main mb-4">Security</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-text-main mb-2">Password</label>
+                            {% render_field form.password class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm" type="password" %}
+                            {{ form.password.errors }}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-text-main mb-2">Confirm Password</label>
+                            {% render_field form.confirm_password class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm" type="password" %}
+                            {{ form.confirm_password.errors }}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="flex items-center justify-end gap-4 mt-8 pt-6 border-t border-border-dark">
+                    <a href="{% url 'user_list' %}" class="px-6 py-2.5 border border-border-dark text-text-main font-medium rounded-lg hover:bg-primary/10 transition-colors">
+                        Cancel
+                    </a>
+                    <button type="submit" class="px-6 py-2.5 bg-primary text-slate-900 font-bold rounded-lg hover:bg-primary-hover transition-colors shadow-lg shadow-primary/20">
+                        {% if form.instance.pk %}Save Changes{% else %}Create User{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleRoleGuide() {
+        const guide = document.getElementById('roleGuide');
+        guide.classList.toggle('hidden');
+    }
+</script>
+{% endblock %}

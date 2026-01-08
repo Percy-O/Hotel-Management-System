@@ -1,0 +1,279 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-background-dark py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <!-- Decorative Elements -->
+    <div class="absolute top-0 right-0 -mt-20 -mr-20 w-80 h-80 bg-primary/10 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-0 left-0 -mb-20 -ml-20 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl"></div>
+
+    <div class="max-w-2xl w-full bg-surface-dark p-8 md:p-12 rounded-2xl border border-white/10 shadow-2xl relative z-10">
+        <!-- Progress Steps -->
+        <div class="flex items-center justify-center mb-10">
+            <div class="flex items-center w-full max-w-sm relative">
+                <div class="w-full absolute top-1/2 left-0 h-0.5 bg-border-dark -z-10"></div>
+                
+                <!-- Step 1 Indicator -->
+                <div class="flex-1 flex justify-center">
+                    <div class="size-10 rounded-full bg-primary flex items-center justify-center text-slate-900 font-bold text-sm shadow-lg shadow-primary/20 step-indicator" data-step="1">1</div>
+                </div>
+                
+                <!-- Step 2 Indicator -->
+                <div class="flex-1 flex justify-center">
+                    <div class="size-10 rounded-full bg-surface-light text-text-secondary-dark font-bold text-sm border-2 border-border-dark flex items-center justify-center step-indicator" data-step="2">2</div>
+                </div>
+                
+                <!-- Step 3 Indicator -->
+                <div class="flex-1 flex justify-center">
+                    <div class="size-10 rounded-full bg-surface-light text-text-secondary-dark font-bold text-sm border-2 border-border-dark flex items-center justify-center step-indicator" data-step="3">3</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-extrabold text-white" id="step-title">
+                Get Started
+            </h2>
+            <p class="mt-2 text-sm text-gray-400" id="step-subtitle">
+                Create your account to unlock exclusive features
+            </p>
+        </div>
+
+        <form class="space-y-6" method="POST" id="registration-form">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="bg-red-500/10 border border-red-500/50 rounded-lg p-4 mb-6">
+                {% for error in form.non_field_errors %}
+                <p class="text-red-400 text-sm">{{ error }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <!-- Step 1: Purpose of Visit -->
+            <div class="step-content" data-step="1">
+                <div class="grid grid-cols-1 gap-4">
+                    <label class="block text-sm font-medium text-gray-300 mb-2">What brings you here today?</label>
+                    
+                    <label class="relative flex items-center p-4 rounded-xl border border-border-dark cursor-pointer hover:border-primary/50 bg-background-dark transition-all group">
+                        <input type="radio" name="visit_purpose" value="hotel" class="peer sr-only" checked>
+                        <div class="size-12 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
+                            <span class="material-symbols-outlined">hotel</span>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-white font-bold">Book a Stay</h3>
+                            <p class="text-xs text-gray-400">Reserve a room for your upcoming trip</p>
+                        </div>
+                        <div class="size-5 rounded-full border-2 border-gray-600 peer-checked:border-primary peer-checked:bg-primary ml-auto transition-colors"></div>
+                    </label>
+
+                    {% if site_settings.enable_events %}
+                    <label class="relative flex items-center p-4 rounded-xl border border-border-dark cursor-pointer hover:border-primary/50 bg-background-dark transition-all group">
+                        <input type="radio" name="visit_purpose" value="event" class="peer sr-only">
+                        <div class="size-12 rounded-lg bg-purple-500/10 text-purple-500 flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
+                            <span class="material-symbols-outlined">celebration</span>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-white font-bold">Event Booking</h3>
+                            <p class="text-xs text-gray-400">Host a wedding, conference, or party</p>
+                        </div>
+                        <div class="size-5 rounded-full border-2 border-gray-600 peer-checked:border-primary peer-checked:bg-primary ml-auto transition-colors"></div>
+                    </label>
+                    {% endif %}
+
+                    {% if site_settings.enable_gym %}
+                    <label class="relative flex items-center p-4 rounded-xl border border-border-dark cursor-pointer hover:border-primary/50 bg-background-dark transition-all group">
+                        <input type="radio" name="visit_purpose" value="gym" class="peer sr-only">
+                        <div class="size-12 rounded-lg bg-green-500/10 text-green-500 flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
+                            <span class="material-symbols-outlined">fitness_center</span>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-white font-bold">Gym Membership</h3>
+                            <p class="text-xs text-gray-400">Join our fitness center and stay fit</p>
+                        </div>
+                        <div class="size-5 rounded-full border-2 border-gray-600 peer-checked:border-primary peer-checked:bg-primary ml-auto transition-colors"></div>
+                    </label>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Step 2: Personal Details -->
+            <div class="step-content hidden" data-step="2">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="col-span-full">
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Username</label>
+                        {% render_field form.username class="appearance-none rounded-lg relative block w-full px-4 py-3 border border-white/10 bg-background-dark placeholder-gray-500 text-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all" placeholder="Choose a unique username" %}
+                        {% if form.username.errors %}<p class="text-red-400 text-xs mt-1">{{ form.username.errors.0 }}</p>{% endif %}
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">First Name</label>
+                        {% render_field form.first_name class="appearance-none rounded-lg relative block w-full px-4 py-3 border border-white/10 bg-background-dark placeholder-gray-500 text-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all" %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Last Name</label>
+                        {% render_field form.last_name class="appearance-none rounded-lg relative block w-full px-4 py-3 border border-white/10 bg-background-dark placeholder-gray-500 text-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all" %}
+                    </div>
+                    
+                    <div class="col-span-full">
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Email Address</label>
+                        {% render_field form.email class="appearance-none rounded-lg relative block w-full px-4 py-3 border border-white/10 bg-background-dark placeholder-gray-500 text-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all" placeholder="name@example.com" %}
+                        {% if form.email.errors %}<p class="text-red-400 text-xs mt-1">{{ form.email.errors.0 }}</p>{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Security & Confirm -->
+            <div class="step-content hidden" data-step="3">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Password</label>
+                        {% render_field form.password class="appearance-none rounded-lg relative block w-full px-4 py-3 border border-white/10 bg-background-dark placeholder-gray-500 text-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all" placeholder="••••••••" %}
+                        {% if form.password.errors %}<p class="text-red-400 text-xs mt-1">{{ form.password.errors.0 }}</p>{% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Confirm Password</label>
+                        {% render_field form.password_confirm class="appearance-none rounded-lg relative block w-full px-4 py-3 border border-white/10 bg-background-dark placeholder-gray-500 text-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all" placeholder="••••••••" %}
+                        {% if form.password_confirm.errors %}<p class="text-red-400 text-xs mt-1">{{ form.password_confirm.errors.0 }}</p>{% endif %}
+                    </div>
+                    
+                    <div class="bg-primary/10 border border-primary/20 rounded-lg p-4 mt-6">
+                        <div class="flex gap-3">
+                            <span class="material-symbols-outlined text-primary">info</span>
+                            <p class="text-sm text-gray-300">
+                                By clicking "Create Account", you agree to our Terms of Service and Privacy Policy.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="flex gap-4 mt-8">
+                <button type="button" id="prev-btn" class="hidden flex-1 py-3 px-4 border border-border-dark text-sm font-bold rounded-lg text-white hover:bg-surface-light transition-all">
+                    Back
+                </button>
+                <button type="button" id="next-btn" class="flex-1 py-3 px-4 bg-primary hover:bg-primary-hover text-slate-900 text-sm font-bold rounded-lg transition-all shadow-lg shadow-primary/20">
+                    Next Step
+                </button>
+                <button type="submit" id="submit-btn" class="hidden flex-1 py-3 px-4 bg-primary hover:bg-primary-hover text-slate-900 text-sm font-bold rounded-lg transition-all shadow-lg shadow-primary/20">
+                    Create Account
+                </button>
+            </div>
+
+            <div class="text-center mt-6">
+                <p class="text-sm text-gray-400">
+                    Already have an account? 
+                    <a href="{% url 'login' %}" class="font-medium text-primary hover:text-white transition-colors">
+                        Sign in
+                    </a>
+                </p>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let currentStep = 1;
+    const totalSteps = 3;
+    
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const submitBtn = document.getElementById('submit-btn');
+    const stepTitle = document.getElementById('step-title');
+    const stepSubtitle = document.getElementById('step-subtitle');
+    
+    const titles = {
+        1: "Welcome!",
+        2: "Your Details",
+        3: "Secure Account"
+    };
+    
+    const subtitles = {
+        1: "What brings you here today?",
+        2: "Let's get to know you better",
+        3: "Set up your password to finish"
+    };
+
+    function updateUI() {
+        // Show/Hide Content
+        document.querySelectorAll('.step-content').forEach(el => {
+            el.classList.add('hidden');
+            if(parseInt(el.dataset.step) === currentStep) el.classList.remove('hidden');
+        });
+        
+        // Update Indicators
+        document.querySelectorAll('.step-indicator').forEach(el => {
+            const step = parseInt(el.dataset.step);
+            el.classList.remove('bg-primary', 'text-slate-900', 'shadow-lg', 'bg-surface-light', 'text-text-secondary-dark');
+            el.classList.add('border-2', 'border-border-dark');
+            
+            if (step === currentStep) {
+                el.classList.add('bg-primary', 'text-slate-900', 'shadow-lg');
+                el.classList.remove('border-2', 'border-border-dark');
+            } else if (step < currentStep) {
+                el.classList.add('bg-green-500', 'text-white', 'border-green-500');
+                el.innerHTML = '<span class="material-symbols-outlined text-sm">check</span>';
+            } else {
+                el.classList.add('bg-surface-light', 'text-text-secondary-dark');
+                el.innerHTML = step;
+            }
+        });
+        
+        // Update Text
+        stepTitle.textContent = titles[currentStep];
+        stepSubtitle.textContent = subtitles[currentStep];
+        
+        // Update Buttons
+        prevBtn.classList.toggle('hidden', currentStep === 1);
+        
+        if (currentStep === totalSteps) {
+            nextBtn.classList.add('hidden');
+            submitBtn.classList.remove('hidden');
+        } else {
+            nextBtn.classList.remove('hidden');
+            submitBtn.classList.add('hidden');
+        }
+    }
+
+    nextBtn.addEventListener('click', () => {
+        if (currentStep < totalSteps) {
+            // Validate current step
+            const currentContent = document.querySelector(`.step-content[data-step="${currentStep}"]`);
+            const inputs = currentContent.querySelectorAll('input, select, textarea');
+            let valid = true;
+            
+            inputs.forEach(input => {
+                if (!input.checkValidity()) {
+                    valid = false;
+                    input.reportValidity();
+                }
+            });
+            
+            if (valid) {
+                currentStep++;
+                updateUI();
+            }
+        }
+    });
+
+    submitBtn.addEventListener('click', (e) => {
+        const form = document.getElementById('registration-form');
+        if (!form.checkValidity()) {
+            e.preventDefault();
+            form.reportValidity();
+        }
+    });
+
+    prevBtn.addEventListener('click', () => {
+        if (currentStep > 1) {
+            currentStep--;
+            updateUI();
+        }
+    });
+    
+    updateUI();
+});
+</script>
+{% endblock %}

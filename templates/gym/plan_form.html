@@ -1,0 +1,51 @@
+{% extends 'dashboard_base.html' %}
+{% load widget_tweaks %}
+
+{% block header_title %}
+    {% if form.instance.pk %}Edit Plan: {{ form.instance.name }}{% else %}Create Gym Plan{% endif %}
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-surface-dark p-8 rounded-2xl border border-border-dark shadow-sm">
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-text-main mb-2">Plan Name</label>
+                    {% render_field form.name class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-text-main focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="e.g. Monthly Gold Access" %}
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-text-main mb-2">Description</label>
+                    {% render_field form.description class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-text-main focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Whats included in this plan?" %}
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-text-main mb-2">Price</label>
+                        {% render_field form.price class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-text-main focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-text-main mb-2">Duration (Days)</label>
+                        {% render_field form.duration_days class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-text-main focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" %}
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-3 p-4 bg-background-dark rounded-lg border border-border-dark">
+                    {% render_field form.is_active class="w-5 h-5 text-primary bg-surface-dark border-gray-600 rounded focus:ring-primary focus:ring-2" %}
+                    <label class="text-sm font-medium text-text-main">Active (Visible to users)</label>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-4 pt-4 border-t border-border-dark">
+                <a href="{% url 'gym_plan_list' %}" class="btn btn-ghost text-text-secondary-dark hover:text-white">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    {% if form.instance.pk %}Update Plan{% else %}Create Plan{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

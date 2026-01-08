@@ -1,0 +1,15 @@
+{% comment %}
+    Reusable Sidebar Submenu Header Component
+    Arguments:
+        id: The ID of the submenu div (must match the div's id)
+        icon: Material symbol icon name
+        label: Text to display
+{% endcomment %}
+<button onclick="toggleMenu('{{ id }}')" 
+        class="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg text-text-secondary-dark hover:bg-primary/5 transition-colors group">
+    <div class="flex items-center gap-3">
+        <span class="material-symbols-outlined">{{ icon }}</span>
+        <span class="text-sm font-medium">{{ label }}</span>
+    </div>
+    <span class="material-symbols-outlined text-[18px] transition-transform" id="{{ id }}-icon">expand_more</span>
+</button>

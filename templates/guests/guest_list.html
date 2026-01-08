@@ -1,0 +1,125 @@
+{% extends 'dashboard_base.html' %}
+
+{% block header_title %}Guest Directory{% endblock %}
+{% block header_subtitle %}View and manage guest profiles and history.{% endblock %}
+
+{% block header_actions %}
+<div class="flex items-center gap-4">
+    <button class="flex items-center gap-2 px-4 py-2 bg-surface-dark border border-border-dark rounded-lg text-sm font-medium text-text-main hover:bg-primary/5 transition-colors">
+        <span class="material-symbols-outlined text-[18px]">download</span>
+        Export CSV
+    </button>
+</div>
+{% endblock %}
+
+{% block dashboard_content %}
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <!-- Total Guests -->
+        <div class="bg-surface-dark p-5 rounded-xl border border-border-dark shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-xs font-medium text-text-secondary-dark uppercase tracking-wider">Total Guests</span>
+                <span class="material-symbols-outlined text-primary">groups</span>
+            </div>
+            <h3 class="text-3xl font-bold text-text-main mb-2">{{ guests|length }}</h3>
+            <p class="text-xs text-primary flex items-center gap-1">
+                <span class="material-symbols-outlined text-[14px]">trending_up</span>
+                Lifetime unique guests
+            </p>
+        </div>
+
+        <!-- Returning Guests (Placeholder logic) -->
+        <div class="bg-surface-dark p-5 rounded-xl border border-border-dark shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-xs font-medium text-text-secondary-dark uppercase tracking-wider">Returning</span>
+                <span class="material-symbols-outlined text-blue-500">diversity_2</span>
+            </div>
+            <h3 class="text-3xl font-bold text-text-main mb-2">{{ returning_count }}</h3>
+            <p class="text-xs text-blue-500 flex items-center gap-1">
+                <span class="material-symbols-outlined text-[14px]">trending_up</span>
+                Loyal customers
+            </p>
+        </div>
+
+        <!-- VIPs (Placeholder logic) -->
+        <div class="bg-surface-dark p-5 rounded-xl border border-border-dark shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-xs font-medium text-text-secondary-dark uppercase tracking-wider">VIP Guests</span>
+                <span class="material-symbols-outlined text-yellow-500">workspace_premium</span>
+            </div>
+            <h3 class="text-3xl font-bold text-text-main mb-2">--</h3>
+            <p class="text-xs text-yellow-500 flex items-center gap-1">
+                High lifetime value
+            </p>
+        </div>
+    </div>
+
+    <!-- Guest Table -->
+    <div class="bg-surface-dark rounded-xl border border-border-dark shadow-sm overflow-hidden">
+        <div class="p-6 border-b border-border-dark flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center bg-background-dark border border-border-dark rounded-lg px-3 py-2 w-full md:w-96">
+                <span class="material-symbols-outlined text-text-secondary-dark">search</span>
+                <input type="text" placeholder="Search guests..." class="bg-transparent border-none text-sm text-text-main placeholder-text-secondary-dark focus:ring-0 w-full ml-2" />
+            </div>
+            <div class="flex gap-2">
+                <button class="p-2 text-text-secondary-dark hover:text-text-main">
+                    <span class="material-symbols-outlined">filter_list</span>
+                </button>
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-background-dark/50 border-b border-border-dark">
+                        <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Guest Name</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Contact Info</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Total Stays</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Total Spent</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Last Visit</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-border-dark">
+                    {% for guest in guests %}
+                    <tr class="hover:bg-primary/5 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <div class="size-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm">
+                                    {{ guest.guest_name|slice:":1" }}
+                                </div>
+                                <span class="text-sm font-medium text-text-main">{{ guest.guest_name }}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex flex-col">
+                                <span class="text-sm text-text-main">{{ guest.guest_email }}</span>
+                                <span class="text-xs text-text-secondary-dark">{{ guest.guest_phone }}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-500/10 text-blue-500 border border-blue-500/20">
+                                {{ guest.total_bookings }} stays
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="text-sm font-semibold text-text-main">{{ site_settings.currency_symbol }}{{ guest.total_spent }}</span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-text-secondary-dark">
+                            {{ guest.last_stay|date:"M d, Y" }}
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <a href="{% url 'guest_detail' %}?email={{ guest.guest_email }}" class="text-primary hover:text-primary-hover font-medium text-sm">View Profile</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-8 text-center text-text-secondary-dark">
+                            No guests found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

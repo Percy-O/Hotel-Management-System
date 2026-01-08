@@ -1,0 +1,92 @@
+{% extends 'dashboard_base.html' %}
+
+{% block header_title %}Booking Details{% endblock %}
+{% block header_subtitle %}#{{ booking.pk }} - {{ booking.event_name }}{% endblock %}
+{% block header_actions %}
+    <a href="{% url 'event_booking_list' %}" class="btn btn-outline flex items-center gap-2">
+        <span class="material-symbols-outlined">arrow_back</span>
+        Back
+    </a>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="lg:col-span-2 space-y-8">
+        <!-- Status Card -->
+        <div class="bg-surface-dark p-6 rounded-2xl border border-border-dark flex items-center justify-between">
+            <div>
+                <p class="text-sm text-text-secondary-dark uppercase tracking-wider mb-1">Current Status</p>
+                <span class="text-2xl font-bold 
+                    {% if booking.status == 'CONFIRMED' %}text-green-400
+                    {% elif booking.status == 'PENDING' %}text-yellow-400
+                    {% elif booking.status == 'COMPLETED' %}text-blue-400
+                    {% else %}text-red-400{% endif %}">
+                    {{ booking.get_status_display }}
+                </span>
+            </div>
+            
+            {% if user.can_manage_events and booking.status == 'PENDING' %}
+            <div class="flex gap-3">
+                <a href="{% url 'update_booking_status' booking.pk 'CANCELLED' %}" class="btn btn-danger">Reject</a>
+                <a href="{% url 'update_booking_status' booking.pk 'CONFIRMED' %}" class="btn btn-success">Approve</a>
+            </div>
+            {% endif %}
+            
+            {% if user.can_manage_events and booking.status == 'CONFIRMED' %}
+             <div class="flex gap-3">
+                 <a href="{% url 'update_booking_status' booking.pk 'COMPLETED' %}" class="btn btn-primary">Mark Completed</a>
+                 <a href="{% url 'update_booking_status' booking.pk 'CANCELLED' %}" class="btn btn-outline">Cancel</a>
+             </div>
+             {% endif %}
+        </div>
+
+        <!-- Info Grid -->
+        <div class="bg-surface-dark p-8 rounded-2xl border border-border-dark">
+            <h3 class="text-lg font-bold text-text-main mb-6">Reservation Info</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                <div>
+                    <span class="text-xs text-text-secondary-dark uppercase block mb-1">Hall</span>
+                    <p class="text-base text-text-main font-medium">{{ booking.hall.name }}</p>
+                </div>
+                <div>
+                    <span class="text-xs text-text-secondary-dark uppercase block mb-1">Booked By</span>
+                    <p class="text-base text-text-main font-medium">{{ booking.user.get_full_name|default:booking.user.username }}</p>
+                </div>
+                <div>
+                    <span class="text-xs text-text-secondary-dark uppercase block mb-1">Start Time</span>
+                    <p class="text-base text-text-main font-medium">{{ booking.start_time|date:"M d, Y - H:i" }}</p>
+                </div>
+                <div>
+                    <span class="text-xs text-text-secondary-dark uppercase block mb-1">End Time</span>
+                    <p class="text-base text-text-main font-medium">{{ booking.end_time|date:"M d, Y - H:i" }}</p>
+                </div>
+                <div class="col-span-full">
+                    <span class="text-xs text-text-secondary-dark uppercase block mb-1">Notes</span>
+                    <p class="text-base text-text-secondary-light dark:text-text-secondary-dark italic bg-background-dark p-4 rounded-lg">
+                        {{ booking.notes|default:"No additional notes." }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pricing Sidebar -->
+    <div class="space-y-6">
+        <div class="bg-surface-dark p-6 rounded-2xl border border-border-dark">
+            <h3 class="text-lg font-bold text-text-main mb-4">Payment Summary</h3>
+            <div class="space-y-3 pb-4 border-b border-border-dark">
+                <div class="flex justify-between text-sm text-text-secondary-dark">
+                    <span>Rate</span>
+                    <span>{{ site_settings.currency_symbol }}{{ booking.hall.price_per_hour }}/hr</span>
+                </div>
+                <!-- Calculate hours roughly for display if needed, but total is stored -->
+            </div>
+            <div class="flex justify-between items-center pt-4">
+                <span class="text-base font-bold text-text-main">Total</span>
+                <span class="text-2xl font-bold text-primary">{{ site_settings.currency_symbol }}{{ booking.total_price }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,192 @@
+{% extends 'dashboard_base.html' %}
+
+{% block header_title %}Booking Management{% endblock %}
+{% block header_subtitle %}Manage hotel reservations and occupancy.{% endblock %}
+
+{% block header_actions %}
+<div class="flex items-center gap-4">
+    <button class="flex items-center gap-2 px-4 py-2 bg-surface-dark border border-border-dark rounded-lg text-sm font-medium text-text-main hover:bg-primary/5 transition-colors">
+        <span class="material-symbols-outlined text-[18px]">download</span>
+        Export
+    </button>
+</div>
+{% endblock %}
+
+{% block dashboard_content %}
+    <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
+        <!-- Left Column: Stats & Table (Span 4 now since Quick Booking is removed) -->
+        <div class="xl:col-span-4 flex flex-col gap-6">
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Total Bookings -->
+                <div class="bg-surface-dark p-5 rounded-xl border border-border-dark shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-xs font-medium text-text-secondary-dark uppercase tracking-wider">All Bookings</span>
+                        <span class="material-symbols-outlined text-primary">book_online</span>
+                    </div>
+                    <h3 class="text-3xl font-bold text-text-main mb-1">{{ total_bookings }}</h3>
+                    <p class="text-xs text-text-secondary-dark">Total reservations</p>
+                </div>
+
+                <!-- Confirmed -->
+                <div class="bg-surface-dark p-5 rounded-xl border border-border-dark shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-xs font-medium text-text-secondary-dark uppercase tracking-wider">Confirmed</span>
+                        <span class="material-symbols-outlined text-blue-500">check_circle</span>
+                    </div>
+                    <h3 class="text-3xl font-bold text-text-main mb-1">{{ confirmed_bookings }}</h3>
+                    <p class="text-xs text-text-secondary-dark">Upcoming stays</p>
+                </div>
+
+                <!-- Checked In -->
+                <div class="bg-surface-dark p-5 rounded-xl border border-border-dark shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-xs font-medium text-text-secondary-dark uppercase tracking-wider">Checked In</span>
+                        <span class="material-symbols-outlined text-orange-500">key</span>
+                    </div>
+                    <h3 class="text-3xl font-bold text-text-main mb-1">{{ checked_in_bookings }}</h3>
+                    <p class="text-xs text-text-secondary-dark">Currently in-house</p>
+                </div>
+            </div>
+
+            <!-- Booking Table -->
+            <div class="bg-surface-dark rounded-xl border border-border-dark shadow-sm overflow-hidden flex-1">
+                <div class="p-4 border-b border-border-dark flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div class="flex items-center bg-background-dark border border-border-dark rounded-lg px-3 py-2 w-full sm:w-80">
+                        <span class="material-symbols-outlined text-text-secondary-dark">search</span>
+                        <form method="GET" class="w-full">
+                            <input type="text" name="search" placeholder="Search by name, ref, or room..." class="bg-transparent border-none text-sm text-text-main placeholder-text-secondary-dark focus:ring-0 w-full ml-2" value="{{ request.GET.search|default:'' }}" />
+                        </form>
+                    </div>
+                    <div class="flex gap-2">
+                        <form method="GET" class="flex gap-2">
+                            <select name="status" onchange="this.form.submit()" class="bg-background-dark border border-border-dark text-sm rounded-lg text-text-main focus:ring-1 focus:ring-primary py-2 pl-3 pr-8">
+                                <option value="">All Status</option>
+                                <option value="PENDING" {% if request.GET.status == 'PENDING' %}selected{% endif %}>Pending</option>
+                                <option value="CONFIRMED" {% if request.GET.status == 'CONFIRMED' %}selected{% endif %}>Confirmed</option>
+                                <option value="CHECKED_IN" {% if request.GET.status == 'CHECKED_IN' %}selected{% endif %}>Checked In</option>
+                                <option value="CHECKED_OUT" {% if request.GET.status == 'CHECKED_OUT' %}selected{% endif %}>Checked Out</option>
+                                <option value="CANCELLED" {% if request.GET.status == 'CANCELLED' %}selected{% endif %}>Cancelled</option>
+                            </select>
+                        </form>
+                    </div>
+                </div>
+                <div class="overflow-x-auto hidden md:block">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-background-dark/50 border-b border-border-dark">
+                                <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Booking Ref</th>
+                                <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Guest</th>
+                                <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Room</th>
+                                <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Dates</th>
+                                <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-border-dark">
+                            {% for booking in bookings %}
+                            <tr class="hover:bg-primary/5 transition-colors group">
+                                <td class="px-6 py-4">
+                                    <span class="font-mono text-xs font-medium text-text-main bg-background-dark px-2 py-1 rounded border border-border-dark">
+                                        #{{ booking.id }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex flex-col">
+                                        <span class="text-sm font-medium text-text-main">{{ booking.guest_name }}</span>
+                                        <span class="text-xs text-text-secondary-dark">{{ booking.guest_email }}</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-sm text-text-main">{{ booking.room.room_number }}</span>
+                                        <span class="text-xs text-text-secondary-dark">({{ booking.room.room_type.name }})</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex flex-col">
+                                        <span class="text-sm text-text-main">{{ booking.check_in_date|date:"M d" }} - {{ booking.check_out_date|date:"M d, Y" }}</span>
+                                        <span class="text-xs text-text-secondary-dark">{{ booking.duration_days }} nights</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    {% if booking.status == 'CONFIRMED' %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/10 text-green-500 border border-green-500/20">Confirmed</span>
+                                    {% elif booking.status == 'PENDING' %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-500 border border-yellow-500/20">Pending</span>
+                                    {% elif booking.status == 'CHECKED_IN' %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-500/10 text-blue-500 border border-blue-500/20">Checked In</span>
+                                    {% elif booking.status == 'CHECKED_OUT' %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-500/10 text-gray-400 border border-gray-500/20">Checked Out</span>
+                                    {% elif booking.status == 'CANCELLED' %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-500/10 text-red-500 border border-red-500/20">Cancelled</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <a href="{% url 'booking_detail' booking.pk %}" class="text-text-secondary-dark hover:text-primary transition-colors">
+                                        <span class="material-symbols-outlined text-[20px]">visibility</span>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="px-6 py-8 text-center text-text-secondary-dark">
+                                    No bookings found matching your criteria.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Mobile Card View -->
+                <div class="md:hidden divide-y divide-border-dark">
+                    {% for booking in bookings %}
+                    <div class="p-4 space-y-3">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="font-mono text-xs font-medium text-text-main bg-background-dark px-2 py-0.5 rounded border border-border-dark">
+                                        #{{ booking.id }}
+                                    </span>
+                                    {% if booking.status == 'CONFIRMED' %}
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-500/10 text-green-500 border border-green-500/20">CONFIRMED</span>
+                                    {% elif booking.status == 'PENDING' %}
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-yellow-500/10 text-yellow-500 border border-yellow-500/20">PENDING</span>
+                                    {% elif booking.status == 'CHECKED_IN' %}
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-500 border border-blue-500/20">CHECKED IN</span>
+                                    {% elif booking.status == 'CHECKED_OUT' %}
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-500/10 text-gray-400 border border-gray-500/20">CHECKED OUT</span>
+                                    {% elif booking.status == 'CANCELLED' %}
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 text-red-500 border border-red-500/20">CANCELLED</span>
+                                    {% endif %}
+                                </div>
+                                <h4 class="text-sm font-bold text-text-main">{{ booking.guest_name }}</h4>
+                                <p class="text-xs text-text-secondary-dark">{{ booking.guest_email }}</p>
+                            </div>
+                            <a href="{% url 'booking_detail' booking.pk %}" class="p-2 bg-surface-dark border border-border-dark rounded-lg text-text-secondary-dark hover:text-primary transition-colors">
+                                <span class="material-symbols-outlined text-[20px]">visibility</span>
+                            </a>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <div class="bg-background-dark/50 p-2 rounded-lg border border-border-dark">
+                                <span class="block text-text-secondary-dark mb-0.5">Room</span>
+                                <span class="font-medium text-text-main">{{ booking.room.room_number }} <span class="text-text-secondary-dark">({{ booking.room.room_type.name }})</span></span>
+                            </div>
+                            <div class="bg-background-dark/50 p-2 rounded-lg border border-border-dark">
+                                <span class="block text-text-secondary-dark mb-0.5">Dates</span>
+                                <span class="font-medium text-text-main">{{ booking.check_in_date|date:"M d" }} - {{ booking.check_out_date|date:"M d" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="p-8 text-center text-text-secondary-dark">
+                        No bookings found matching your criteria.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

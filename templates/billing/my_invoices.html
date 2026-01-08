@@ -1,0 +1,70 @@
+{% extends 'guest_dashboard_base.html' %}
+{% load static %}
+
+{% block header_title %}My Invoices{% endblock %}
+{% block header_subtitle %}View and manage your payments{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+    {% if invoices %}
+    <div class="bg-surface-dark border border-border-dark rounded-xl overflow-hidden shadow-sm">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead class="bg-background-dark/50 border-b border-border-dark">
+                    <tr>
+                        <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Invoice ID</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Date</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Description</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Amount</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-border-dark">
+                    {% for invoice in invoices %}
+                    <tr class="hover:bg-white/5 transition-colors">
+                        <td class="px-6 py-4 text-sm font-mono text-text-main">#{{ invoice.id }}</td>
+                        <td class="px-6 py-4 text-sm text-text-secondary-dark">
+                            {{ invoice.issued_date|date:"M d, Y" }}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-text-main">
+                            Booking #{{ invoice.booking.id }}
+                            {% if invoice.booking.room %}
+                            <span class="text-xs text-text-secondary-dark ml-1">(Room {{ invoice.booking.room.room_number }})</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-sm font-bold text-text-main">
+                            {{ site_settings.currency_symbol }}{{ invoice.amount|floatformat:2 }}
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                {% if invoice.status == 'PAID' %}bg-green-500/10 text-green-500
+                                {% elif invoice.status == 'PENDING' %}bg-yellow-500/10 text-yellow-500
+                                {% else %}bg-red-500/10 text-red-500{% endif %}">
+                                {{ invoice.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <a href="{% url 'invoice_detail' invoice.pk %}" class="inline-flex items-center justify-center px-3 py-1.5 border border-border-dark rounded-lg text-xs font-medium text-text-main hover:bg-background-dark transition-colors">
+                                View
+                            </a>
+                            {% if invoice.status == 'PENDING' %}
+                            <a href="{% url 'make_payment' invoice.pk %}" class="inline-flex items-center justify-center px-3 py-1.5 bg-primary hover:bg-primary-hover text-slate-900 rounded-lg text-xs font-bold transition-colors ml-2">
+                                Pay
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="bg-surface-dark border border-border-dark rounded-xl p-12 text-center text-text-secondary-dark">
+        <span class="material-symbols-outlined text-4xl mb-2 opacity-20">receipt_long</span>
+        <p>No invoices found.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

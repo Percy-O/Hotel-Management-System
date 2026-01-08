@@ -1,0 +1,188 @@
+{% extends 'guest_dashboard_base.html' %}
+{% load static %}
+
+{% block header_title %}Room Service Menu{% endblock %}
+{% block header_subtitle %}Order food and drinks directly to your room{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="mb-8 pb-24 flex justify-between items-center">
+    <a href="{% url 'guest_dashboard' %}" class="inline-flex items-center gap-2 text-text-secondary-dark hover:text-primary transition-colors mb-4">
+        <span class="material-symbols-outlined text-sm">arrow_back</span>
+        <span>Back to Dashboard</span>
+    </a>
+    
+    <a href="{% url 'my_orders' %}" class="inline-flex items-center gap-2 px-4 py-2 bg-surface-dark border border-border-dark rounded-lg text-sm font-medium text-text-main hover:bg-primary/5 transition-colors shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">receipt_long</span>
+        View Order History
+    </a>
+</div>
+
+{% if not active_booking %}
+<div class="bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 p-4 rounded-xl mb-6 flex items-start gap-3">
+    <span class="material-symbols-outlined mt-0.5">info</span>
+    <div>
+        <p class="font-bold">Ordering Unavailable</p>
+        <p class="text-sm opacity-80">You need to have an active checked-in booking to place an order. Please check in at the reception or contact staff.</p>
+    </div>
+</div>
+{% endif %}
+
+<form action="{% url 'place_order' %}" method="POST" id="orderForm">
+    {% csrf_token %}
+    
+    <div class="grid grid-cols-1 gap-12">
+        {% for category, items in items_by_category.items %}
+        <div class="space-y-6">
+            <h3 class="text-2xl font-bold text-text-main flex items-center gap-3">
+                {% if category == 'Food' %}
+                <span class="material-symbols-outlined text-orange-500">restaurant</span>
+                {% elif category == 'Drink' %}
+                <span class="material-symbols-outlined text-blue-500">local_bar</span>
+                {% else %}
+                <span class="material-symbols-outlined text-purple-500">room_service</span>
+                {% endif %}
+                {{ category }}
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for item in items %}
+                <div class="bg-surface-dark border border-border-dark rounded-xl overflow-hidden hover:border-primary/50 transition-all flex flex-col group">
+                    <div class="h-48 overflow-hidden bg-background-dark relative">
+                        {% if item.image %}
+                        <img src="{{ item.image.url }}" alt="{{ item.name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                        {% else %}
+                        <div class="w-full h-full flex items-center justify-center text-text-secondary-dark">
+                            <span class="material-symbols-outlined text-4xl opacity-20">restaurant_menu</span>
+                        </div>
+                        {% endif %}
+                        <div class="absolute top-3 right-3 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-white font-bold text-sm">
+                            {{ site_settings.currency_symbol }}{{ item.price }}
+                        </div>
+                    </div>
+                    
+                    <div class="p-5 flex-1 flex flex-col">
+                        <h4 class="text-lg font-bold text-text-main mb-1">{{ item.name }}</h4>
+                        <p class="text-text-secondary-dark text-sm mb-4 flex-1">{{ item.description }}</p>
+                        
+                        {% if active_booking %}
+                        <div class="flex items-center justify-between pt-4 border-t border-border-dark mt-auto">
+                            <div class="flex items-center gap-3 bg-background-dark rounded-lg p-1 border border-border-dark">
+                                <button type="button" class="w-8 h-8 flex items-center justify-center text-text-secondary-dark hover:text-white hover:bg-white/10 rounded transition-colors" onclick="updateQuantity('{{ item.id }}', -1)">
+                                    <span class="material-symbols-outlined text-sm">remove</span>
+                                </button>
+                                <input type="number" name="quantity_{{ item.id }}" id="qty_{{ item.id }}" value="0" min="0" class="w-8 text-center bg-transparent text-text-main font-bold border-none p-0 focus:ring-0 appearance-none" readonly>
+                                <button type="button" class="w-8 h-8 flex items-center justify-center text-text-secondary-dark hover:text-white hover:bg-white/10 rounded transition-colors" onclick="updateQuantity('{{ item.id }}', 1)">
+                                    <span class="material-symbols-outlined text-sm">add</span>
+                                </button>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if active_booking %}
+    <div class="fixed bottom-0 left-0 right-0 p-4 z-40 pointer-events-none">
+        <div class="max-w-5xl mx-auto flex justify-end">
+            <div id="orderBar" class="bg-primary text-slate-900 rounded-xl shadow-2xl p-4 flex items-center gap-6 transform translate-y-full transition-transform duration-300 pointer-events-auto">
+                <div class="flex flex-col">
+                    <span class="text-xs font-bold opacity-80 uppercase tracking-wider">Total Items</span>
+                    <span class="text-xl font-black" id="totalItems">0</span>
+                </div>
+                <div class="flex flex-col border-l border-black/10 pl-6">
+                    <span class="text-xs font-bold opacity-80 uppercase tracking-wider">Est. Total</span>
+                    <span class="text-xl font-black" id="totalPrice">{{ site_settings.currency_symbol }}0.00</span>
+                </div>
+                
+                <div class="pl-2">
+                    <button type="button" onclick="document.getElementById('noteModal').classList.remove('hidden')" class="px-6 py-3 bg-slate-900 text-white font-bold rounded-lg hover:bg-slate-800 transition-colors shadow-lg">
+                        Review & Place Order
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Note Modal -->
+    <div id="noteModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-surface-dark border border-border-dark rounded-2xl w-full max-w-md p-6 shadow-2xl transform transition-all">
+            <h3 class="text-xl font-bold text-text-main mb-4">Add a Note</h3>
+            <p class="text-text-secondary-dark text-sm mb-4">Any allergies or special requests?</p>
+            
+            <textarea name="note" class="w-full bg-background-dark border border-border-dark rounded-xl p-4 text-text-main placeholder-text-secondary-dark focus:border-primary focus:ring-1 focus:ring-primary outline-none resize-none h-32 mb-6" placeholder="e.g., No onions, extra ice..."></textarea>
+            
+            <div class="flex gap-3">
+                <button type="button" onclick="document.getElementById('noteModal').classList.add('hidden')" class="flex-1 py-3 text-text-secondary-dark font-bold hover:text-text-main transition-colors">
+                    Cancel
+                </button>
+                <button type="submit" class="flex-1 py-3 bg-primary text-slate-900 font-bold rounded-xl hover:bg-primary-hover transition-colors">
+                    Confirm Order
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</form>
+
+<script>
+    const prices = {
+        {% for category, items in items_by_category.items %}
+            {% for item in items %}
+                '{{ item.id }}': {{ item.price }},
+            {% endfor %}
+        {% endfor %}
+    };
+
+    function updateQuantity(itemId, change) {
+        const input = document.getElementById('qty_' + itemId);
+        let val = parseInt(input.value);
+        val = Math.max(0, val + change);
+        input.value = val;
+        
+        // Visual feedback
+        const card = input.closest('.group');
+        if (val > 0) {
+            card.classList.add('border-primary');
+            card.classList.remove('border-border-dark');
+        } else {
+            card.classList.remove('border-primary');
+            card.classList.add('border-border-dark');
+        }
+
+        calculateTotal();
+    }
+
+    function calculateTotal() {
+        let totalQty = 0;
+        let totalPrice = 0;
+        
+        for (const [id, price] of Object.entries(prices)) {
+            const qtyInput = document.getElementById('qty_' + id);
+            if (qtyInput) {
+                const qty = parseInt(qtyInput.value);
+                if (qty > 0) {
+                    totalQty += qty;
+                    totalPrice += qty * price;
+                }
+            }
+        }
+
+        document.getElementById('totalItems').innerText = totalQty;
+        document.getElementById('totalPrice').innerText = '{{ site_settings.currency_symbol }}' + totalPrice.toFixed(2);
+        
+        const bar = document.getElementById('orderBar');
+        if (totalQty > 0) {
+            bar.classList.remove('translate-y-full');
+        } else {
+            bar.classList.add('translate-y-full');
+        }
+    }
+</script>
+
+{% endblock %}

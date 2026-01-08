@@ -1,0 +1,87 @@
+{% extends 'guest_dashboard_base.html' %}
+{% load static %}
+
+{% block header_title %}My Orders{% endblock %}
+{% block header_subtitle %}Track your room service orders{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'menu_list' %}" class="flex items-center gap-2 px-4 py-2 bg-primary text-slate-900 rounded-lg text-sm font-bold hover:bg-primary-hover transition-colors shadow-lg shadow-primary/20">
+    <span class="material-symbols-outlined text-[18px]">add</span>
+    New Order
+</a>
+{% endblock %}
+
+{% block dashboard_content %}
+    {% if orders %}
+        <div class="grid grid-cols-1 gap-6">
+            {% for order in orders %}
+            <div class="bg-surface-dark border border-border-dark rounded-xl p-6 shadow-sm">
+                <!-- Order Header -->
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 border-b border-border-dark pb-4">
+                    <div>
+                        <div class="flex items-center gap-3 mb-1">
+                            <span class="text-xl font-bold text-text-main">Order #{{ order.id }}</span>
+                            <span class="px-3 py-1 rounded-full text-xs font-bold 
+                                {% if order.status == 'PENDING' %}bg-yellow-500/20 text-yellow-500
+                                {% elif order.status == 'IN_PROGRESS' %}bg-blue-500/20 text-blue-500
+                                {% elif order.status == 'DELIVERED' %}bg-green-500/20 text-green-500
+                                {% elif order.status == 'CANCELLED' %}bg-red-500/20 text-red-500
+                                {% endif %}">
+                                {{ order.get_status_display }}
+                            </span>
+                        </div>
+                        <p class="text-text-secondary-dark text-sm">
+                            {{ order.created_at|date:"M d, Y H:i" }} • Room {{ order.room_number }}
+                        </p>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-2xl font-bold text-text-main">{{ site_settings.currency_symbol }}{{ order.total_price }}</span>
+                    </div>
+                </div>
+
+                <!-- Assigned Staff Info -->
+                {% if order.assigned_staff %}
+                <div class="flex items-center gap-3 mb-6 bg-background-dark p-3 rounded-lg border border-border-dark">
+                    <div class="size-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                        <span class="material-symbols-outlined">person</span>
+                    </div>
+                    <div>
+                        <p class="text-xs text-text-secondary-dark uppercase tracking-wider">Served By</p>
+                        <p class="text-sm font-bold text-text-main">{{ order.assigned_staff.get_full_name|default:order.assigned_staff.username }}</p>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Order Items -->
+                <div class="space-y-3 mb-4">
+                    {% for item in order.items.all %}
+                    <div class="flex justify-between items-center text-sm">
+                        <div class="flex items-center gap-3">
+                            <span class="font-bold text-primary">{{ item.quantity }}x</span>
+                            <span class="text-text-main">{{ item.menu_item.name }}</span>
+                        </div>
+                        <span class="text-text-secondary-dark">{{ site_settings.currency_symbol }}{{ item.subtotal }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Note -->
+                {% if order.note %}
+                <div class="bg-background-dark p-3 rounded-lg text-sm text-text-secondary-dark italic border border-border-dark">
+                    <span class="font-bold not-italic text-text-main">Note:</span> {{ order.note }}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-16 bg-surface-dark rounded-xl border border-border-dark">
+            <span class="material-symbols-outlined text-6xl text-text-secondary-dark mb-4">room_service</span>
+            <h2 class="text-xl font-bold text-text-main mb-2">No Orders Yet</h2>
+            <p class="text-text-secondary-dark mb-8">You haven't placed any room service orders yet.</p>
+            <a href="{% url 'menu_list' %}" class="px-6 py-3 bg-primary text-slate-900 font-bold rounded-lg hover:bg-primary-hover transition-colors shadow-lg shadow-primary/20">
+                View Menu
+            </a>
+        </div>
+    {% endif %}
+{% endblock %}

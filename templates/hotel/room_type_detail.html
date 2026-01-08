@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ room_type.name }} - Hotel Management System{% endblock %}
+
+{% block content %}
+<div class="bg-background-dark min-h-screen pt-20 pb-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Breadcrumb -->
+        <nav class="flex mb-8" aria-label="Breadcrumb">
+            <ol role="list" class="flex items-center space-x-4">
+                <li>
+                    <a href="/" class="text-gray-400 hover:text-white transition-colors">Home</a>
+                </li>
+                <li>
+                    <span class="text-gray-600">/</span>
+                </li>
+                <li>
+                    <a href="{% url 'room_list' %}" class="text-gray-400 hover:text-white transition-colors">Rooms</a>
+                </li>
+                <li>
+                    <span class="text-gray-600">/</span>
+                </li>
+                <li>
+                    <span class="text-primary font-medium" aria-current="page">{{ room_type.name }}</span>
+                </li>
+            </ol>
+        </nav>
+
+        <div class="lg:grid lg:grid-cols-2 lg:gap-x-12 lg:items-start">
+            <!-- Image gallery -->
+            <div class="flex flex-col">
+                <div class="w-full aspect-w-4 aspect-h-3 bg-surface-dark rounded-2xl overflow-hidden border border-white/5 relative">
+                    <img id="mainImage" src="{% if room_type.image %}{{ room_type.image.url }}{% else %}https://images.unsplash.com/photo-1611892440504-42a792e24d32?q=80&w=2070&auto=format&fit=crop{% endif %}" alt="{{ room_type.name }}" class="w-full h-full object-center object-cover transition-opacity duration-300">
+                    <div class="absolute top-4 right-4 bg-black/50 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
+                        <span class="text-xs font-bold text-white">{{ average_rating|default:"New"|floatformat:1 }} <span class="text-yellow-400">★</span></span>
+                    </div>
+                </div>
+                
+                <!-- Thumbnails -->
+                <div class="grid grid-cols-4 gap-4 mt-4">
+                    <!-- Main Image Thumbnail -->
+                    <div class="aspect-w-1 aspect-h-1 bg-surface-dark rounded-lg overflow-hidden border border-primary cursor-pointer transition-all hover:opacity-80" onclick="updateMainImage(this, '{% if room_type.image %}{{ room_type.image.url }}{% else %}https://images.unsplash.com/photo-1611892440504-42a792e24d32?q=80&w=2070&auto=format&fit=crop{% endif %}')">
+                         <img src="{% if room_type.image %}{{ room_type.image.url }}{% else %}https://images.unsplash.com/photo-1611892440504-42a792e24d32?q=80&w=2070&auto=format&fit=crop{% endif %}" class="w-full h-full object-cover">
+                    </div>
+
+                    <!-- Gallery Images -->
+                    {% for gallery_item in room_type.images.all %}
+                    <div class="aspect-w-1 aspect-h-1 bg-surface-dark rounded-lg overflow-hidden border border-white/5 opacity-70 hover:opacity-100 hover:border-primary cursor-pointer transition-all" onclick="updateMainImage(this, '{{ gallery_item.image.url }}')">
+                         <img src="{{ gallery_item.image.url }}" alt="{{ gallery_item.caption }}" class="w-full h-full object-cover">
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Room info -->
+            <div class="mt-10 px-4 sm:px-0 sm:mt-16 lg:mt-0">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h1 class="text-3xl font-extrabold tracking-tight text-white mb-2">{{ room_type.name }}</h1>
+                        <p class="text-sm text-primary font-medium">{{ room_type.hotel.name }}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-3xl font-bold text-white">{{ site_settings.currency_symbol }}{{ room_type.price_per_night }}</p>
+                        <p class="text-sm text-gray-400">per night</p>
+                        <p class="text-xs text-primary mt-1 font-medium">{{ rooms_available_count }} rooms left</p>
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <h3 class="sr-only">Description</h3>
+                    <div class="text-base text-gray-300 space-y-6 leading-relaxed">
+                        <p>{{ room_type.description }}</p>
+                        <p>Experience unparalleled comfort in our thoughtfully designed {{ room_type.name }}. Featuring modern amenities, premium bedding, and stunning views, it's the perfect retreat for your stay.</p>
+                    </div>
+                </div>
+
+                <div class="mt-8 border-t border-white/10 pt-8">
+                    <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-4">Room Amenities</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="flex items-center text-gray-300">
+                            <span class="material-symbols-outlined text-primary mr-3">person</span>
+                            Max {{ room_type.capacity }} Guests
+                        </div>
+                        <div class="flex items-center text-gray-300">
+                            <span class="material-symbols-outlined text-primary mr-3">wifi</span>
+                            High-Speed Wifi
+                        </div>
+                        <div class="flex items-center text-gray-300">
+                            <span class="material-symbols-outlined text-primary mr-3">ac_unit</span>
+                            Air Conditioning
+                        </div>
+                        <div class="flex items-center text-gray-300">
+                            <span class="material-symbols-outlined text-primary mr-3">tv</span>
+                            Smart TV
+                        </div>
+                        <div class="flex items-center text-gray-300">
+                            <span class="material-symbols-outlined text-primary mr-3">coffee_maker</span>
+                            Coffee Maker
+                        </div>
+                        <div class="flex items-center text-gray-300">
+                            <span class="material-symbols-outlined text-primary mr-3">room_service</span>
+                            Room Service
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-10 p-6 bg-surface-dark rounded-2xl border border-white/10">
+                    <h3 class="text-lg font-bold text-white mb-4">Book this Room</h3>
+                    <form action="{% url 'create_booking' room_type.pk %}" method="GET" class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-400 mb-1 uppercase">Check In</label>
+                                <input type="datetime-local" name="check_in" class="w-full bg-background-dark border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm focus:ring-1 focus:ring-primary focus:border-primary">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-400 mb-1 uppercase">Check Out</label>
+                                <input type="datetime-local" name="check_out" class="w-full bg-background-dark border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm focus:ring-1 focus:ring-primary focus:border-primary">
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full bg-primary hover:bg-primary-hover text-slate-900 font-bold py-3.5 px-8 rounded-lg transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2 mt-2">
+                            Proceed to Booking
+                            <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+                        </button>
+                        <p class="text-xs text-center text-gray-500 mt-3">You won't be charged yet</p>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reviews Section -->
+        <div class="mt-16 border-t border-white/10 pt-12">
+            <h3 class="text-2xl font-bold text-white mb-8">Guest Reviews</h3>
+            
+            <div class="lg:grid lg:grid-cols-3 lg:gap-12">
+                <!-- Review Form -->
+                <div class="lg:col-span-1">
+                    <div class="bg-surface-dark p-6 rounded-xl border border-white/10 sticky top-24">
+                        <h4 class="text-lg font-bold text-white mb-4">Leave a Review</h4>
+                        <form method="POST" class="space-y-4">
+                            {% csrf_token %}
+                            <div>
+                                <label class="block text-xs font-medium text-gray-400 mb-1">Your Name</label>
+                                <input type="text" name="guest_name" required class="w-full bg-background-dark border border-white/10 rounded-lg px-4 py-2 text-white text-sm focus:ring-primary focus:border-primary">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-400 mb-1">Rating</label>
+                                <select name="rating" required class="w-full bg-background-dark border border-white/10 rounded-lg px-4 py-2 text-white text-sm focus:ring-primary focus:border-primary">
+                                    <option value="5">5 - Excellent</option>
+                                    <option value="4">4 - Very Good</option>
+                                    <option value="3">3 - Good</option>
+                                    <option value="2">2 - Fair</option>
+                                    <option value="1">1 - Poor</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-400 mb-1">Comment</label>
+                                <textarea name="comment" rows="4" required class="w-full bg-background-dark border border-white/10 rounded-lg px-4 py-2 text-white text-sm focus:ring-primary focus:border-primary resize-none"></textarea>
+                            </div>
+                            <button type="submit" class="w-full px-6 py-2.5 bg-primary hover:bg-primary-hover text-slate-900 text-sm font-bold rounded-lg transition-colors">
+                                Submit Review
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Reviews List -->
+                <div class="lg:col-span-2 mt-8 lg:mt-0 space-y-6">
+                    {% for review in reviews %}
+                    <div class="bg-surface-dark p-6 rounded-xl border border-white/5">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="size-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm">
+                                    {{ review.guest_name|slice:":1" }}
+                                </div>
+                                <div>
+                                    <span class="block text-white font-medium text-base">{{ review.guest_name }}</span>
+                                    <div class="flex items-center gap-1 mt-0.5">
+                                        {% for i in "12345" %}
+                                            <span class="material-symbols-outlined text-[14px] {% if forloop.counter <= review.rating %}text-yellow-400{% else %}text-gray-600{% endif %}">star</span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="text-xs text-gray-500">{{ review.created_at|date:"M d, Y" }}</span>
+                        </div>
+                        <p class="text-gray-300 text-sm leading-relaxed">{{ review.comment }}</p>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-12 border-2 border-dashed border-white/10 rounded-xl">
+                        <span class="material-symbols-outlined text-4xl text-gray-600 mb-2">rate_review</span>
+                        <p class="text-gray-500 text-sm italic">No reviews yet. Be the first to share your experience!</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function updateMainImage(thumbnail, newSrc) {
+        const mainImage = document.getElementById('mainImage');
+        
+        // Visual feedback for click
+        mainImage.style.opacity = '0.5';
+        
+        setTimeout(() => {
+            mainImage.src = newSrc;
+            mainImage.style.opacity = '1';
+        }, 150);
+
+        // Update active state on thumbnails
+        const thumbnails = thumbnail.parentElement.children;
+        for (let t of thumbnails) {
+            t.classList.remove('border-primary', 'opacity-100');
+            t.classList.add('border-white/5', 'opacity-70');
+        }
+        
+        thumbnail.classList.remove('border-white/5', 'opacity-70');
+        thumbnail.classList.add('border-primary', 'opacity-100');
+    }
+</script>
+{% endblock %}

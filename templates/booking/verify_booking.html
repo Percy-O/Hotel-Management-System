@@ -1,0 +1,383 @@
+{% extends 'dashboard_base.html' %}
+
+{% block header_title %}Verify Booking{% endblock %}
+{% block header_subtitle %}Scan guest entry pass or enter booking ID{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-2xl mx-auto">
+    <!-- Scanner Card -->
+    <div class="bg-surface-dark rounded-2xl border border-border-dark shadow-xl shadow-black/20 mb-8 overflow-hidden relative group">
+        <!-- Decorative Glow -->
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-50 group-hover:opacity-100 transition-opacity"></div>
+        
+        <div class="p-8">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 class="text-xl font-bold text-text-main">Scan Guest Pass</h2>
+                    <p class="text-sm text-text-secondary-dark">Use camera or external scanner</p>
+                </div>
+                <div class="size-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-primary">qr_code_scanner</span>
+                </div>
+            </div>
+
+            <div id="reader" class="w-full mb-6 hidden rounded-xl overflow-hidden border border-border-dark bg-black/50 relative"></div>
+            <div id="cameraError" class="hidden mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-sm font-medium flex items-center gap-2">
+                <span class="material-symbols-outlined text-[18px]">error</span>
+                <span id="errorText"></span>
+            </div>
+            
+            <form method="POST" class="relative" id="verifyForm">
+                {% csrf_token %}
+                <div class="relative group/input">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <span class="material-symbols-outlined text-text-secondary-dark group-focus-within/input:text-primary transition-colors">keyboard</span>
+                    </div>
+                    <input type="text" name="barcode" id="barcodeInput" value="{{ search_query }}" autofocus
+                        class="block w-full pl-12 pr-24 py-4 bg-background-dark border border-border-dark rounded-xl text-lg text-text-main focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder-text-secondary-dark"
+                        placeholder="Enter Booking ID...">
+                    <button type="submit" class="absolute right-2 top-2 bottom-2 px-6 bg-primary text-slate-900 font-bold rounded-lg hover:bg-primary-hover transition-colors shadow-lg shadow-primary/20">
+                        Verify
+                    </button>
+                </div>
+                
+                <div class="mt-6 flex flex-wrap justify-between items-center pt-6 border-t border-border-dark gap-4">
+                    <p class="text-xs text-text-secondary-dark flex items-center gap-1.5 order-2 sm:order-1">
+                        <span class="size-2 rounded-full bg-green-500 animate-pulse"></span>
+                        System Ready
+                    </p>
+                    
+                    <div class="flex items-center gap-3 order-1 sm:order-2 w-full sm:w-auto">
+                        <input type="file" id="qrInput" accept="image/*" class="hidden">
+                        
+                        <button type="button" id="uploadBtn" class="flex-1 sm:flex-none px-4 py-2 rounded-lg bg-surface-light/5 hover:bg-primary/10 text-text-main hover:text-primary font-medium text-sm flex items-center justify-center gap-2 transition-colors border border-transparent hover:border-primary/20">
+                            <span class="material-symbols-outlined text-[18px]">upload_file</span>
+                            Upload Image
+                        </button>
+                        
+                        <button type="button" id="toggleScanner" class="flex-1 sm:flex-none px-4 py-2 rounded-lg bg-surface-light/5 hover:bg-primary/10 text-primary font-medium text-sm flex items-center justify-center gap-2 transition-colors border border-transparent hover:border-primary/20">
+                            <span class="material-symbols-outlined text-[18px]">videocam</span>
+                            Scan Camera
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Results -->
+    {% if booking %}
+    <div class="bg-surface-dark rounded-2xl border border-border-dark shadow-lg overflow-hidden animate-fade-in">
+        <!-- Status Header -->
+        <div class="p-6 border-b border-border-dark flex items-center justify-between bg-background-dark/50">
+            <div>
+                <p class="text-xs text-text-secondary-dark uppercase tracking-wider mb-1">Status</p>
+                <div class="flex items-center gap-2">
+                    {% if booking.status == 'CONFIRMED' %}
+                        <span class="material-symbols-outlined text-green-500">check_circle</span>
+                        <span class="font-bold text-green-500">Confirmed</span>
+                    {% elif booking.status == 'CHECKED_IN' %}
+                        <span class="material-symbols-outlined text-blue-500">login</span>
+                        <span class="font-bold text-blue-500">Checked In</span>
+                    {% elif booking.status == 'CHECKED_OUT' %}
+                        <span class="material-symbols-outlined text-gray-400">logout</span>
+                        <span class="font-bold text-gray-400">Checked Out</span>
+                    {% elif booking.status == 'CANCELLED' %}
+                        <span class="material-symbols-outlined text-red-500">cancel</span>
+                        <span class="font-bold text-red-500">Cancelled</span>
+                    {% else %}
+                        <span class="material-symbols-outlined text-yellow-500">pending</span>
+                        <span class="font-bold text-yellow-500">{{ booking.get_status_display }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="text-right">
+                <p class="text-xs text-text-secondary-dark uppercase tracking-wider mb-1">Booking ID</p>
+                <p class="text-xl font-mono font-bold text-text-main">#{{ booking.id }}</p>
+            </div>
+        </div>
+
+        <!-- Guest & Room Info -->
+        <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+                <h4 class="text-sm font-bold text-text-main mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">person</span>
+                    Guest Details
+                </h4>
+                <div class="space-y-3">
+                    <div>
+                        <p class="text-xs text-text-secondary-dark">Name</p>
+                        <p class="font-medium text-text-main text-lg">{{ booking.guest_name }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-text-secondary-dark">Email</p>
+                        <p class="text-text-main">{{ booking.guest_email }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <h4 class="text-sm font-bold text-text-main mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">bed</span>
+                    Stay Details
+                </h4>
+                <div class="space-y-3">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-xs text-text-secondary-dark">Room</p>
+                            <p class="font-bold text-primary text-lg">{{ booking.room.room_number }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-text-secondary-dark">Type</p>
+                            <p class="font-medium text-text-main">{{ booking.room.room_type.name }}</p>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-xs text-text-secondary-dark">Dates</p>
+                        <p class="text-text-main font-medium">
+                            {{ booking.check_in_date|date:"M d" }} - {{ booking.check_out_date|date:"M d, Y" }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Payment Info -->
+        <div class="p-6 bg-background-dark/30 border-t border-border-dark">
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="w-full sm:w-auto text-center sm:text-left">
+                    <p class="text-xs text-text-secondary-dark uppercase tracking-wider">Payment Status</p>
+                    {% if booking.invoices.first.status == 'PAID' %}
+                        <p class="text-green-500 font-bold flex items-center justify-center sm:justify-start gap-1">
+                            <span class="material-symbols-outlined text-[18px]">paid</span>
+                            PAID
+                        </p>
+                    {% else %}
+                        <p class="text-red-500 font-bold flex items-center justify-center sm:justify-start gap-1">
+                            <span class="material-symbols-outlined text-[18px]">error</span>
+                            UNPAID
+                        </p>
+                    {% endif %}
+                </div>
+                <div class="flex gap-2 w-full sm:w-auto justify-center sm:justify-end">
+                    <a href="{% url 'booking_detail' booking.pk %}" class="px-4 py-2 bg-surface-dark border border-border-dark rounded-lg text-sm font-medium hover:bg-background-dark transition-colors text-text-main">
+                        View Details
+                    </a>
+                    {% if booking.status == 'CONFIRMED' %}
+                    <a href="{% url 'check_in_booking' booking.pk %}" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-bold transition-colors shadow-lg shadow-green-600/20">
+                        Check In
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<script>
+    const toggleBtn = document.getElementById('toggleScanner');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const qrInput = document.getElementById('qrInput');
+    const readerDiv = document.getElementById('reader');
+    const errorDiv = document.getElementById('cameraError');
+    const errorText = document.getElementById('errorText');
+    const inputField = document.getElementById('barcodeInput');
+    const form = document.getElementById('verifyForm');
+
+    let html5QrCode = null;
+    let isScanning = false;
+
+    // Initialize scanner instance with support for all formats (QR + Barcodes)
+    try {
+        html5QrCode = new Html5Qrcode("reader", { 
+            verbose: false,
+            experimentalFeatures: {
+                useBarCodeDetectorIfSupported: true
+            }
+        });
+    } catch (e) {
+        console.error("Error creating Html5Qrcode instance", e);
+        showToast("Failed to initialize scanner component", "error");
+    }
+
+    // Check for secure context
+    const isSecureContext = window.isSecureContext;
+    if (!isSecureContext && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        console.warn('Camera access requires HTTPS or localhost');
+        showToast("Camera access requires a secure connection (HTTPS)", "error");
+    }
+
+    function onScanSuccess(decodedText, decodedResult) {
+        console.log(`Code matched = ${decodedText}`, decodedResult);
+        
+        // Play beep sound
+        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+        audio.play().catch(e => console.log('Audio play failed', e));
+
+        showToast("Code Scanned Successfully!", "success");
+        stopScanning();
+
+        // Populate and submit
+        inputField.value = decodedText;
+        
+        // Visual feedback on input
+        inputField.classList.add('ring-2', 'ring-green-500');
+        
+        // Small delay before submit to show the user what happened
+        setTimeout(() => {
+            form.submit();
+        }, 500);
+    }
+
+    function onScanFailure(error) {
+        // console.warn(`Code scan error = ${error}`);
+        // We don't show toast here as it triggers on every frame without a code
+    }
+
+    function stopScanning() {
+        if (isScanning && html5QrCode) {
+            html5QrCode.stop().then(() => {
+                isScanning = false;
+                readerDiv.classList.add('hidden');
+                toggleBtn.innerHTML = '<span class="material-symbols-outlined text-[18px]">videocam</span> Scan Camera';
+                toggleBtn.classList.remove('text-red-500', 'bg-red-500/10');
+                toggleBtn.classList.add('text-primary');
+            }).catch(err => {
+                console.error("Failed to stop scanning.", err);
+            });
+        }
+    }
+
+    // Toast Notification System
+    function showToast(message, type = 'info') {
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = `fixed top-24 right-6 z-50 px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 transform transition-all duration-300 translate-x-full opacity-0`;
+        
+        // Style based on type
+        if (type === 'error') {
+            toast.classList.add('bg-red-500', 'text-white');
+            toast.innerHTML = `<span class="material-symbols-outlined">error</span><p class="font-medium">${message}</p>`;
+        } else if (type === 'success') {
+            toast.classList.add('bg-green-500', 'text-white');
+            toast.innerHTML = `<span class="material-symbols-outlined">check_circle</span><p class="font-medium">${message}</p>`;
+        } else {
+            toast.classList.add('bg-surface-light', 'text-text-main');
+            toast.innerHTML = `<span class="material-symbols-outlined">info</span><p class="font-medium">${message}</p>`;
+        }
+
+        document.body.appendChild(toast);
+
+        // Animate in
+        requestAnimationFrame(() => {
+            toast.classList.remove('translate-x-full', 'opacity-0');
+        });
+
+        // Remove after 3 seconds
+        setTimeout(() => {
+            toast.classList.add('translate-x-full', 'opacity-0');
+            setTimeout(() => {
+                document.body.removeChild(toast);
+            }, 300);
+        }, 3000);
+    }
+
+    // Camera Toggle
+    toggleBtn.addEventListener('click', () => {
+        errorDiv.classList.add('hidden');
+
+        if (isScanning) {
+            stopScanning();
+        } else {
+            // Check browser support
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                const msg = "Camera API is not supported in this browser.";
+                errorText.textContent = msg;
+                errorDiv.classList.remove('hidden');
+                showToast(msg, "error");
+                return;
+            }
+
+            readerDiv.classList.remove('hidden');
+            toggleBtn.innerHTML = '<span class="material-symbols-outlined text-[18px]">videocam_off</span> Stop Camera';
+            toggleBtn.classList.remove('text-primary');
+            toggleBtn.classList.add('text-red-500', 'bg-red-500/10');
+            
+            const config = { 
+                fps: 10, 
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0
+            };
+
+            html5QrCode.start(
+                { facingMode: "environment" }, 
+                config, 
+                onScanSuccess, 
+                onScanFailure
+            ).then(() => {
+                isScanning = true;
+                showToast("Camera started. Point at a code.", "info");
+            }).catch(err => {
+                console.error("Error starting scanner:", err);
+                const msg = "Failed to start camera: " + (err.message || err);
+                errorText.textContent = msg;
+                errorDiv.classList.remove('hidden');
+                readerDiv.classList.add('hidden');
+                toggleBtn.innerHTML = '<span class="material-symbols-outlined text-[18px]">videocam</span> Scan Camera';
+                showToast("Camera failed to start", "error");
+            });
+        }
+    });
+
+    // File Upload Logic
+    uploadBtn.addEventListener('click', () => {
+        errorDiv.classList.add('hidden');
+        if (isScanning) stopScanning(); // Stop camera if running
+        qrInput.click();
+    });
+
+    qrInput.addEventListener('change', e => {
+        if (e.target.files.length == 0) return;
+        
+        const imageFile = e.target.files[0];
+        
+        // Show loading state
+        uploadBtn.innerHTML = '<span class="material-symbols-outlined text-[18px] animate-spin">refresh</span> Scanning...';
+        showToast("Scanning image...", "info");
+        
+        html5QrCode.scanFileV2(imageFile, true)
+        .then(scanResult => {
+            uploadBtn.innerHTML = '<span class="material-symbols-outlined text-[18px]">upload_file</span> Upload Image';
+            
+            // Handle if the result is an object (Html5QrcodeResult) or just the text string
+            const decodedText = (typeof scanResult === 'object' && scanResult !== null && scanResult.decodedText) 
+                ? scanResult.decodedText 
+                : scanResult;
+                
+            onScanSuccess(decodedText, scanResult);
+        })
+        .catch(err => {
+            console.error("Error scanning file:", err);
+            uploadBtn.innerHTML = '<span class="material-symbols-outlined text-[18px]">upload_file</span> Upload Image';
+            const msg = "Could not find a valid code in this image.";
+            errorText.textContent = msg;
+            errorDiv.classList.remove('hidden');
+            showToast(msg, "error");
+        });
+    });
+</script>
+
+<style>
+    /* Custom styles for HTML5 QR Code Scanner */
+    #reader video {
+        border-radius: 0.75rem;
+        object-fit: cover;
+        width: 100% !important;
+        height: auto !important;
+    }
+</style>
+{% endblock %}

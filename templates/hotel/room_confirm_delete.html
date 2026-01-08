@@ -1,0 +1,34 @@
+{% extends 'dashboard_base.html' %}
+
+{% block header_title %}Delete Room{% endblock %}
+{% block header_subtitle %}Confirm room deletion{% endblock %}
+
+{% block dashboard_content %}
+<div class="flex justify-center items-center min-h-[50vh]">
+    <div class="bg-surface-dark p-8 rounded-xl border border-border-dark shadow-xl max-w-md w-full text-center">
+        <div class="size-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span class="material-symbols-outlined text-4xl">warning</span>
+        </div>
+        
+        <h3 class="text-xl font-bold text-text-main mb-2">Delete Room {{ room.room_number }}?</h3>
+        <p class="text-text-secondary-dark mb-8">
+            Are you sure you want to delete this room? This action cannot be undone.
+            {% if room.bookings.exists %}
+            <br><span class="text-red-400 text-sm font-medium mt-2 block">Warning: This room has associated bookings!</span>
+            {% endif %}
+        </p>
+        
+        <form method="POST">
+            {% csrf_token %}
+            <div class="flex gap-4">
+                <a href="{% url 'staff_room_list' %}" class="flex-1 px-4 py-2.5 bg-background-dark border border-border-dark text-text-main font-medium rounded-lg hover:bg-border-dark transition-colors">
+                    Cancel
+                </a>
+                <button type="submit" class="flex-1 px-4 py-2.5 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition-colors shadow-lg shadow-red-600/20">
+                    Delete Room
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

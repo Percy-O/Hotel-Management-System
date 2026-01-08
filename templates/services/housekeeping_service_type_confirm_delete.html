@@ -1,0 +1,29 @@
+{% extends 'dashboard_base.html' %}
+
+{% block header_title %}Delete Service Type{% endblock %}
+{% block header_subtitle %}Confirm deletion of {{ object.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-md mx-auto mt-12">
+    <div class="bg-surface-dark rounded-xl border border-border-dark p-8 shadow-lg text-center">
+        <div class="size-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span class="material-symbols-outlined text-3xl">delete_forever</span>
+        </div>
+        
+        <h3 class="text-xl font-bold text-text-main mb-2">Delete this service?</h3>
+        <p class="text-text-secondary-dark mb-8">
+            Are you sure you want to delete <strong>"{{ object.name }}"</strong>? This action cannot be undone.
+        </p>
+        
+        <form method="POST" class="flex flex-col gap-3">
+            {% csrf_token %}
+            <button type="submit" class="w-full py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition-colors">
+                Yes, Delete It
+            </button>
+            <a href="{% url 'housekeeping_service_type_list' %}" class="w-full py-3 bg-background-dark hover:bg-border-dark text-text-main font-bold rounded-lg transition-colors border border-border-dark">
+                Cancel
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}

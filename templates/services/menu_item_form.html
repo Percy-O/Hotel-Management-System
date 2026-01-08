@@ -1,0 +1,80 @@
+{% extends 'dashboard_base.html' %}
+{% load widget_tweaks %}
+
+{% block header_title %}{% if form.instance.pk %}Edit Menu Item{% else %}Add Menu Item{% endif %}{% endblock %}
+{% block header_subtitle %}Configure food and drink details{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-surface-dark rounded-xl border border-border-dark p-6 sm:p-8 shadow-sm">
+        <form method="POST" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Name -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-text-main mb-2">Item Name</label>
+                    {% render_field form.name class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm placeholder-text-secondary-dark" placeholder="e.g. Club Sandwich" %}
+                    {{ form.name.errors }}
+                </div>
+
+                <!-- Price -->
+                <div>
+                    <label class="block text-sm font-medium text-text-main mb-2">Price</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary-dark">{{ site_settings.currency_symbol }}</span>
+                        {% render_field form.price class="w-full bg-background-dark border border-border-dark rounded-lg pl-8 pr-4 py-3 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm placeholder-text-secondary-dark" placeholder="0.00" %}
+                    </div>
+                    {{ form.price.errors }}
+                </div>
+
+                <!-- Category -->
+                <div>
+                    <label class="block text-sm font-medium text-text-main mb-2">Category</label>
+                    {% render_field form.category class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm" %}
+                    {{ form.category.errors }}
+                </div>
+
+                <!-- Description -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-text-main mb-2">Description</label>
+                    {% render_field form.description class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm placeholder-text-secondary-dark" rows="3" placeholder="Brief description of ingredients..." %}
+                    {{ form.description.errors }}
+                </div>
+
+                <!-- Image -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-text-main mb-2">Item Image</label>
+                    <div class="flex items-center gap-4">
+                        {% if form.instance.image %}
+                        <div class="size-16 rounded-lg bg-cover bg-center border border-border-dark shrink-0" style="background-image: url('{{ form.instance.image.url }}');"></div>
+                        {% endif %}
+                        {% render_field form.image class="block w-full text-sm text-text-secondary-dark file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-slate-900 hover:file:bg-primary-hover file:cursor-pointer cursor-pointer" %}
+                    </div>
+                    {{ form.image.errors }}
+                </div>
+
+                <!-- Availability -->
+                <div class="md:col-span-2">
+                    <label class="flex items-center gap-3 p-4 bg-background-dark border border-border-dark rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
+                        {% render_field form.is_available class="w-5 h-5 text-primary bg-surface-dark border-border-dark rounded focus:ring-primary focus:ring-offset-0" %}
+                        <div>
+                            <span class="block text-sm font-bold text-text-main">Available for Order</span>
+                            <span class="block text-xs text-text-secondary-dark">Uncheck if this item is currently out of stock.</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-4 pt-4 border-t border-border-dark mt-6">
+                <a href="{% url 'menu_item_list' %}" class="px-6 py-2.5 text-sm font-bold text-text-secondary-dark hover:text-text-main transition-colors">
+                    Cancel
+                </a>
+                <button type="submit" class="px-6 py-2.5 bg-primary text-slate-900 text-sm font-bold rounded-lg hover:bg-primary-hover transition-colors shadow-lg shadow-primary/20">
+                    {% if form.instance.pk %}Save Changes{% else %}Create Item{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

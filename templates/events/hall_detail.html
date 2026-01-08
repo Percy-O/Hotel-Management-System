@@ -1,0 +1,104 @@
+{% extends 'dashboard_base.html' %}
+{% load widget_tweaks %}
+
+{% block header_title %}{{ hall.name }}{% endblock %}
+{% block header_subtitle %}Hall Details & Booking Information{% endblock %}
+{% block header_actions %}
+    <a href="{% url 'event_booking_create' %}?hall={{ hall.pk }}" class="btn btn-primary flex items-center gap-2">
+        <span class="material-symbols-outlined">calendar_add_on</span>
+        Book Now
+    </a>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Main Info -->
+    <div class="lg:col-span-2 space-y-8">
+        <div class="bg-surface-dark rounded-2xl border border-border-dark overflow-hidden">
+            {% if hall.image %}
+            <div class="h-64 md:h-96 w-full">
+                <img src="{{ hall.image.url }}" alt="{{ hall.name }}" class="w-full h-full object-cover">
+            </div>
+            {% endif %}
+            
+            <div class="p-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-text-main">About this Venue</h2>
+                    <span class="px-3 py-1 rounded-full text-sm font-medium {% if hall.is_active %}bg-green-500/10 text-green-400{% else %}bg-red-500/10 text-red-400{% endif %}">
+                        {% if hall.is_active %}Available{% else %}Unavailable{% endif %}
+                    </span>
+                </div>
+                
+                <p class="text-text-secondary-dark leading-relaxed mb-8">{{ hall.description }}</p>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-background-dark p-4 rounded-xl border border-border-dark">
+                        <span class="text-xs text-text-secondary-dark uppercase tracking-wider">Capacity</span>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="material-symbols-outlined text-primary">groups</span>
+                            <span class="text-xl font-bold text-text-main">{{ hall.capacity }} Guests</span>
+                        </div>
+                    </div>
+                    <div class="bg-background-dark p-4 rounded-xl border border-border-dark">
+                        <span class="text-xs text-text-secondary-dark uppercase tracking-wider">Pricing</span>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="material-symbols-outlined text-primary">payments</span>
+                            <span class="text-xl font-bold text-text-main">
+                                {{ site_settings.currency_symbol }}{{ hall.price }}
+                                <span class="text-sm font-normal text-text-secondary-dark">/ {{ hall.get_pricing_type_display }}</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gallery Section -->
+                {% if hall.images.exists %}
+                <div class="mt-8 pt-8 border-t border-border-dark">
+                    <h3 class="text-lg font-bold text-text-main mb-4">Gallery</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {% for img in hall.images.all %}
+                        <div class="relative aspect-square rounded-lg overflow-hidden border border-border-dark group cursor-pointer hover:border-primary transition-colors">
+                            <img src="{{ img.image.url }}" alt="Gallery Image" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar / Actions -->
+    <div class="space-y-6">
+        {% if user.can_manage_events %}
+        <div class="bg-surface-dark p-6 rounded-2xl border border-border-dark">
+            <h3 class="text-lg font-bold text-text-main mb-4">Management Actions</h3>
+            <div class="space-y-3">
+                <a href="{% url 'event_hall_update' hall.pk %}" class="btn btn-outline w-full justify-center">Edit Hall Details</a>
+                <a href="{% url 'event_hall_delete' hall.pk %}" class="btn btn-danger w-full justify-center">Delete Hall</a>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="bg-surface-dark p-6 rounded-2xl border border-border-dark">
+            <h3 class="text-lg font-bold text-text-main mb-4">Recent Bookings</h3>
+            <div class="space-y-4">
+                {% for booking in hall.bookings.all|slice:":5" %}
+                <div class="flex items-start gap-3 p-3 rounded-lg bg-background-dark/50 border border-border-dark">
+                    <div class="p-2 rounded bg-surface-dark text-text-secondary-dark">
+                        <span class="material-symbols-outlined text-sm">event</span>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-text-main">{{ booking.event_name }}</p>
+                        <p class="text-xs text-text-secondary-dark">{{ booking.start_time|date:"M d, H:i" }}</p>
+                    </div>
+                    <span class="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-slate-700 text-slate-300">{{ booking.status }}</span>
+                </div>
+                {% empty %}
+                <p class="text-sm text-text-secondary-dark">No recent bookings.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

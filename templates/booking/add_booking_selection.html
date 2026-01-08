@@ -1,0 +1,80 @@
+{% extends 'dashboard_base.html' %}
+
+{% block header_title %}Add New Booking{% endblock %}
+{% block header_subtitle %}Select a room type to start a new reservation{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-7xl mx-auto">
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {% for type in room_types %}
+        <div class="group relative h-[400px] rounded-3xl overflow-hidden shadow-lg transition-all duration-500 hover:shadow-2xl hover:-translate-y-2">
+            <!-- Background Image -->
+            <div class="absolute inset-0">
+                {% if type.image %}
+                <img src="{{ type.image.url }}" alt="{{ type.name }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                {% else %}
+                <div class="w-full h-full bg-slate-800 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-6xl text-white/20">bed</span>
+                </div>
+                {% endif %}
+                <!-- Gradient Overlay -->
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent opacity-90 transition-opacity duration-300"></div>
+            </div>
+
+            <!-- Content Container -->
+            <div class="absolute inset-0 p-6 flex flex-col justify-end">
+                
+                <!-- Top Badge (Price) -->
+                <div class="absolute top-6 right-6 z-10">
+                    <div class="bg-black/60 backdrop-blur-md border border-white/10 px-4 py-2 rounded-2xl shadow-lg">
+                        <span class="text-white font-bold text-lg">{{ site_settings.currency_symbol }}{{ type.price_per_night }}</span>
+                        <span class="text-white/70 text-xs uppercase tracking-wider font-medium">/ Night</span>
+                    </div>
+                </div>
+
+                <!-- Main Info -->
+                <div class="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                    <h3 class="text-2xl font-bold text-white mb-2">{{ type.name }}</h3>
+                    
+                    <!-- Meta Info -->
+                    <div class="flex items-center gap-4 text-white/80 mb-4 text-sm font-medium">
+                        <span class="flex items-center gap-1.5 bg-black/20 px-2.5 py-1 rounded-lg backdrop-blur-sm">
+                            <span class="material-symbols-outlined text-[16px]">group</span>
+                            {{ type.capacity }} Guests
+                        </span>
+                        <span class="flex items-center gap-1.5 bg-black/20 px-2.5 py-1 rounded-lg backdrop-blur-sm">
+                            <span class="material-symbols-outlined text-[16px]">meeting_room</span>
+                            {{ type.room_set.count }} Rooms
+                        </span>
+                    </div>
+
+                    <!-- Description (Revealed on Hover) -->
+                    <div class="h-0 opacity-0 group-hover:h-auto group-hover:opacity-100 overflow-hidden transition-all duration-500 delay-75">
+                        <p class="text-white/70 text-sm leading-relaxed line-clamp-2 mb-6">
+                            {{ type.description }}
+                        </p>
+                    </div>
+
+                    <!-- Action Button -->
+                    <a href="{% url 'create_booking' type.id %}" class="w-full bg-white text-slate-900 py-3.5 rounded-xl font-bold text-center flex items-center justify-center gap-2 hover:bg-primary hover:text-white transition-all duration-300 shadow-lg shadow-black/20 group-hover:shadow-primary/30">
+                        <span>Book This Room</span>
+                        <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full py-20 text-center">
+            <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-surface-dark border border-border-dark mb-6 shadow-sm">
+                <span class="material-symbols-outlined text-5xl text-text-secondary-dark">bed_off</span>
+            </div>
+            <h3 class="text-xl font-bold text-text-main mb-2">No Room Types Found</h3>
+            <p class="text-text-secondary-dark max-w-md mx-auto">
+                It seems there are no room types configured in the system yet. Please go to the Rooms section to add them.
+            </p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

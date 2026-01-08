@@ -1,0 +1,56 @@
+{% extends 'dashboard_base.html' %}
+{% load static %}
+
+{% block header_title %}Gym & Fitness Plans{% endblock %}
+{% block header_subtitle %}Choose the perfect membership for you{% endblock %}
+{% block header_actions %}
+    {% if user.can_manage_gym %}
+    <a href="{% url 'gym_plan_create' %}" class="btn btn-primary flex items-center gap-2">
+        <span class="material-symbols-outlined">add</span>
+        Create Plan
+    </a>
+    {% endif %}
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for plan in plans %}
+    <div class="bg-surface-dark rounded-xl border border-border-dark p-6 hover:border-primary/50 transition-all group flex flex-col h-full">
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <h3 class="text-xl font-bold text-text-main">{{ plan.name }}</h3>
+                <p class="text-sm text-text-secondary-dark">{{ plan.duration_days }} Days Access</p>
+            </div>
+            {% if user.can_manage_gym %}
+            <div class="flex gap-1">
+                <a href="{% url 'gym_plan_update' plan.pk %}" class="p-1 text-text-secondary-dark hover:text-white rounded hover:bg-white/5">
+                    <span class="material-symbols-outlined text-sm">edit</span>
+                </a>
+                <a href="{% url 'gym_plan_delete' plan.pk %}" class="p-1 text-text-secondary-dark hover:text-red-400 rounded hover:bg-white/5">
+                    <span class="material-symbols-outlined text-sm">delete</span>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        
+        <p class="text-text-secondary-dark text-sm mb-6 flex-grow">{{ plan.description }}</p>
+        
+        <div class="mt-auto">
+            <div class="flex items-baseline gap-1 mb-4">
+                <span class="text-3xl font-bold text-primary">{{ site_settings.currency_symbol }}{{ plan.price }}</span>
+                <span class="text-text-secondary-dark text-sm">/ {{ plan.duration_days }} days</span>
+            </div>
+            
+            <a href="{% url 'gym_membership_create' %}?plan={{ plan.pk }}" class="btn btn-primary w-full justify-center">
+                Select Plan
+            </a>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-span-full flex flex-col items-center justify-center py-12 text-text-secondary-dark">
+        <span class="material-symbols-outlined text-4xl mb-2">fitness_center</span>
+        <p>No membership plans available at the moment.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

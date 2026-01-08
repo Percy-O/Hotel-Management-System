@@ -1,0 +1,71 @@
+{% extends 'guest_dashboard_base.html' %}
+
+{% block header_title %}My Bookings{% endblock %}
+{% block header_subtitle %}Track your upcoming and past stays{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'room_list' %}" class="px-4 py-2 bg-primary text-slate-900 font-bold rounded-lg hover:bg-primary-hover transition-colors shadow-lg shadow-primary/20 text-sm flex items-center gap-2">
+    <span class="material-symbols-outlined text-[18px]">add</span>
+    Book New Stay
+</a>
+{% endblock %}
+
+{% block dashboard_content %}
+    {% if bookings %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for booking in bookings %}
+            <div class="bg-surface-dark rounded-xl border border-border-dark overflow-hidden shadow-sm hover:shadow-md transition-shadow group">
+                <!-- Room Image (if available) -->
+                {% if booking.room.room_type.image %}
+                <div class="h-48 w-full bg-cover bg-center group-hover:scale-105 transition-transform duration-500" style="background-image: url('{{ booking.room.room_type.image.url }}')"></div>
+                {% else %}
+                <div class="h-48 w-full bg-background-dark/50 flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
+                    <span class="material-symbols-outlined text-4xl text-text-secondary-dark">bed</span>
+                </div>
+                {% endif %}
+
+                <div class="p-6 relative bg-surface-dark">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-text-main">{{ booking.room.room_type.name }}</h3>
+                            <p class="text-sm text-text-secondary-dark">Room {{ booking.room.room_number }}</p>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wide border
+                            {% if booking.status == 'CONFIRMED' %}bg-green-500/10 text-green-500 border-green-500/20
+                            {% elif booking.status == 'PENDING' %}bg-yellow-500/10 text-yellow-500 border-yellow-500/20
+                            {% elif booking.status == 'CHECKED_IN' %}bg-blue-500/10 text-blue-500 border-blue-500/20
+                            {% elif booking.status == 'CHECKED_OUT' %}bg-gray-500/10 text-gray-400 border-gray-500/20
+                            {% else %}bg-red-500/10 text-red-500 border-red-500/20{% endif %}">
+                            {{ booking.get_status_display }}
+                        </span>
+                    </div>
+
+                    <div class="space-y-3 mb-6">
+                        <div class="flex items-center gap-3 text-sm text-text-main">
+                            <span class="material-symbols-outlined text-text-secondary-dark">calendar_today</span>
+                            <span>{{ booking.check_in_date|date:"M d, Y" }} - {{ booking.check_out_date|date:"M d, Y" }}</span>
+                        </div>
+                        <div class="flex items-center gap-3 text-sm text-text-main">
+                            <span class="material-symbols-outlined text-text-secondary-dark">payments</span>
+                            <span>{{ site_settings.currency_symbol }}{{ booking.total_price }} Total</span>
+                        </div>
+                    </div>
+
+                    <a href="{% url 'booking_detail' booking.pk %}" class="block w-full py-2 px-4 border border-border-dark rounded-lg text-center text-sm font-medium text-text-main hover:bg-primary/5 transition-colors">
+                        View Details
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-16 bg-surface-dark rounded-xl border border-border-dark">
+            <span class="material-symbols-outlined text-6xl text-text-secondary-dark mb-4">bookmark_border</span>
+            <h2 class="text-xl font-bold text-text-main mb-2">No Bookings Found</h2>
+            <p class="text-text-secondary-dark mb-8">You haven't made any bookings yet.</p>
+            <a href="{% url 'room_list' %}" class="px-6 py-3 bg-primary text-slate-900 font-bold rounded-lg hover:bg-primary-hover transition-colors shadow-lg shadow-primary/20">
+                Browse Rooms
+            </a>
+        </div>
+    {% endif %}
+{% endblock %}

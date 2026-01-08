@@ -1,0 +1,45 @@
+{% extends 'dashboard_base.html' %}
+{% load widget_tweaks %}
+
+{% block header_title %}Join Membership{% endblock %}
+{% block header_subtitle %}Complete your gym registration{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-surface-dark p-8 rounded-2xl border border-border-dark shadow-sm">
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            {% if form.initial.plan %}
+            <div class="bg-primary/10 border border-primary/20 rounded-xl p-4 mb-6">
+                <p class="text-sm text-primary font-bold uppercase tracking-wider mb-1">Selected Plan</p>
+                <h3 class="text-xl font-bold text-text-main">{{ form.initial.plan.name }}</h3>
+                <p class="text-text-secondary-dark">{{ form.initial.plan.description }}</p>
+                <div class="mt-2 text-lg font-bold text-text-main">
+                    {{ site_settings.currency_symbol }}{{ form.initial.plan.price }} 
+                    <span class="text-sm font-normal text-text-secondary-dark">for {{ form.initial.plan.duration_days }} days</span>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="grid grid-cols-1 gap-6">
+                <div class="{% if form.initial.plan %}hidden{% endif %}">
+                    <label class="block text-sm font-medium text-text-main mb-2">Select Plan</label>
+                    {% render_field form.plan class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-text-main focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" %}
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-text-main mb-2">Start Date</label>
+                    {% render_field form.start_date class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-text-main focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" %}
+                    <p class="text-xs text-text-secondary-dark mt-1">Your membership will be valid starting from this date.</p>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-4 pt-4 border-t border-border-dark">
+                <a href="{% url 'gym_plan_list' %}" class="btn btn-ghost text-text-secondary-dark hover:text-white">Cancel</a>
+                <button type="submit" class="btn btn-primary">Confirm Membership</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

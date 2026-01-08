@@ -1,0 +1,125 @@
+{% extends 'dashboard_base.html' %}
+
+{% block header_title %}Guest Profile{% endblock %}
+{% block header_subtitle %}Personal details and history for {{ guest.name }}{% endblock %}
+
+{% block header_actions %}
+<div class="flex items-center gap-4">
+    <a href="{% url 'guest_list' %}" class="flex items-center gap-2 px-4 py-2 bg-surface-dark border border-border-dark rounded-lg text-sm font-medium text-text-main hover:bg-background-dark transition-colors">
+        <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+        Back to List
+    </a>
+</div>
+{% endblock %}
+
+{% block dashboard_content %}
+    <div class="flex flex-col gap-8">
+        
+        <!-- Guest Info Card -->
+        <div class="bg-surface-dark rounded-xl border border-border-dark shadow-sm overflow-hidden">
+            <div class="px-6 py-5 border-b border-border-dark bg-background-dark/50">
+                <h3 class="text-lg font-bold text-text-main">Personal Information</h3>
+            </div>
+            <div class="p-6">
+                <dl class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-8">
+                    <div>
+                        <dt class="text-xs font-medium text-text-secondary-dark uppercase tracking-wider mb-1">Full Name</dt>
+                        <dd class="text-sm font-semibold text-text-main">{{ guest.name }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-medium text-text-secondary-dark uppercase tracking-wider mb-1">Email Address</dt>
+                        <dd class="text-sm font-semibold text-text-main">{{ guest.email }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-medium text-text-secondary-dark uppercase tracking-wider mb-1">Phone Number</dt>
+                        <dd class="text-sm font-semibold text-text-main">{{ guest.phone }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-medium text-text-secondary-dark uppercase tracking-wider mb-1">Lifetime Spend</dt>
+                        <dd class="text-sm font-bold text-primary">{{ site_settings.currency_symbol }}{{ stats.total_spent }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-medium text-text-secondary-dark uppercase tracking-wider mb-1">Total Stays</dt>
+                        <dd class="text-sm font-semibold text-text-main">{{ stats.total_stays }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-medium text-text-secondary-dark uppercase tracking-wider mb-1">Status</dt>
+                        <dd class="text-sm font-semibold text-text-main">
+                            {% if profile.is_vip %}
+                                <span class="text-yellow-500">VIP Guest</span>
+                            {% else %}
+                                Regular Guest
+                            {% endif %}
+                        </dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+
+        <!-- Booking History -->
+        <div class="bg-surface-dark rounded-xl border border-border-dark shadow-sm overflow-hidden">
+            <div class="px-6 py-5 border-b border-border-dark flex justify-between items-center">
+                <h3 class="text-lg font-bold text-text-main">Booking History</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-background-dark/50 border-b border-border-dark">
+                            <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Ref #</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Room</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Check-in</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Check-out</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Amount</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-border-dark">
+                        {% for booking in bookings %}
+                        <tr class="hover:bg-background-dark/50 transition-colors">
+                            <td class="px-6 py-4">
+                                <span class="font-mono text-xs font-medium text-text-main bg-background-dark px-2 py-1 rounded">
+                                    #{{ booking.id }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="text-sm text-text-main">
+                                    {{ booking.room.room_type.name }} ({{ booking.room.room_number }})
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-text-secondary-dark">
+                                {{ booking.check_in_date|date:"M d, Y" }}
+                            </td>
+                            <td class="px-6 py-4 text-sm text-text-secondary-dark">
+                                {{ booking.check_out_date|date:"M d, Y" }}
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                    {% if booking.status == 'CONFIRMED' %}bg-green-500/10 text-green-500 border border-green-500/20
+                                    {% elif booking.status == 'CHECKED_IN' %}bg-blue-500/10 text-blue-500 border border-blue-500/20
+                                    {% else %}bg-gray-500/10 text-gray-400 border border-gray-500/20{% endif %}">
+                                    {{ booking.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-sm font-medium text-text-main">
+                                {{ site_settings.currency_symbol }}{{ booking.total_price }}
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <a href="{% url 'booking_detail' booking.pk %}" class="text-text-secondary-dark hover:text-primary transition-colors">
+                                    <span class="material-symbols-outlined text-[20px]">visibility</span>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="px-6 py-8 text-center text-text-secondary-dark">
+                                No booking history found.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

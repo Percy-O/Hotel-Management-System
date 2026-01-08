@@ -1,0 +1,241 @@
+<aside class="hidden lg:flex w-64 flex-col border-r border-border-dark bg-surface-dark h-full">
+    <div class="flex h-full flex-col justify-between p-4">
+        <div class="flex flex-col gap-6">
+            <!-- Brand -->
+            <div class="flex items-center gap-3 px-2">
+                {% if site_settings.hotel_logo %}
+                <div class="bg-center bg-no-repeat bg-cover rounded-full size-10 border-2 border-primary" style='background-image: url("{{ site_settings.hotel_logo.url }}");'></div>
+                {% else %}
+                <div class="bg-center bg-no-repeat bg-cover rounded-full size-10 border-2 border-primary" style='background-image: url("https://ui-avatars.com/api/?name={{ site_settings.hotel_name|urlencode }}&background=13ec6d&color=fff");'></div>
+                {% endif %}
+                <div class="flex flex-col">
+                    <h1 class="text-text-main text-base font-bold leading-normal line-clamp-1">{{ site_settings.hotel_name }}</h1>
+                    <p class="text-text-secondary-dark text-xs font-medium uppercase tracking-wider">{{ user.get_role_display }} Panel</p>
+                </div>
+            </div>
+            
+            <!-- Navigation -->
+            <nav class="flex flex-col gap-2 overflow-y-auto max-h-[calc(100vh-200px)]">
+                <!-- Dashboard -->
+                {% url 'dashboard' as u %}
+                {% include "includes/components/sidebar_item.html" with url=u icon="dashboard" label="Dashboard" active_name="dashboard" %}
+
+                <!-- Bookings Menu -->
+                {% if user.can_view_bookings %}
+                <div class="space-y-1">
+                    {% include "includes/components/sidebar_submenu_header.html" with id="bookings-menu" icon="calendar_today" label="Bookings" %}
+                    <div id="bookings-menu" class="hidden pl-10 space-y-1">
+                        {% if user.can_manage_bookings %}
+                        {% url 'add_booking_selection' as u %}
+                        {% include "includes/components/sidebar_item.html" with url=u label="Add Booking" %}
+                        {% endif %}
+
+                        {% url 'booking_list' as u %}
+                        {% include "includes/components/sidebar_item.html" with url=u label="All Bookings" %}
+
+                        {% url 'verify_booking' as u %}
+                        {% include "includes/components/sidebar_item.html" with url=u label="Verify Booking" %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Rooms Menu -->
+                {% if user.can_view_rooms %}
+                <div class="space-y-1">
+                    {% include "includes/components/sidebar_submenu_header.html" with id="rooms-menu" icon="bed" label="Rooms" %}
+                    <div id="rooms-menu" class="hidden pl-10 space-y-1">
+                        {% url 'staff_room_list' as u %}
+                        {% include "includes/components/sidebar_item.html" with url=u label="All Rooms" %}
+
+                        {% if user.can_manage_rooms %}
+                        {% url 'staff_room_type_list' as u %}
+                        {% include "includes/components/sidebar_item.html" with url=u label="Room Types" %}
+                        
+                        {% url 'room_create' as u %}
+                        {% include "includes/components/sidebar_item.html" with url=u label="Add Room" %}
+                        
+                        {% url 'room_type_create' as u %}
+                        {% include "includes/components/sidebar_item.html" with url=u label="Add Room Type" %}
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Guests Menu -->
+                {% if user.can_manage_bookings %}
+                <div class="space-y-1">
+                    {% include "includes/components/sidebar_submenu_header.html" with id="guests-menu" icon="group" label="Guests" %}
+                    <div id="guests-menu" class="hidden pl-10 space-y-1">
+                        {% url 'guest_list' as u %}
+                        {% include "includes/components/sidebar_item.html" with url=u label="Guest List" %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Billing Menu -->
+                {% if user.can_manage_billing %}
+                <div class="space-y-1">
+                    {% include "includes/components/sidebar_submenu_header.html" with id="billing-menu" icon="payments" label="Billing" %}
+                    <div id="billing-menu" class="hidden pl-10 space-y-1">
+                        {% url 'invoice_list' as u %}
+                        {% include "includes/components/sidebar_item.html" with url=u label="Invoices" %}
+                        
+                        {% if user.is_staff %}
+                        {% url 'payment_settings' as u %}
+                        {% include "includes/components/sidebar_item.html" with url=u label="Payment Settings" %}
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Menu & Orders -->
+                {% if user.can_manage_menu %}
+                <div class="space-y-1">
+                    {% include "includes/components/sidebar_submenu_header.html" with id="menu-management" icon="restaurant_menu" label="Food & Menu" %}
+                    <div id="menu-management" class="hidden pl-10 space-y-1">
+                        {% url 'staff_order_list' as u %}
+                        {% include "includes/components/sidebar_item.html" with url=u label="Orders" %}
+                        
+                        {% url 'menu_item_list' as u %}
+                        {% include "includes/components/sidebar_item.html" with url=u label="Manage Menu" %}
+                        
+                        {% url 'menu_item_create' as u %}
+                        {% include "includes/components/sidebar_item.html" with url=u label="Add Item" %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Events Menu -->
+                {% if site_settings.enable_events and user.can_manage_events %}
+                <div class="space-y-1">
+                    {% include "includes/components/sidebar_submenu_header.html" with id="events-menu" icon="celebration" label="Events" %}
+                    <div id="events-menu" class="hidden pl-10 space-y-1">
+                        {% url 'event_hall_list' as u %}
+                        {% include "includes/components/sidebar_item.html" with url=u label="Event Halls" %}
+                        
+                        {% url 'event_booking_list' as u %}
+                        {% include "includes/components/sidebar_item.html" with url=u label="Bookings" %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Gym Menu -->
+                {% if site_settings.enable_gym and user.can_manage_gym %}
+                <div class="space-y-1">
+                    {% include "includes/components/sidebar_submenu_header.html" with id="gym-menu" icon="fitness_center" label="Gym & Fitness" %}
+                    <div id="gym-menu" class="hidden pl-10 space-y-1">
+                        {% url 'gym_membership_list' as u %}
+                        {% include "includes/components/sidebar_item.html" with url=u label="Memberships" %}
+                        
+                        {% url 'gym_plan_list' as u %}
+                        {% include "includes/components/sidebar_item.html" with url=u label="Plans" %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Housekeeping -->
+                {% if user.is_staff or user.role == 'CLEANER' or user.role == 'MANAGER' or user.role == 'RECEPTIONIST' %}
+                    {% if user.role == 'MANAGER' or user.role == 'ADMIN' or user.is_superuser %}
+                    <div class="space-y-1">
+                        {% include "includes/components/sidebar_submenu_header.html" with id="housekeeping-menu" icon="cleaning_services" label="Housekeeping" %}
+                        <div id="housekeeping-menu" class="hidden pl-10 space-y-1">
+                            {% url 'staff_housekeeping_list' as u %}
+                            {% include "includes/components/sidebar_item.html" with url=u label="Requests" %}
+
+                            {% url 'housekeeping_service_type_list' as u %}
+                            {% include "includes/components/sidebar_item.html" with url=u label="Services" %}
+
+                            {% url 'housekeeping_settings' as u %}
+                            {% include "includes/components/sidebar_item.html" with url=u label="Settings" %}
+                        </div>
+                    </div>
+                    {% else %}
+                    {% url 'staff_housekeeping_list' as u %}
+                    {% include "includes/components/sidebar_item.html" with url=u icon="cleaning_services" label="Housekeeping" active_name="staff_housekeeping_list" %}
+                    {% endif %}
+                {% endif %}
+
+                <!-- User Management (Admin Only) -->
+                {% if user.can_manage_staff %}
+                <div class="space-y-1">
+                    {% include "includes/components/sidebar_submenu_header.html" with id="users-menu" icon="manage_accounts" label="Users" %}
+                    <div id="users-menu" class="hidden pl-10 space-y-1">
+                        {% url 'user_list' as u %}
+                        {% include "includes/components/sidebar_item.html" with url=u label="All Users" %}
+                        
+                        {% url 'user_create' as u %}
+                        {% include "includes/components/sidebar_item.html" with url=u label="Add User" %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Notifications -->
+                {% url 'notification_list' as u %}
+                {% include "includes/components/sidebar_item.html" with url=u icon="notifications" label="Notifications" active_name="notifications" badge_count=unread_notifications_count %}
+
+                <!-- Settings -->
+                {% if user.can_manage_settings %}
+                    {% url 'settings' as u %}
+                    {% include "includes/components/sidebar_item.html" with url=u icon="settings" label="Settings" active_name="settings" %}
+                {% endif %}
+
+                <!-- Public Site -->
+                {% url 'home' as u %}
+                {% include "includes/components/sidebar_item.html" with url=u icon="home" label="Public Site" %}
+                
+            </nav>
+        </div>
+
+        <!-- User Profile -->
+        <div class="mt-auto space-y-4">
+            <!-- User Info -->
+            <div class="flex items-center gap-3 px-3 py-3 rounded-xl bg-background-dark/50 border border-border-dark">
+                <div class="bg-center bg-no-repeat bg-cover rounded-full size-9" style='background-image: url("https://ui-avatars.com/api/?name={{ user.username }}&background=random");'></div>
+                <div class="flex flex-col overflow-hidden">
+                    <p class="text-text-main text-sm font-semibold truncate">{{ user.first_name|default:user.username }}</p>
+                    <p class="text-text-secondary-dark text-xs truncate">Manager</p>
+                </div>
+                <form action="{% url 'logout' %}" method="post" class="ml-auto">
+                    {% csrf_token %}
+                    <button type="submit" class="text-text-secondary-dark hover:text-text-main" title="Logout">
+                        <span class="material-symbols-outlined text-[20px]">logout</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function toggleMenu(menuId) {
+            const menu = document.getElementById(menuId);
+            const icon = document.getElementById(menuId + '-icon');
+            
+            if (menu.classList.contains('hidden')) {
+                menu.classList.remove('hidden');
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                menu.classList.add('hidden');
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
+        
+        // Auto-expand menu if current page is inside it
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentPath = window.location.pathname;
+            
+            if (currentPath.includes('/booking/')) {
+                toggleMenu('bookings-menu');
+            } else if (currentPath.includes('/rooms/') || currentPath.includes('/hotel/')) {
+                toggleMenu('rooms-menu');
+            } else if (currentPath.includes('/guests/')) {
+                toggleMenu('guests-menu');
+            } else if (currentPath.includes('/billing/') || currentPath.includes('/invoices/')) {
+                toggleMenu('billing-menu');
+            } else if (currentPath.includes('/users/')) {
+                toggleMenu('users-menu');
+            } else if (currentPath.includes('/staff/housekeeping/') || currentPath.includes('/manage/housekeeping/')) {
+                toggleMenu('housekeeping-menu');
+            }
+        });
+    </script>
+</aside>

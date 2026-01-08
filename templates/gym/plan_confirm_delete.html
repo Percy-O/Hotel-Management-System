@@ -1,0 +1,24 @@
+{% extends 'dashboard_base.html' %}
+
+{% block header_title %}Delete Gym Plan{% endblock %}
+{% block header_subtitle %}Confirm deletion of {{ object.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-lg mx-auto bg-surface-dark p-8 rounded-2xl border border-border-dark text-center">
+    <div class="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+        <span class="material-symbols-outlined text-3xl text-red-500">warning</span>
+    </div>
+    
+    <h3 class="text-xl font-bold text-text-main mb-2">Are you sure?</h3>
+    <p class="text-text-secondary-dark mb-8">
+        This will permanently delete the gym plan "<strong>{{ object.name }}</strong>". 
+        This action cannot be undone.
+    </p>
+    
+    <form method="post" class="flex items-center justify-center gap-4">
+        {% csrf_token %}
+        <a href="{% url 'gym_plan_list' %}" class="btn btn-outline">Cancel</a>
+        <button type="submit" class="btn btn-danger">Delete Plan</button>
+    </form>
+</div>
+{% endblock %}
