@@ -10,6 +10,7 @@ class Booking(models.Model):
         CHECKED_OUT = 'CHECKED_OUT', 'Checked Out'
         CANCELLED = 'CANCELLED', 'Cancelled'
 
+    tenant = models.ForeignKey('tenants.Tenant', on_delete=models.CASCADE, related_name='bookings', null=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='bookings', null=True, blank=True)
     # For guests without accounts (walk-ins or guest checkout)
     guest_name = models.CharField(max_length=255, blank=True)

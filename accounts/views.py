@@ -59,6 +59,17 @@ def logout_view(request):
 def dashboard(request):
     user = request.user
     
+    # Check Tenant Membership
+    if request.tenant and not user.is_superuser:
+        from tenants.models import Membership
+        if not Membership.objects.filter(user=user, tenant=request.tenant).exists():
+             messages.error(request, "You are not a member of this hotel organization.")
+             # Optionally create a default guest membership if it's a public hotel site?
+             # For SaaS, usually strictly isolated. But for a hotel booking site, guests are welcome.
+             # If role is GUEST, maybe allow?
+             if user.role != User.Role.GUEST:
+                 return redirect('home') 
+    
     # Check for specific roles first before default guest fallback
     
     # Cleaner Dashboard

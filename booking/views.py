@@ -224,7 +224,8 @@ def create_booking(request, room_type_id):
                     # Get Currency Symbol
                     currency_symbol = '$'
                     try:
-                        site_setting = SiteSetting.objects.first()
+                        from core.models import TenantSetting
+                        site_setting = TenantSetting.objects.get(tenant=request.tenant)
                         if site_setting and site_setting.currency_symbol:
                             currency_symbol = site_setting.currency_symbol
                     except:

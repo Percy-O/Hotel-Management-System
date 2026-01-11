@@ -19,9 +19,17 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from accounts import views as account_views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    
+    # Auth & Dashboard Shortcuts
+    path("login/", account_views.login_view, name="login"),
+    path("register/", account_views.register_view, name="register"),
+    path("logout/", account_views.logout_view, name="logout"),
+    path("dashboard/", account_views.dashboard, name="dashboard"),
+
     path("", include("core.urls")),
     path("accounts/", include("accounts.urls")),
     path("hotel/", include("hotel.urls")),
@@ -31,5 +39,14 @@ urlpatterns = [
     path("services/", include("services.urls")),
     path("events/", include("events.urls")),
     path("gym/", include("gym.urls")),
+    path("tenants/", include("tenants.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# Add shortcuts at the end to override names if needed, or just ensure they are available
+urlpatterns += [
+    path("login/", account_views.login_view, name="login"),
+    path("register/", account_views.register_view, name="register"),
+    path("logout/", account_views.logout_view, name="logout"),
+    path("dashboard/", account_views.dashboard, name="dashboard"),
+]
 

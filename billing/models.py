@@ -41,12 +41,16 @@ class PaymentGateway(models.Model):
         PAYSTACK = 'PAYSTACK', 'Paystack'
         FLUTTERWAVE = 'FLUTTERWAVE', 'Flutterwave'
 
-    name = models.CharField(max_length=20, choices=Provider.choices, unique=True)
+    tenant = models.ForeignKey('tenants.Tenant', on_delete=models.CASCADE, related_name='payment_gateways', null=True)
+    name = models.CharField(max_length=20, choices=Provider.choices)
     public_key = models.CharField(max_length=255)
     secret_key = models.CharField(max_length=255)
     is_active = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('tenant', 'name')
 
     def __str__(self):
         return f"{self.get_name_display()} ({'Active' if self.is_active else 'Inactive'})"

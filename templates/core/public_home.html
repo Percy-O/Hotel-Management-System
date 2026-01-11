@@ -1,0 +1,102 @@
+{% extends 'base_layout.html' %}
+{% load static %}
+
+{% block title %}{{ tenant.name }} - Book Your Stay{% endblock %}
+
+{% block body_content %}
+<div class="min-h-screen bg-background-dark flex flex-col">
+    <!-- Navbar -->
+    <nav class="bg-surface-dark/80 backdrop-blur-md border-b border-border-dark sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-3">
+                    {% if tenant.logo %}
+                    <img src="{{ tenant.logo.url }}" alt="{{ tenant.name }}" class="h-10 w-10 rounded-full object-cover">
+                    {% else %}
+                    <div class="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xl">
+                        {{ tenant.name|slice:":1" }}
+                    </div>
+                    {% endif %}
+                    <span class="text-text-main font-bold text-xl">{{ tenant.name }}</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'dashboard' %}" class="text-text-secondary-dark hover:text-primary transition-colors">Dashboard</a>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="text-text-secondary-dark hover:text-primary transition-colors">Login</a>
+                        <a href="{% url 'register' %}" class="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg transition-colors">Sign Up</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="relative bg-surface-dark py-20 lg:py-32 overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-primary/10 to-purple-500/10 opacity-50"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+            <h1 class="text-4xl lg:text-6xl font-extrabold text-text-main mb-6">
+                Experience Luxury at <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-400">{{ tenant.name }}</span>
+            </h1>
+            <p class="text-lg text-text-secondary-dark max-w-2xl mx-auto mb-10">
+                Discover comfort, elegance, and unforgettable moments. Book your perfect stay with us today.
+            </p>
+            <a href="#rooms" class="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-white text-lg font-semibold px-8 py-4 rounded-full transition-all shadow-lg hover:shadow-primary/25">
+                <span class="material-symbols-outlined">calendar_month</span>
+                Book Now
+            </a>
+        </div>
+    </div>
+
+    <!-- Rooms Section -->
+    <div id="rooms" class="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl font-bold text-text-main mb-4">Our Accommodations</h2>
+            <p class="text-text-secondary-dark">Choose from our selection of premium rooms and suites.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for room in room_types %}
+            <div class="bg-surface-dark/60 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 group">
+                <div class="relative h-64 overflow-hidden">
+                    {% if room.image %}
+                    <img src="{{ room.image.url }}" alt="{{ room.name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                    {% else %}
+                    <div class="w-full h-full bg-gray-800 flex items-center justify-center text-gray-600">
+                        <span class="material-symbols-outlined text-6xl">bed</span>
+                    </div>
+                    {% endif %}
+                    <div class="absolute top-4 right-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-white text-sm font-semibold">
+                        {{ room.capacity }} Guests
+                    </div>
+                </div>
+                <div class="p-6">
+                    <h3 class="text-xl font-bold text-text-main mb-2">{{ room.name }}</h3>
+                    <p class="text-text-secondary-dark text-sm line-clamp-2 mb-4">{{ room.description }}</p>
+                    <div class="flex items-center justify-between mt-4">
+                        <div class="text-2xl font-bold text-primary">
+                            ${{ room.price_per_night }} <span class="text-sm text-text-secondary-dark font-normal">/ night</span>
+                        </div>
+                        <a href="{% url 'create_booking' room.id %}" class="text-white bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg transition-colors">
+                            Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-span-full text-center py-12">
+                <p class="text-text-secondary-dark text-lg">No rooms available at the moment.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-surface-dark border-t border-border-dark py-12 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-text-secondary-dark mb-4">&copy; {% now "Y" %} {{ tenant.name }}. All rights reserved.</p>
+            <p class="text-xs text-text-secondary-dark/50">Powered by Hotel SaaS Platform</p>
+        </div>
+    </footer>
+</div>
+{% endblock %}

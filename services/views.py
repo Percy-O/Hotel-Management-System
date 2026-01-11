@@ -7,7 +7,7 @@ from .models import MenuItem, GuestOrder, OrderItem, HousekeepingRequest, Housek
 from .forms import HousekeepingSettingsForm
 from booking.models import Booking
 from billing.models import Invoice
-from core.models import Notification, SiteSetting
+from core.models import Notification, TenantSetting
 from accounts.models import User
 from django.db.models import Q
 
@@ -398,13 +398,18 @@ class HousekeepingServiceTypeDeleteView(LoginRequiredMixin, HousekeepingManageme
         return super().delete(request, *args, **kwargs)
 
 class HousekeepingSettingsView(LoginRequiredMixin, HousekeepingManagementMixin, UpdateView):
-    model = SiteSetting
+    model = TenantSetting
     form_class = HousekeepingSettingsForm
     template_name = 'services/housekeeping_settings.html'
     success_url = reverse_lazy('housekeeping_settings')
 
     def get_object(self, queryset=None):
-        return SiteSetting.load()
+        tenant = self.request.tenant
+        if not tenant:
+             # Should probably handle this better, but for now:
+             return None
+        obj, created = TenantSetting.objects.get_or_create(tenant=tenant)
+        return obj
 
     def form_valid(self, form):
         messages.success(self.request, "Housekeeping information updated successfully.")

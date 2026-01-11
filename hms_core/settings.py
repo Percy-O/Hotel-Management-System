@@ -25,7 +25,7 @@ SECRET_KEY = "django-insecure-anj668ib!h6an6=r@zi161x2@i378flai3*qfu3=-55_m8-9iz
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1','10.28.217.218']
+ALLOWED_HOSTS = ['127.0.0.1','10.28.217.218', 'localhost', '.localhost']
 
 
 # Application definition
@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     "billing",
     "events",
     "gym",
+    "tenants",
 ]
 
 AUTH_USER_MODEL = "accounts.User"
@@ -63,6 +64,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "tenants.middleware.TenantMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]

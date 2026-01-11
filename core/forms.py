@@ -1,9 +1,9 @@
 from django import forms
-from .models import SiteSetting
+from .models import TenantSetting
 
 class SiteSettingForm(forms.ModelForm):
     class Meta:
-        model = SiteSetting
+        model = TenantSetting
         fields = [
             'theme', 'custom_primary_color', 'custom_background_color', 'custom_surface_color',
             'hotel_name', 'hotel_logo', 'currency', 

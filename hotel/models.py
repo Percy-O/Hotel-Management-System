@@ -1,6 +1,7 @@
 from django.db import models
 
 class Hotel(models.Model):
+    tenant = models.ForeignKey('tenants.Tenant', on_delete=models.CASCADE, related_name='hotels', null=True, blank=True)
     name = models.CharField(max_length=255)
     address = models.TextField()
     email = models.EmailField()
@@ -12,6 +13,7 @@ class Hotel(models.Model):
         return self.name
 
 class RoomType(models.Model):
+    tenant = models.ForeignKey('tenants.Tenant', on_delete=models.CASCADE, related_name='room_types', null=True, blank=True)
     hotel = models.ForeignKey(Hotel, on_delete=models.CASCADE, related_name='room_types')
     name = models.CharField(max_length=100) # e.g. Deluxe, Suite
     description = models.TextField(blank=True)
@@ -51,6 +53,7 @@ class Room(models.Model):
         MAINTENANCE = 'MAINTENANCE', 'Maintenance'
         CLEANING = 'CLEANING', 'Cleaning'
 
+    tenant = models.ForeignKey('tenants.Tenant', on_delete=models.CASCADE, related_name='rooms', null=True)
     hotel = models.ForeignKey(Hotel, on_delete=models.CASCADE, related_name='rooms')
     room_type = models.ForeignKey(RoomType, on_delete=models.CASCADE, related_name='rooms')
     room_number = models.CharField(max_length=10)

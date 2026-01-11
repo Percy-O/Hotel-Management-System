@@ -20,6 +20,33 @@
                 </div>
             </div>
             <div class="flex items-center gap-4">
+                <!-- Tenant Switcher -->
+                {% if user.is_authenticated %}
+                <div class="relative group mr-4">
+                    <button class="flex items-center gap-2 text-text-main hover:bg-white/5 p-2 rounded-lg transition-colors">
+                        <span class="material-symbols-outlined text-primary">apartment</span>
+                        <span class="font-semibold hidden sm:inline">{{ request.tenant.name|default:"Select Hotel" }}</span>
+                        <span class="material-symbols-outlined text-sm">expand_more</span>
+                    </button>
+                    <div class="absolute right-0 top-full mt-2 w-56 bg-surface-dark/95 backdrop-blur-xl border border-border-dark rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 transform origin-top-right scale-95 group-hover:scale-100">
+                        <div class="py-2">
+                            <p class="px-4 py-2 text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Switch Organization</p>
+                            {% for membership in user.memberships.all %}
+                            <a href="//{{ membership.tenant.domains.first.domain|default:membership.tenant.subdomain }}.localhost:8000" class="flex items-center gap-3 px-4 py-3 text-sm text-text-secondary-dark hover:text-white hover:bg-primary/10 transition-colors {% if membership.tenant == request.tenant %}bg-primary/5 text-primary{% endif %}">
+                                <div class="w-2 h-2 rounded-full {% if membership.tenant == request.tenant %}bg-primary{% else %}bg-gray-600{% endif %}"></div>
+                                {{ membership.tenant.name }}
+                            </a>
+                            {% endfor %}
+                            <div class="border-t border-border-dark my-1"></div>
+                            <a href="#" class="flex items-center gap-2 px-4 py-2 text-sm text-primary hover:text-primary-hover hover:bg-primary/5 transition-colors">
+                                <span class="material-symbols-outlined text-lg">add</span>
+                                Create New Hotel
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
                 {% block header_actions %}{% endblock %}
             </div>
         </header>

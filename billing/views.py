@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.db import models
 from .models import Invoice, Payment, PaymentGateway
 from booking.models import Booking
-from core.models import Notification, SiteSetting
+from core.models import Notification, TenantSetting
 from django.urls import reverse
 import json
 import io

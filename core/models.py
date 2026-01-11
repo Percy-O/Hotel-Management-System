@@ -8,6 +8,7 @@ class Notification(models.Model):
         WARNING = 'WARNING', 'Warning'
         ERROR = 'ERROR', 'Error'
 
+    tenant = models.ForeignKey('tenants.Tenant', on_delete=models.CASCADE, related_name='notifications', null=True)
     recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications', null=True, blank=True)
     # If null, it's a broadcast to all staff/admins
     
@@ -21,7 +22,8 @@ class Notification(models.Model):
     def __str__(self):
         return f"{self.title} - {self.recipient}"
 
-class SiteSetting(models.Model):
+class TenantSetting(models.Model):
+    tenant = models.OneToOneField('tenants.Tenant', on_delete=models.CASCADE, related_name='settings', null=True)
     THEME_CHOICES = [
         ('theme-default', 'Default Dark'),
         ('theme-light', 'Light Mode'),
@@ -102,13 +104,7 @@ class SiteSetting(models.Model):
         return symbols.get(self.currency, '$')
 
     def save(self, *args, **kwargs):
-        self.pk = 1
         super().save(*args, **kwargs)
         
-    @classmethod
-    def load(cls):
-        obj, created = cls.objects.get_or_create(pk=1)
-        return obj
-
     def __str__(self):
-        return "Site Settings"
+        return f"Settings for {self.tenant}"

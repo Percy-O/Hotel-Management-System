@@ -3,8 +3,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from hotel.models import RoomType
-from .models import SiteSetting, Notification
+from .models import TenantSetting, Notification
 from .forms import SiteSettingForm
+from tenants.utils import get_current_tenant
 
 # ... (Previous imports)
 
@@ -60,8 +61,13 @@ def notification_list(request):
     return render(request, 'core/notification_list.html', {'notifications': notifications})
 
 def home(request):
-    room_types = RoomType.objects.all()[:3] # Show top 3 room types
-    return render(request, 'core/home.html', {'room_types': room_types})
+    if hasattr(request, 'tenant') and request.tenant:
+        # Public Hotel Site
+        room_types = RoomType.objects.filter(tenant=request.tenant).order_by('price_per_night')
+        return render(request, 'core/public_home.html', {'room_types': room_types, 'tenant': request.tenant})
+    
+    # SaaS Landing Page (No Tenant)
+    return render(request, 'core/saas_landing.html')
 
 @login_required
 def update_theme(request):
@@ -72,8 +78,8 @@ def update_theme(request):
         
     if request.method == 'POST':
         theme = request.POST.get('theme')
-        if theme:
-            settings = SiteSetting.load()
+        if theme and request.tenant:
+            settings, created = TenantSetting.objects.get_or_create(tenant=request.tenant)
             settings.theme = theme
             settings.save()
             messages.success(request, "Theme updated successfully.")
@@ -86,7 +92,11 @@ def settings_view(request):
         messages.error(request, "Permission denied.")
         return redirect('dashboard')
     
-    settings = SiteSetting.load()
+    if not request.tenant:
+         messages.error(request, "No tenant context.")
+         return redirect('dashboard')
+
+    settings, created = TenantSetting.objects.get_or_create(tenant=request.tenant)
     
     if request.method == 'POST':
         form = SiteSettingForm(request.POST, request.FILES, instance=settings)

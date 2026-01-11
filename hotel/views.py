@@ -65,6 +65,8 @@ class RoomTypeDetailView(DetailView):
 from django.utils import timezone
 from booking.models import Booking
 
+from tenants.utils import has_tenant_permission
+
 # Staff Views
 class StaffRoomListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Room
@@ -73,7 +75,11 @@ class StaffRoomListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     ordering = ['room_number']
 
     def test_func(self):
-        return self.request.user.is_staff or self.request.user.role in ['ADMIN', 'MANAGER', 'RECEPTIONIST', 'STAFF', 'CLEANER']
+        tenant = getattr(self.request, 'tenant', None)
+        if not tenant: return False
+        # Allow ADMIN, MANAGER, RECEPTIONIST, STAFF, CLEANER
+        allowed_roles = ['ADMIN', 'MANAGER', 'RECEPTIONIST', 'STAFF', 'CLEANER']
+        return has_tenant_permission(self.request.user, tenant, allowed_roles)
     
     def get_queryset(self):
         queryset = Room.objects.select_related('room_type').prefetch_related('bookings').all()
@@ -195,6 +201,26 @@ class BulkRoomCreateView(LoginRequiredMixin, UserPassesTestMixin, FormView):
         return self.request.user.is_staff
 
     def form_valid(self, form):
+        # Enforce Plan Limits
+        tenant = self.request.tenant
+        if tenant and tenant.plan:
+            current_count = Room.objects.filter(tenant=tenant).count()
+            needed = form.cleaned_data.get('number_of_rooms', 0) 
+            # BulkRoomForm uses logic inside form_valid, but we need to check before creating loop
+            # Actually BulkRoomForm calculates 'needed' based on target.
+            # We will check inside the loop or before it.
+            
+            # Re-calculating needed logic from below to check limit
+            room_type = form.cleaned_data['room_type']
+            target_count = room_type.number_of_rooms
+            current_type_count = Room.objects.filter(room_type=room_type).count()
+            needed = max(0, target_count - current_type_count)
+            
+            if current_count + needed > tenant.plan.max_rooms:
+                allowed = tenant.plan.max_rooms - current_count
+                messages.error(self.request, f"Plan limit reached. You can only create {allowed} more rooms. Upgrade your plan to add more.")
+                return redirect(self.success_url)
+
         room_type = form.cleaned_data['room_type']
         starting_number = form.cleaned_data['starting_number']
         use_floor_prefix = form.cleaned_data['floor_prefix']
@@ -212,9 +238,18 @@ class BulkRoomCreateView(LoginRequiredMixin, UserPassesTestMixin, FormView):
         created_count = 0
         current_num = starting_number
         
-        hotel = Hotel.objects.first() # Assume single hotel
-        
+        # Get Tenant Hotel
+        hotel = Hotel.objects.filter(tenant=self.request.tenant).first()
+        if not hotel:
+             # Should ensure hotel exists
+             hotel = Hotel.objects.create(tenant=self.request.tenant, name=self.request.tenant.name, address="Default Address", email="info@hotel.com", phone="123")
+
         while created_count < needed:
+            # Double check limit inside loop just in case
+            if tenant and tenant.plan and Room.objects.filter(tenant=tenant).count() >= tenant.plan.max_rooms:
+                 messages.warning(self.request, f"Stopped at {created_count} rooms due to plan limit.")
+                 break
+
             room_num_str = str(current_num)
             
             # Check if exists
@@ -227,6 +262,7 @@ class BulkRoomCreateView(LoginRequiredMixin, UserPassesTestMixin, FormView):
                         floor = room_num_str[:2]
                 
                 Room.objects.create(
+                    tenant=self.request.tenant,
                     hotel=hotel,
                     room_type=room_type,
                     room_number=room_num_str,
@@ -238,7 +274,7 @@ class BulkRoomCreateView(LoginRequiredMixin, UserPassesTestMixin, FormView):
             current_num += 1
             
         messages.success(self.request, f"Successfully created {created_count} new rooms for {room_type.name}.")
-        return super().form_valid(form)
+        return super(FormView, self).form_valid(form)
 
 class RoomCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     model = Room
@@ -247,15 +283,24 @@ class RoomCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     success_url = reverse_lazy('staff_room_list')
 
     def test_func(self):
-        return self.request.user.is_staff
+        tenant = getattr(self.request, 'tenant', None)
+        return has_tenant_permission(self.request.user, tenant, ['ADMIN', 'MANAGER'])
 
     def form_valid(self, form):
+        # Enforce Plan Limits
+        tenant = self.request.tenant
+        if tenant and tenant.plan:
+             if Room.objects.filter(tenant=tenant).count() >= tenant.plan.max_rooms:
+                 messages.error(self.request, "Plan limit reached. Upgrade to add more rooms.")
+                 return redirect(self.success_url)
+
         # Assign default hotel
-        hotel = Hotel.objects.first()
+        hotel = Hotel.objects.filter(tenant=self.request.tenant).first()
         if not hotel:
-            hotel = Hotel.objects.create(name="Grand Hotel", address="Default Address", email="info@grandhotel.com", phone="1234567890")
+            hotel = Hotel.objects.create(tenant=self.request.tenant, name=self.request.tenant.name, address="Default Address", email="info@grandhotel.com", phone="1234567890")
         
         form.instance.hotel = hotel
+        form.instance.tenant = self.request.tenant
         return super().form_valid(form)
 
 class RoomTypeDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
