@@ -1,5 +1,11 @@
 from django.contrib import admin
-from .models import Tenant, Domain, Membership
+from .models import Tenant, Domain, Membership, Plan
+
+@admin.register(Plan)
+class PlanAdmin(admin.ModelAdmin):
+    list_display = ('name', 'price', 'currency', 'max_rooms', 'is_public')
+    list_filter = ('is_public', 'currency')
+    search_fields = ('name',)
 
 class DomainInline(admin.TabularInline):
     model = Domain
