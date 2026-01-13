@@ -5,7 +5,7 @@ from .models import Membership
 
 class TenantAdminRequiredMixin(UserPassesTestMixin):
     """
-    Ensures the user is a member of the current tenant with ADMIN or MANAGER role.
+    Ensures the user is a member of the current tenant with ADMIN, MANAGER, or OWNER role.
     Superusers are exempt.
     """
     def test_func(self):
@@ -29,7 +29,7 @@ class TenantAdminRequiredMixin(UserPassesTestMixin):
         return Membership.objects.filter(
             user=user, 
             tenant=tenant, 
-            role__in=['ADMIN', 'MANAGER', 'OWNER'], # Added OWNER explicitly
+            role__in=['ADMIN', 'MANAGER', 'OWNER'],
             is_active=True
         ).exists()
 

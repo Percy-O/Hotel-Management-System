@@ -69,7 +69,7 @@ class User(AbstractUser):
     def can_manage_settings(self):
         if hasattr(self, 'owned_tenants') and self.owned_tenants.exists():
             return True
-        return self.role in [self.Role.ADMIN, self.Role.MANAGER] or self.has_perm('core.change_sitesetting')
+        return self.role in [self.Role.ADMIN, self.Role.MANAGER] or self.has_perm('core.change_tenantsetting')
 
     @property
     def can_manage_menu(self):

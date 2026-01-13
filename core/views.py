@@ -3,9 +3,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from hotel.models import RoomType
-from .models import TenantSetting, Notification
+from .models import TenantSetting, Notification, AuditLog
 from .forms import SiteSettingForm
 from tenants.utils import get_current_tenant
+from .utils import log_audit
 
 # ... (Previous imports)
 
@@ -150,7 +151,7 @@ def test_email_config(request):
 
 @login_required
 def settings_view(request):
-    if not request.user.is_staff:
+    if not request.user.can_manage_settings:
         messages.error(request, "Permission denied.")
         return redirect('dashboard')
     
@@ -164,6 +165,14 @@ def settings_view(request):
         form = SiteSettingForm(request.POST, request.FILES, instance=settings)
         if form.is_valid():
             form.save()
+            
+            log_audit(
+                request,
+                action=AuditLog.Action.UPDATE,
+                module='Settings',
+                details="Updated site settings."
+            )
+            
             messages.success(request, "Settings updated successfully.")
             return redirect('settings')
     else:

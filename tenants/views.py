@@ -255,6 +255,9 @@ def tenant_payment(request, tenant_id):
         'is_upgrade': bool(upgrade_plan)
     })
 
+from core.models import AuditLog
+from core.utils import log_audit
+
 @login_required
 def process_payment(request, tenant_id):
     if request.method != 'POST':
@@ -342,7 +345,37 @@ def process_payment(request, tenant_id):
         tenant.subscription_end_date = timezone.now() + timedelta(days=days)
         tenant.save()
         
-        # Redirect to new tenant dashboard
+        # Create Invoice and Payment Record
+        from billing.models import Invoice, Payment
+        import uuid
+        
+        amount = tenant.plan.price if tenant.plan else 0
+        
+        invoice = Invoice.objects.create(
+            tenant=tenant,
+            amount=amount,
+            status=Invoice.Status.PAID,
+            invoice_type=Invoice.Type.SUBSCRIPTION,
+            due_date=timezone.now().date()
+        )
+        
+        Payment.objects.create(
+            invoice=invoice,
+            amount=amount,
+            payment_method=gateway_name,
+            transaction_id=reference or f"REF-{uuid.uuid4().hex[:10]}",
+            payment_date=timezone.now()
+        )
+        
+        # Log Audit
+        log_audit(
+            request,
+            action=AuditLog.Action.PAYMENT,
+            module='Subscription',
+            details=f"Processed subscription payment for {tenant.name}. Plan: {tenant.plan.name if tenant.plan else 'None'}. Upgrade: {is_upgrade}"
+        )
+        
+        # Redirect to Dashboard Logicnew tenant dashboard
         protocol = 'https' if request.is_secure() else 'http'
         # Get primary domain
         domain_obj = tenant.domains.filter(is_primary=True).first()

@@ -7,6 +7,10 @@ def site_settings(request):
     
     if tenant:
         settings_obj, created = TenantSetting.objects.get_or_create(tenant=tenant)
+        # Ensure hotel name matches tenant name if default "My Hotel"
+        if settings_obj.hotel_name == "My Hotel":
+            settings_obj.hotel_name = tenant.name
+            settings_obj.save()
     
     context = {'site_settings': settings_obj}
     

@@ -12,9 +12,6 @@
             <div class="bg-blue-500/10 p-3 rounded-xl text-blue-400">
                 <span class="material-symbols-outlined text-2xl">domain</span>
             </div>
-            <span class="text-green-500 text-sm font-medium flex items-center gap-1">
-                <span class="material-symbols-outlined text-sm">trending_up</span> +5%
-            </span>
         </div>
         <h3 class="text-3xl font-bold mb-1 relative z-10 text-text-main">{{ total_tenants }}</h3>
         <p class="text-text-secondary-dark relative z-10">Total Hotels</p>
@@ -27,9 +24,6 @@
             <div class="bg-purple-500/10 p-3 rounded-xl text-purple-400">
                 <span class="material-symbols-outlined text-2xl">group</span>
             </div>
-            <span class="text-green-500 text-sm font-medium flex items-center gap-1">
-                <span class="material-symbols-outlined text-sm">trending_up</span> +12%
-            </span>
         </div>
         <h3 class="text-3xl font-bold mb-1 relative z-10 text-text-main">{{ total_users }}</h3>
         <p class="text-text-secondary-dark relative z-10">Active Users</p>
@@ -43,7 +37,7 @@
                 <span class="material-symbols-outlined text-2xl">payments</span>
             </div>
         </div>
-        <h3 class="text-3xl font-bold mb-1 relative z-10 text-text-main">${{ total_revenue|intcomma }}</h3>
+        <h3 class="text-3xl font-bold mb-1 relative z-10 text-text-main">₦{{ total_revenue|intcomma }}</h3>
         <p class="text-text-secondary-dark relative z-10">Total Revenue</p>
     </div>
 
@@ -121,6 +115,45 @@
                     <span class="font-medium text-sm text-text-main">New Plan</span>
                 </a>
             </div>
+        </div>
+    </div>
+    <!-- Recent Transactions -->
+    <div class="lg:col-span-2 glass-card rounded-2xl p-6 bg-surface-dark border border-border-dark mt-8">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-bold text-text-main">Recent Transactions</h3>
+            <a href="{% url 'platform_payments' %}" class="text-sm text-primary hover:underline">View All</a>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="text-xs text-text-secondary-dark uppercase tracking-wider border-b border-border-dark">
+                        <th class="pb-3 pl-2">Hotel</th>
+                        <th class="pb-3">Amount</th>
+                        <th class="pb-3">Method</th>
+                        <th class="pb-3">Ref ID</th>
+                        <th class="pb-3">Date</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-border-dark">
+                    {% for payment in recent_transactions %}
+                    <tr class="group hover:bg-white/5 transition-colors">
+                        <td class="py-4 pl-2 font-medium text-text-main">{{ payment.invoice.tenant.name }}</td>
+                        <td class="py-4 text-green-400 font-medium">₦{{ payment.amount|intcomma }}</td>
+                        <td class="py-4">
+                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-400">
+                                {{ payment.get_payment_method_display }}
+                            </span>
+                        </td>
+                        <td class="py-4 text-sm text-text-secondary-dark font-mono">{{ payment.transaction_id|truncatechars:10 }}</td>
+                        <td class="py-4 text-sm text-text-secondary-dark">{{ payment.payment_date|date:"M d, H:i" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="py-4 text-center text-text-secondary-dark">No recent transactions found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>

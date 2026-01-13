@@ -25,7 +25,7 @@ SECRET_KEY = "django-insecure-anj668ib!h6an6=r@zi161x2@i378flai3*qfu3=-55_m8-9iz
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1','10.47.157.218', 'localhost', '.localhost']
+ALLOWED_HOSTS = ['127.0.0.1','10.36.107.218', 'localhost', '.localhost']
 
 
 # Application definition
@@ -150,9 +150,17 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Email Settings (Console Backend for Development)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-EMAIL_HOST_USER = 'system@grandhotel.com'
+# Email Settings
+EMAIL_BACKEND = 'core.backends.DatabaseEmailBackend'
+
+# Default Fallbacks (if DB is empty)
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
+DEFAULT_FROM_EMAIL = 'webmaster@localhost'
 
 # Site URL for Emails
 SITE_URL = 'http://127.0.0.1:8000'

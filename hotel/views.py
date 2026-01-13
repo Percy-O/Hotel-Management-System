@@ -122,7 +122,10 @@ class StaffRoomTypeListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     context_object_name = 'room_types'
 
     def test_func(self):
-        return self.request.user.is_staff
+        tenant = getattr(self.request, 'tenant', None)
+        if not tenant: return False
+        allowed_roles = ['ADMIN', 'MANAGER']
+        return has_tenant_permission(self.request.user, tenant, allowed_roles)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -139,7 +142,10 @@ class RoomStatusUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     success_url = reverse_lazy('staff_room_list')
 
     def test_func(self):
-        return self.request.user.is_staff or self.request.user.role in ['ADMIN', 'MANAGER', 'RECEPTIONIST', 'STAFF', 'CLEANER']
+        tenant = getattr(self.request, 'tenant', None)
+        if not tenant: return False
+        allowed_roles = ['ADMIN', 'MANAGER', 'RECEPTIONIST', 'STAFF', 'CLEANER']
+        return has_tenant_permission(self.request.user, tenant, allowed_roles)
 
     def form_valid(self, form):
         response = super().form_valid(form)
@@ -171,7 +177,10 @@ class RoomTypeCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     success_url = reverse_lazy('staff_room_list')
 
     def test_func(self):
-        return self.request.user.is_staff
+        tenant = getattr(self.request, 'tenant', None)
+        if not tenant: return False
+        allowed_roles = ['ADMIN', 'MANAGER']
+        return has_tenant_permission(self.request.user, tenant, allowed_roles)
 
     def form_valid(self, form):
         # Assign hotel based on current tenant

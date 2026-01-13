@@ -8,6 +8,13 @@ class Invoice(models.Model):
         PAID = 'PAID', 'Paid'
         CANCELLED = 'CANCELLED', 'Cancelled'
 
+    class Type(models.TextChoices):
+        BOOKING = 'BOOKING', 'Booking'
+        EVENT = 'EVENT', 'Event'
+        GYM = 'GYM', 'Gym'
+        SUBSCRIPTION = 'SUBSCRIPTION', 'Subscription'
+        OTHER = 'OTHER', 'Other'
+
     booking = models.ForeignKey(Booking, on_delete=models.CASCADE, related_name='invoices', null=True, blank=True)
     # Add new relations for Events and Gym
     event_booking = models.ForeignKey('events.EventBooking', on_delete=models.CASCADE, related_name='invoices', null=True, blank=True)
@@ -15,6 +22,7 @@ class Invoice(models.Model):
     
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    invoice_type = models.CharField(max_length=20, choices=Type.choices, default=Type.BOOKING)
     issued_date = models.DateTimeField(auto_now_add=True)
     due_date = models.DateField(null=True, blank=True)
     

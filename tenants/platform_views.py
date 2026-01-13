@@ -9,7 +9,7 @@ from .forms import TenantForm, PlanForm
 from .payment_forms import PaymentGatewayForm
 from .models import Tenant, Domain, Membership, Plan
 from billing.models import PaymentGateway, Payment
-from core.models import GlobalSetting
+from core.models import GlobalSetting, AuditLog
 from core.forms import GlobalSettingForm
 from django.contrib.auth import get_user_model
 
@@ -31,7 +31,20 @@ class PlatformPaymentListView(SuperUserRequiredMixin, ListView):
     paginate_by = 20
     
     def get_queryset(self):
-        return Payment.objects.all().order_by('-payment_date')
+        return Payment.objects.filter(
+            invoice__invoice_type=Invoice.Type.SUBSCRIPTION
+        ).order_by('-payment_date')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Calculate Stats
+        subscription_payments = Payment.objects.filter(invoice__invoice_type=Invoice.Type.SUBSCRIPTION)
+        context['total_volume'] = subscription_payments.aggregate(Sum('amount'))['amount__sum'] or 0
+        context['successful_count'] = subscription_payments.count()
+        context['pending_count'] = 0 # Payment records are usually successful, Pending is Invoice status
+        
+        return context
 
 class PlatformFinanceSettingsView(SuperUserRequiredMixin, TemplateView):
     template_name = 'platform/finance_settings.html'
@@ -43,11 +56,16 @@ class PlatformFinanceSettingsView(SuperUserRequiredMixin, TemplateView):
         return context
 
 # --- Audit Logs ---
-class PlatformLogListView(SuperUserRequiredMixin, TemplateView):
+class PlatformLogListView(SuperUserRequiredMixin, ListView):
+    model = AuditLog
     template_name = 'platform/log_list.html'
-    # Placeholder for actual logging system
+    context_object_name = 'logs'
+    paginate_by = 50
+    ordering = ['-timestamp']
 
 # --- Platform Settings (Payments) ---
+from core.utils import log_audit
+
 class PlatformSettingsView(SuperUserRequiredMixin, UpdateView):
     template_name = 'platform/settings.html'
     model = GlobalSetting
@@ -66,6 +84,14 @@ class PlatformSettingsView(SuperUserRequiredMixin, UpdateView):
     
     def form_valid(self, form):
         messages.success(self.request, "Global email settings updated successfully.")
+        
+        log_audit(
+            self.request,
+            action=AuditLog.Action.UPDATE,
+            module='Platform Settings',
+            details="Updated global email/SMTP settings."
+        )
+        
         return super().form_valid(form)
 
 class PlatformGatewayUpdateView(SuperUserRequiredMixin, FormView):
@@ -90,17 +116,27 @@ class PlatformGatewayUpdateView(SuperUserRequiredMixin, FormView):
         messages.success(self.request, f"{gateway.get_name_display()} settings updated.")
         return super().form_valid(form)
 
+from django.db.models import Sum
+from billing.models import Payment, Invoice
+
 # --- Platform Dashboard ---
 @login_required
 @user_passes_test(is_superuser)
 def platform_dashboard(request):
+    total_revenue = Payment.objects.filter(
+        invoice__invoice_type=Invoice.Type.SUBSCRIPTION
+    ).aggregate(Sum('amount'))['amount__sum'] or 0
+
     context = {
         'total_tenants': Tenant.objects.count(),
         'active_tenants': Tenant.objects.filter(is_active=True).count(),
         'total_users': User.objects.count(),
-        'total_revenue': 125000, # Placeholder or aggregate from Invoice
+        'total_revenue': total_revenue,
         'recent_tenants': Tenant.objects.order_by('-created_at')[:5],
         'recent_users': User.objects.order_by('-date_joined')[:5],
+        'recent_transactions': Payment.objects.filter(
+            invoice__invoice_type=Invoice.Type.SUBSCRIPTION
+        ).select_related('invoice__tenant').order_by('-payment_date')[:5]
     }
     return render(request, 'platform/dashboard.html', context)
 

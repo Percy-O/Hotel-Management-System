@@ -146,6 +146,12 @@ def register_view(request):
                         is_active=True
                     )
                     
+                    # Update User Role to Admin for this tenant context
+                    # Although roles are handled by Membership for tenants, 
+                    # updating the main user role ensures dashboard access logic works if it relies on user.role
+                    user.role = User.Role.ADMIN
+                    user.save()
+                    
                     login(request, user)
                     
                     # Redirect logic
@@ -370,6 +376,13 @@ def dashboard(request):
     # Invoice filtering
     # Invoice now has tenant field
     invoices = Invoice.objects.filter(**tenant_filter)
+    
+    # Filter out SUBSCRIPTION payments (platform fees) so tenant only sees their revenue
+    # Assuming Invoice.Type.SUBSCRIPTION exists. If not, filter by booking__isnull=False or similar
+    # But we added Type recently.
+    if hasattr(Invoice, 'Type'):
+         invoices = invoices.exclude(invoice_type=Invoice.Type.SUBSCRIPTION)
+         
     total_revenue = invoices.filter(
         status=Invoice.Status.PAID
     ).aggregate(total=Sum('amount'))['total'] or 0

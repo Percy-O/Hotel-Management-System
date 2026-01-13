@@ -1,6 +1,27 @@
 from django.db import models
 from accounts.models import User
 
+class AuditLog(models.Model):
+    class Action(models.TextChoices):
+        CREATE = 'CREATE', 'Create'
+        UPDATE = 'UPDATE', 'Update'
+        DELETE = 'DELETE', 'Delete'
+        LOGIN = 'LOGIN', 'Login'
+        LOGOUT = 'LOGOUT', 'Logout'
+        PAYMENT = 'PAYMENT', 'Payment'
+        OTHER = 'OTHER', 'Other'
+
+    tenant = models.ForeignKey('tenants.Tenant', on_delete=models.CASCADE, related_name='audit_logs', null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='audit_logs', null=True, blank=True)
+    action = models.CharField(max_length=20, choices=Action.choices, default=Action.OTHER)
+    module = models.CharField(max_length=50, help_text="Module/App name (e.g. Booking, Billing)")
+    details = models.TextField(help_text="Description of the action")
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"[{self.timestamp}] {self.user} - {self.action} ({self.module})"
+
 class Notification(models.Model):
     class Type(models.TextChoices):
         INFO = 'INFO', 'Info'
@@ -69,7 +90,7 @@ class TenantSetting(models.Model):
         ('INR', 'INR (₹)'),
         ('ZAR', 'ZAR (R)'),
     ]
-    currency = models.CharField(max_length=10, choices=CURRENCY_CHOICES, default='USD')
+    currency = models.CharField(max_length=10, choices=CURRENCY_CHOICES, default='NGN')
     
     # Contact Info
     contact_email = models.EmailField(default="info@example.com")
@@ -110,7 +131,7 @@ class TenantSetting(models.Model):
             'INR': '₹',
             'ZAR': 'R',
         }
-        return symbols.get(self.currency, '$')
+        return symbols.get(self.currency, '₦')
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)

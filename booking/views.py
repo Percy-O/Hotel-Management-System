@@ -16,7 +16,8 @@ from core.email_utils import send_tenant_email, send_branded_email
 from hotel.models import RoomType, Room
 from .models import Booking
 from billing.models import Invoice
-from core.models import Notification
+from core.models import Notification, AuditLog
+from core.utils import log_audit
 from .forms import BookingForm, AdminBookingForm
 
 User = get_user_model()
@@ -242,6 +243,16 @@ def create_booking(request, room_type_id):
                             notification_type=Notification.Type.INFO,
                             link= booking_link
                         )
+                
+                # Log Pending Booking
+                if booking.status == Booking.Status.PENDING:
+                    log_audit(
+                        request,
+                        action=AuditLog.Action.CREATE,
+                        module='Booking',
+                        details=f"Created pending booking {booking.booking_id} for {booking.guest_name} in Room {room.room_number}."
+                    )
+                
                 booking.save()
                 # Generate Invoice
                 invoice = Invoice.objects.create(
@@ -264,6 +275,20 @@ def create_booking(request, room_type_id):
                     # Mark Invoice as Paid
                     invoice.status = Invoice.Status.PAID
                     invoice.save()
+                    
+                    # Log Audit
+                    log_audit(
+                        request, 
+                        action=AuditLog.Action.CREATE, 
+                        module='Booking', 
+                        details=f"Created booking {booking.booking_id} for {booking.guest_name} in Room {room.room_number}. Paid via {payment_method}."
+                    )
+                    log_audit(
+                        request,
+                        action=AuditLog.Action.PAYMENT,
+                        module='Billing',
+                        details=f"Received payment of {booking.total_price} via {payment_method} for Booking {booking.booking_id}"
+                    )
                     
                     # Get Currency Symbol
                     currency_symbol = '$'
@@ -456,6 +481,13 @@ def check_in_booking(request, pk):
             link=reverse('guest_dashboard')
         )
     
+    log_audit(
+        request,
+        action=AuditLog.Action.UPDATE,
+        module='Booking',
+        details=f"Checked in guest {booking.guest_name} to Room {room.room_number} (Booking {booking.booking_id})."
+    )
+
     messages.success(request, f"Guest checked in successfully to Room {room.room_number}.")
     return redirect('booking_detail', pk=pk)
 
@@ -518,6 +550,13 @@ def check_out_booking(request, pk):
             link=reverse_lazy('booking_detail', kwargs={'pk': booking.pk})
         )
     
+    log_audit(
+        request,
+        action=AuditLog.Action.UPDATE,
+        module='Booking',
+        details=f"Checked out guest {booking.guest_name} from Room {room.room_number} (Booking {booking.booking_id}). Room marked for cleaning."
+    )
+
     messages.success(request, f"Guest checked out. Room {room.room_number} marked for cleaning.")
     return redirect('booking_detail', pk=pk)
 
