@@ -202,6 +202,7 @@
         </div>
 
         <!-- Feature Modules -->
+        {% if current_plan.module_events or current_plan.module_gym %}
         <div class="bg-surface-dark p-8 rounded-2xl border border-border-dark shadow-sm">
             <h3 class="text-xl font-bold text-text-main mb-6 flex items-center gap-2">
                 <span class="material-symbols-outlined text-primary">extension</span>
@@ -211,6 +212,7 @@
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Events Module -->
+                {% if current_plan.module_events %}
                 <div class="bg-background-dark p-4 rounded-xl border border-border-dark flex items-start gap-4">
                     <div class="p-3 bg-primary/10 rounded-lg text-primary">
                         <span class="material-symbols-outlined">celebration</span>
@@ -226,8 +228,10 @@
                         <p class="text-xs text-text-secondary-dark">Manage event spaces, hall bookings, and scheduling for weddings, conferences, etc.</p>
                     </div>
                 </div>
+                {% endif %}
 
                 <!-- Gym Module -->
+                {% if current_plan.module_gym %}
                 <div class="bg-background-dark p-4 rounded-xl border border-border-dark flex items-start gap-4">
                     <div class="p-3 bg-primary/10 rounded-lg text-primary">
                         <span class="material-symbols-outlined">fitness_center</span>
@@ -243,8 +247,10 @@
                         <p class="text-xs text-text-secondary-dark">Manage gym memberships, plans, and member access tracking.</p>
                     </div>
                 </div>
+                {% endif %}
             </div>
         </div>
+        {% endif %}
 
         <!-- Hotel Identity -->
         <div class="bg-surface-dark p-8 rounded-2xl border border-border-dark shadow-sm">

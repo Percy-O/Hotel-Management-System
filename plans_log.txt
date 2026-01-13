@@ -1,6 +1,0 @@
-Checking plans...
-Total plans: 3
-Plan: Free Tier, Public: True, Price: 0.00
-Plan: Basic Plan, Public: True, Price: 15000.00
-Plan: Premium Plan, Public: True, Price: 30000.00
-Public plans query count: 3
