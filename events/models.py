@@ -4,6 +4,7 @@ from decimal import Decimal
 from django.utils import timezone
 
 class EventHall(models.Model):
+    tenant = models.ForeignKey('tenants.Tenant', on_delete=models.CASCADE, related_name='event_halls', null=True, blank=True)
     PRICING_TYPE_CHOICES = [
         ('PER_HOUR', 'Per Hour'),
         ('PER_DAY', 'Per Day'),

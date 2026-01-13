@@ -1,0 +1,137 @@
+{% extends 'layouts/platform_base.html' %}
+
+{% block page_title %}{% if form.instance.pk %}Edit Plan{% else %}Create Plan{% endif %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-2xl mx-auto">
+    <div class="glass-card rounded-2xl p-8 border border-border-dark bg-surface-dark/50">
+        <div class="flex items-center gap-4 mb-8">
+            <a href="{% url 'platform_subscriptions' %}" class="p-2 rounded-lg hover:bg-white/5 text-text-secondary transition-colors">
+                <span class="material-symbols-outlined">arrow_back</span>
+            </a>
+            <div>
+                <h2 class="text-xl font-bold text-white">{% if form.instance.pk %}Edit {{ form.instance.name }}{% else %}New Subscription Plan{% endif %}</h2>
+                <p class="text-sm text-text-secondary">Define limits and pricing for this tier.</p>
+            </div>
+        </div>
+
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+            <div class="p-4 bg-danger/10 border border-danger/20 rounded-lg text-danger text-sm">
+                {{ form.non_field_errors }}
+            </div>
+            {% endif %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Name -->
+                <div class="col-span-2">
+                    <label class="block text-sm font-medium text-text-secondary mb-2">Plan Name</label>
+                    <input type="text" name="name" value="{{ form.name.value|default:'' }}" class="w-full bg-surface-light border border-border-dark rounded-lg px-4 py-2.5 text-white focus:border-blue-500 focus:outline-none transition-colors" placeholder="e.g. Enterprise">
+                    {% if form.name.errors %}
+                    <p class="mt-1 text-xs text-danger">{{ form.name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Price -->
+                <div>
+                    <label class="block text-sm font-medium text-text-secondary mb-2">Monthly Price</label>
+                    <div class="flex gap-2">
+                        <select name="currency" class="bg-surface-light border border-border-dark rounded-lg px-3 py-2.5 text-white focus:border-blue-500 focus:outline-none transition-colors">
+                            <option value="NGN" {% if form.currency.value == 'NGN' %}selected{% endif %}>NGN</option>
+                            <option value="USD" {% if form.currency.value == 'USD' %}selected{% endif %}>USD</option>
+                            <option value="EUR" {% if form.currency.value == 'EUR' %}selected{% endif %}>EUR</option>
+                            <option value="GBP" {% if form.currency.value == 'GBP' %}selected{% endif %}>GBP</option>
+                        </select>
+                        <input type="number" step="0.01" name="price" value="{{ form.price.value|default:'' }}" class="flex-1 bg-surface-light border border-border-dark rounded-lg px-4 py-2.5 text-white focus:border-blue-500 focus:outline-none transition-colors" placeholder="0.00">
+                    </div>
+                    {% if form.price.errors %}
+                    <p class="mt-1 text-xs text-danger">{{ form.price.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Max Users -->
+                <div>
+                    <label class="block text-sm font-medium text-text-secondary mb-2">Max Users</label>
+                    <input type="number" name="max_users" value="{{ form.max_users.value|default:'' }}" class="w-full bg-surface-light border border-border-dark rounded-lg px-4 py-2.5 text-white focus:border-blue-500 focus:outline-none transition-colors" placeholder="5">
+                    {% if form.max_users.errors %}
+                    <p class="mt-1 text-xs text-danger">{{ form.max_users.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Max Rooms -->
+                <div>
+                    <label class="block text-sm font-medium text-text-secondary mb-2">Max Rooms</label>
+                    <input type="number" name="max_rooms" value="{{ form.max_rooms.value|default:'' }}" class="w-full bg-surface-light border border-border-dark rounded-lg px-4 py-2.5 text-white focus:border-blue-500 focus:outline-none transition-colors" placeholder="10">
+                    {% if form.max_rooms.errors %}
+                    <p class="mt-1 text-xs text-danger">{{ form.max_rooms.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Features & Modules -->
+            <div class="border-t border-white/5 pt-6 mt-6">
+                <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-blue-500">extension</span>
+                    Included Modules
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Events -->
+                    <label class="flex items-start gap-3 p-4 rounded-xl border border-white/5 bg-white/5 hover:bg-white/10 cursor-pointer transition-colors">
+                        <input type="checkbox" name="module_events" {% if form.instance.module_events %}checked{% endif %} class="mt-1 w-5 h-5 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-500 focus:ring-offset-gray-900">
+                        <div>
+                            <span class="block font-medium text-white">Events Management</span>
+                            <span class="text-xs text-gray-400">Hall bookings, QR entry passes, and scheduling.</span>
+                        </div>
+                    </label>
+
+                    <!-- Gym -->
+                    <label class="flex items-start gap-3 p-4 rounded-xl border border-white/5 bg-white/5 hover:bg-white/10 cursor-pointer transition-colors">
+                        <input type="checkbox" name="module_gym" {% if form.instance.module_gym %}checked{% endif %} class="mt-1 w-5 h-5 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-500 focus:ring-offset-gray-900">
+                        <div>
+                            <span class="block font-medium text-white">Gym & Fitness</span>
+                            <span class="text-xs text-gray-400">Memberships, recurring billing for gym users.</span>
+                        </div>
+                    </label>
+
+                    <!-- Restaurant -->
+                    <label class="flex items-start gap-3 p-4 rounded-xl border border-white/5 bg-white/5 hover:bg-white/10 cursor-pointer transition-colors">
+                        <input type="checkbox" name="module_restaurant" {% if form.instance.module_restaurant %}checked{% endif %} class="mt-1 w-5 h-5 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-500 focus:ring-offset-gray-900">
+                        <div>
+                            <span class="block font-medium text-white">Restaurant & Bar</span>
+                            <span class="text-xs text-gray-400">Digital menu, room service, and kitchen orders.</span>
+                        </div>
+                    </label>
+
+                    <!-- Housekeeping -->
+                    <label class="flex items-start gap-3 p-4 rounded-xl border border-white/5 bg-white/5 hover:bg-white/10 cursor-pointer transition-colors">
+                        <input type="checkbox" name="module_housekeeping" {% if form.instance.module_housekeeping %}checked{% endif %} class="mt-1 w-5 h-5 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-500 focus:ring-offset-gray-900">
+                        <div>
+                            <span class="block font-medium text-white">Housekeeping</span>
+                            <span class="text-xs text-gray-400">Guest requests, cleaning schedules, and status tracking.</span>
+                        </div>
+                    </label>
+
+                    <!-- Custom Domain -->
+                    <label class="flex items-start gap-3 p-4 rounded-xl border border-yellow-500/20 bg-yellow-500/5 hover:bg-yellow-500/10 cursor-pointer transition-colors col-span-1 md:col-span-2">
+                        <input type="checkbox" name="allow_custom_domain" {% if form.instance.allow_custom_domain %}checked{% endif %} class="mt-1 w-5 h-5 rounded border-gray-600 bg-gray-700 text-yellow-500 focus:ring-yellow-500 focus:ring-offset-gray-900">
+                        <div>
+                            <span class="block font-medium text-yellow-500">Custom Domain Support</span>
+                            <span class="text-xs text-yellow-500/70">Allow hotels to use their own .com domain.</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="pt-6 border-t border-white/5 flex items-center justify-end gap-4">
+                <a href="{% url 'platform_subscriptions' %}" class="px-6 py-2.5 rounded-lg border border-border-dark text-text-secondary hover:text-white hover:bg-white/5 transition-colors">Cancel</a>
+                <button type="submit" class="px-6 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors shadow-lg shadow-blue-500/20">
+                    {% if form.instance.pk %}Update Plan{% else %}Create Plan{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

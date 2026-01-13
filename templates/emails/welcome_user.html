@@ -1,0 +1,30 @@
+{% extends 'emails/base_email.html' %}
+
+{% block content %}
+    <h1>Welcome to {{ company_name }}! 👋</h1>
+    <p>Hello {{ user.first_name|default:user.username }},</p>
+    
+    <p>Your account has been successfully created. You are now a member of the <strong>{{ company_name }}</strong> team.</p>
+    
+    <p>Here are your account details:</p>
+    <div class="info-box">
+        <div class="info-row">
+            <span class="info-label">Username</span>
+            <span class="info-value">{{ user.username }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Role</span>
+            <span class="info-value">{{ role }}</span>
+        </div>
+    </div>
+
+    <p>Please click the button below to login and set up your profile.</p>
+
+    <div style="text-align: center;">
+        <a href="{{ login_url }}" class="btn">Login to Account</a>
+    </div>
+    
+    <p>We are excited to have you on board!</p>
+    
+    <p>Best regards,<br>{{ company_name }} Management</p>
+{% endblock %}

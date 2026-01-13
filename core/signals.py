@@ -1,6 +1,6 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.core.mail import send_mail
+from core.email_utils import send_tenant_email
 from django.conf import settings
 from .models import Notification
 
@@ -8,11 +8,11 @@ from .models import Notification
 def send_notification_email(sender, instance, created, **kwargs):
     if created and instance.recipient and instance.recipient.email:
         try:
-            send_mail(
+            send_tenant_email(
                 subject=f"Notification: {instance.title}",
                 message=f"{instance.message}\n\nLink: {settings.SITE_URL if hasattr(settings, 'SITE_URL') else ''}{instance.link or ''}",
-                from_email=settings.EMAIL_HOST_USER,
                 recipient_list=[instance.recipient.email],
+                tenant=instance.tenant,
                 fail_silently=True,
             )
             print(f"Email sent to {instance.recipient.email}")

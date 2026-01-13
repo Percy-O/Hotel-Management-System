@@ -9,6 +9,114 @@
     <form method="POST" enctype="multipart/form-data" class="space-y-8">
         {% csrf_token %}
         
+        <!-- Plan Information & Upgrade -->
+        <div class="bg-surface-dark p-8 rounded-2xl border border-border-dark shadow-sm relative overflow-hidden">
+            <!-- Background Glow -->
+            <div class="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
+                <div>
+                    <h3 class="text-xl font-bold text-text-main mb-2 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">diamond</span>
+                        Subscription Plan
+                    </h3>
+                    <p class="text-text-secondary-dark text-sm">
+                        You are currently on the <strong class="text-white">{{ current_plan.name }}</strong> plan.
+                    </p>
+                    <div class="flex items-center gap-4 mt-3">
+                        <span class="px-3 py-1 rounded-full bg-green-500/10 text-green-400 text-xs font-bold border border-green-500/20">
+                            {{ tenant.subscription_status|title }}
+                        </span>
+                        {% if tenant.subscription_end_date %}
+                        <span class="text-xs text-text-secondary-dark">
+                            Expires: {{ tenant.subscription_end_date|date:"M d, Y" }}
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="flex gap-3">
+                    {% if current_plan.price < all_plans.last.price %}
+                    <button type="button" onclick="document.getElementById('upgrade-modal').classList.remove('hidden')" class="px-6 py-2.5 bg-gradient-to-r from-primary to-primary-hover text-slate-900 font-bold rounded-xl shadow-lg shadow-primary/25 hover:scale-105 transition-transform flex items-center gap-2">
+                        <span class="material-symbols-outlined">upgrade</span>
+                        Upgrade Plan
+                    </button>
+                    {% else %}
+                    <span class="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-gray-400 text-sm font-medium">
+                        Highest Plan Active
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Upgrade Modal -->
+        <div id="upgrade-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+            <div class="bg-surface-dark w-full max-w-4xl rounded-2xl border border-border-dark shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+                <div class="p-6 border-b border-border-dark flex justify-between items-center">
+                    <h3 class="text-xl font-bold text-white">Upgrade Your Workspace</h3>
+                    <button type="button" onclick="document.getElementById('upgrade-modal').classList.add('hidden')" class="text-gray-400 hover:text-white">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                
+                <div class="p-8 overflow-y-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {% for plan in all_plans %}
+                    <div class="relative bg-background-dark border {% if plan == current_plan %}border-primary ring-1 ring-primary/50{% else %}border-border-dark{% endif %} rounded-xl p-6 flex flex-col">
+                        {% if plan == current_plan %}
+                        <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-primary text-slate-900 text-xs font-bold rounded-full">
+                            Current Plan
+                        </div>
+                        {% endif %}
+                        
+                        <h4 class="text-lg font-bold text-white mb-2">{{ plan.name }}</h4>
+                        <div class="text-2xl font-bold text-primary mb-4">
+                            {% if plan.price == 0 %}Free{% else %}{{ plan.currency }} {{ plan.price }}{% endif %}
+                            <span class="text-sm font-normal text-gray-400">/mo</span>
+                        </div>
+                        
+                        <ul class="space-y-3 mb-8 flex-1">
+                            <li class="flex items-center gap-2 text-sm text-gray-300">
+                                <span class="material-symbols-outlined text-primary text-[16px]">check_circle</span>
+                                {{ plan.max_rooms }} Rooms
+                            </li>
+                            <li class="flex items-center gap-2 text-sm text-gray-300">
+                                <span class="material-symbols-outlined text-primary text-[16px]">check_circle</span>
+                                {{ plan.max_users }} Staff Users
+                            </li>
+                            {% if plan.module_restaurant %}
+                            <li class="flex items-center gap-2 text-sm text-gray-300">
+                                <span class="material-symbols-outlined text-primary text-[16px]">restaurant</span>
+                                Restaurant Module
+                            </li>
+                            {% endif %}
+                            {% if plan.module_gym %}
+                            <li class="flex items-center gap-2 text-sm text-gray-300">
+                                <span class="material-symbols-outlined text-primary text-[16px]">fitness_center</span>
+                                Gym Module
+                            </li>
+                            {% endif %}
+                        </ul>
+                        
+                        {% if plan != current_plan and plan.price > current_plan.price %}
+                        <a href="{% url 'upgrade_subscription' plan.id %}" class="w-full py-2 bg-white/10 hover:bg-white/20 text-white font-bold rounded-lg text-center transition-colors">
+                            Upgrade
+                        </a>
+                        {% elif plan != current_plan %}
+                        <button disabled class="w-full py-2 bg-transparent border border-white/10 text-gray-500 rounded-lg text-center cursor-not-allowed">
+                            Downgrade
+                        </button>
+                        {% else %}
+                        <button disabled class="w-full py-2 bg-primary/20 text-primary font-bold rounded-lg text-center cursor-default">
+                            Active
+                        </button>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
         <!-- Theme Settings -->
         <div class="bg-surface-dark p-8 rounded-2xl border border-border-dark shadow-sm">
             <h3 class="text-xl font-bold text-text-main mb-6 flex items-center gap-2">
@@ -209,8 +317,64 @@
             </div>
         </div>
 
+        <!-- Email Configuration (Premium) -->
+        {% if show_email_settings %}
+        <div class="bg-surface-dark p-8 rounded-2xl border border-border-dark shadow-sm">
+            <h3 class="text-xl font-bold text-text-main mb-6 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">mail</span>
+                Email Configuration (SMTP)
+            </h3>
+            <p class="text-text-secondary-dark mb-6 text-sm">Configure your own SMTP server for sending system emails.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-text-main mb-2">SMTP Host</label>
+                    {% render_field form.email_host class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-text-main placeholder-text-secondary-dark focus:ring-2 focus:ring-primary focus:border-transparent text-sm" placeholder="smtp.example.com" %}
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-text-main mb-2">SMTP Port</label>
+                    {% render_field form.email_port class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-text-main placeholder-text-secondary-dark focus:ring-2 focus:ring-primary focus:border-transparent text-sm" placeholder="587" %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-text-main mb-2">Email User</label>
+                    {% render_field form.email_host_user class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-text-main placeholder-text-secondary-dark focus:ring-2 focus:ring-primary focus:border-transparent text-sm" %}
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-text-main mb-2">Email Password</label>
+                    {% render_field form.email_host_password class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-text-main placeholder-text-secondary-dark focus:ring-2 focus:ring-primary focus:border-transparent text-sm" placeholder="••••••••" %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-text-main mb-2">Default From Email</label>
+                    {% render_field form.default_from_email class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-text-main placeholder-text-secondary-dark focus:ring-2 focus:ring-primary focus:border-transparent text-sm" %}
+                </div>
+
+                <div class="col-span-full flex gap-6 items-center pt-2">
+                    <label class="flex items-center gap-2 cursor-pointer text-text-main">
+                        {% render_field form.email_use_tls class="rounded text-primary focus:ring-primary bg-background-dark border-border-dark" %}
+                        <span class="text-sm">Use TLS</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer text-text-main">
+                        {% render_field form.email_use_ssl class="rounded text-primary focus:ring-primary bg-background-dark border-border-dark" %}
+                        <span class="text-sm">Use SSL</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Actions -->
-        <div class="flex justify-end pt-4">
+        <div class="flex justify-end pt-4 gap-4">
+            {% if show_email_settings %}
+            <a href="{% url 'test_email_config' %}" class="px-6 py-3 bg-surface-dark border border-border-dark text-text-main font-bold rounded-xl hover:bg-white/5 transition-colors flex items-center gap-2">
+                <span class="material-symbols-outlined">send</span>
+                Test Email
+            </a>
+            {% endif %}
+            
             <button type="submit" class="px-8 py-3 bg-primary text-slate-900 font-bold rounded-xl hover:bg-primary-hover transition-colors shadow-lg shadow-primary/20 flex items-center gap-2">
                 <span class="material-symbols-outlined">save</span>
                 Save Changes

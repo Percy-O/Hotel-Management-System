@@ -60,14 +60,46 @@ def notification_list(request):
     
     return render(request, 'core/notification_list.html', {'notifications': notifications})
 
+from tenants.models import Plan
+
 def home(request):
     if hasattr(request, 'tenant') and request.tenant:
         # Public Hotel Site
-        room_types = RoomType.objects.filter(tenant=request.tenant).order_by('price_per_night')
-        return render(request, 'core/public_home.html', {'room_types': room_types, 'tenant': request.tenant})
+        tenant = request.tenant
+        
+        # Fetch Context Data
+        room_types = RoomType.objects.filter(tenant=tenant).order_by('price_per_night')
+        
+        # Optional: Services if installed
+        # Using a try-except or check for installed apps is better, but for now assuming apps exist
+        # Services (Dining)
+        from services.models import MenuItem
+        menu_items = MenuItem.objects.filter(tenant=tenant, is_available=True)[:6]
+        
+        # Events
+        from events.models import EventHall
+        event_halls = EventHall.objects.filter(tenant=tenant)[:3]
+        
+        # Gym
+        from gym.models import GymPlan
+        gym_plans = GymPlan.objects.filter(tenant=tenant)
+        
+        # Hotel Info
+        from hotel.models import Hotel
+        hotel_info = Hotel.objects.filter(tenant=tenant).first()
+        
+        context = {
+            'tenant': tenant,
+            'room_types': room_types,
+            'hotel': hotel_info,
+            'menu_items': menu_items,
+            'event_halls': event_halls,
+        }
+        return render(request, 'core/public_home.html', context)
     
     # SaaS Landing Page (No Tenant)
-    return render(request, 'core/saas_landing.html')
+    plans = Plan.objects.filter(is_public=True).order_by('price')
+    return render(request, 'core/saas_landing.html', {'plans': plans})
 
 @login_required
 def update_theme(request):
@@ -85,6 +117,36 @@ def update_theme(request):
             messages.success(request, "Theme updated successfully.")
             
     return redirect(request.META.get('HTTP_REFERER', 'dashboard'))
+
+from core.email_utils import send_tenant_email
+
+@login_required
+def test_email_config(request):
+    """
+    Sends a test email using the current tenant's settings.
+    """
+    if not request.user.is_staff or not request.tenant:
+        messages.error(request, "Permission denied.")
+        return redirect('settings')
+        
+    try:
+        sent = send_tenant_email(
+            subject=f"Test Email from {request.tenant.name}",
+            message="This is a test email to verify your SMTP configuration. If you received this, your email settings are correct!",
+            recipient_list=[request.user.email],
+            tenant=request.tenant,
+            fail_silently=False
+        )
+        
+        if sent:
+            messages.success(request, f"Test email sent successfully to {request.user.email}")
+        else:
+            messages.error(request, "Failed to send test email. Check your SMTP logs.")
+            
+    except Exception as e:
+        messages.error(request, f"Error sending test email: {str(e)}")
+        
+    return redirect('settings')
 
 @login_required
 def settings_view(request):
@@ -107,4 +169,21 @@ def settings_view(request):
     else:
         form = SiteSettingForm(instance=settings)
     
-    return render(request, 'core/settings.html', {'form': form})
+    # Check if plan allows custom email
+    show_email_settings = False
+    current_plan = None
+    if request.tenant and request.tenant.plan:
+        current_plan = request.tenant.plan
+        if request.tenant.plan.allow_custom_email:
+            show_email_settings = True
+            
+    # Get all public plans for upgrade comparison
+    all_plans = Plan.objects.filter(is_public=True).order_by('price')
+
+    return render(request, 'core/settings.html', {
+        'form': form, 
+        'show_email_settings': show_email_settings,
+        'current_plan': current_plan,
+        'all_plans': all_plans,
+        'tenant': request.tenant
+    })

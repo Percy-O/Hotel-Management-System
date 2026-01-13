@@ -1,0 +1,137 @@
+{% extends 'layouts/platform_base.html' %}
+
+{% block header_title %}System Settings{% endblock %}
+
+{% load widget_tweaks %}
+{% block dashboard_content %}
+<div class="space-y-8">
+    <!-- Global Email Settings -->
+    <div>
+        <h3 class="text-xl font-bold mb-4">Global Email Configuration (SMTP)</h3>
+        <p class="text-text-secondary-light dark:text-text-secondary-dark mb-6">Default email settings for system notifications and transactional emails.</p>
+        
+        <form method="POST" class="glass-card p-6 rounded-2xl bg-surface-light dark:bg-surface-dark border border-gray-200 dark:border-border-dark shadow-sm">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="col-span-full md:col-span-1">
+                    <label class="block text-sm font-medium mb-2 text-text-main">SMTP Host</label>
+                    {% render_field form.email_host class="w-full bg-[#1e293b] border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:ring-2 focus:ring-primary focus:border-transparent text-sm" placeholder="e.g. mail.techohr.com.ng" %}
+                </div>
+                <div class="col-span-full md:col-span-1">
+                    <label class="block text-sm font-medium mb-2 text-text-main">SMTP Port</label>
+                    {% render_field form.email_port class="w-full bg-[#1e293b] border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:ring-2 focus:ring-primary focus:border-transparent text-sm" placeholder="e.g. 465" %}
+                </div>
+                
+                <div class="col-span-full md:col-span-1">
+                    <label class="block text-sm font-medium mb-2 text-text-main">Email User</label>
+                    {% render_field form.email_host_user class="w-full bg-[#1e293b] border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:ring-2 focus:ring-primary focus:border-transparent text-sm" placeholder="e.g. ihotel@techohr.com.ng" %}
+                </div>
+                <div class="col-span-full md:col-span-1">
+                    <label class="block text-sm font-medium mb-2 text-text-main">Email Password</label>
+                    {% render_field form.email_host_password class="w-full bg-[#1e293b] border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:ring-2 focus:ring-primary focus:border-transparent text-sm" placeholder="••••••••" %}
+                </div>
+                
+                <div class="col-span-full md:col-span-1">
+                    <label class="block text-sm font-medium mb-2 text-text-main">Default From Email</label>
+                    {% render_field form.default_from_email class="w-full bg-[#1e293b] border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:ring-2 focus:ring-primary focus:border-transparent text-sm" placeholder="e.g. ihotel@techohr.com.ng" %}
+                </div>
+                
+                <div class="col-span-full flex gap-6 items-center pt-2">
+                    <label class="flex items-center gap-2 cursor-pointer text-text-main">
+                        {% render_field form.email_use_tls class="rounded text-primary focus:ring-primary bg-background-light dark:bg-background-dark border-gray-300 dark:border-gray-700" %}
+                        <span class="text-sm">Use TLS</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer text-text-main">
+                        {% render_field form.email_use_ssl class="rounded text-primary focus:ring-primary bg-background-light dark:bg-background-dark border-gray-300 dark:border-gray-700" %}
+                        <span class="text-sm">Use SSL</span>
+                    </label>
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end">
+                <button type="submit" class="px-6 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg font-bold transition-colors shadow-lg shadow-primary/20 flex items-center gap-2">
+                    <span class="material-symbols-outlined">save</span>
+                    Save Email Settings
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Payment Gateways -->
+    <div>
+        <h3 class="text-xl font-bold mb-4">Payment Gateways (Subscription Billing)</h3>
+        <p class="text-text-secondary-light dark:text-text-secondary-dark mb-6">Configure how you receive payments from hotel tenants for their subscription plans.</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Paystack -->
+            <div class="glass-card p-6 rounded-2xl border-l-4 {% if paystack.is_active %}border-green-500{% else %}border-gray-300 dark:border-gray-600{% endif %}">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="size-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500 font-bold">P</div>
+                        <div>
+                            <h4 class="font-bold">Paystack</h4>
+                            {% if paystack.is_active %}
+                            <span class="text-xs text-green-500 font-medium">Active</span>
+                            {% else %}
+                            <span class="text-xs text-text-secondary-light dark:text-text-secondary-dark">Inactive</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <a href="{% url 'platform_gateway_edit' 'paystack' %}" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
+                        <span class="material-symbols-outlined">settings</span>
+                    </a>
+                </div>
+                {% if paystack %}
+                <div class="space-y-1 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-text-secondary-light dark:text-text-secondary-dark">Mode</span>
+                        <span class="font-medium">{% if paystack.is_test_mode %}Test{% else %}Live{% endif %}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-text-secondary-light dark:text-text-secondary-dark">Public Key</span>
+                        <span class="font-mono text-xs">{{ paystack.public_key|truncatechars:15 }}...</span>
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark italic">Not configured yet.</p>
+                <a href="{% url 'platform_gateway_edit' 'paystack' %}" class="block mt-4 text-center py-2 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-sm font-medium hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-colors">Configure Paystack</a>
+                {% endif %}
+            </div>
+
+            <!-- Flutterwave -->
+            <div class="glass-card p-6 rounded-2xl border-l-4 {% if flutterwave.is_active %}border-orange-500{% else %}border-gray-300 dark:border-gray-600{% endif %}">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="size-10 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-500 font-bold">F</div>
+                        <div>
+                            <h4 class="font-bold">Flutterwave</h4>
+                            {% if flutterwave.is_active %}
+                            <span class="text-xs text-green-500 font-medium">Active</span>
+                            {% else %}
+                            <span class="text-xs text-text-secondary-light dark:text-text-secondary-dark">Inactive</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <a href="{% url 'platform_gateway_edit' 'flutterwave' %}" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
+                        <span class="material-symbols-outlined">settings</span>
+                    </a>
+                </div>
+                {% if flutterwave %}
+                <div class="space-y-1 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-text-secondary-light dark:text-text-secondary-dark">Mode</span>
+                        <span class="font-medium">{% if flutterwave.is_test_mode %}Test{% else %}Live{% endif %}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-text-secondary-light dark:text-text-secondary-dark">Public Key</span>
+                        <span class="font-mono text-xs">{{ flutterwave.public_key|truncatechars:15 }}...</span>
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark italic">Not configured yet.</p>
+                <a href="{% url 'platform_gateway_edit' 'flutterwave' %}" class="block mt-4 text-center py-2 rounded-lg bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 text-sm font-medium hover:bg-orange-100 dark:hover:bg-orange-500/20 transition-colors">Configure Flutterwave</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends 'layouts/platform_base.html' %}
+{% load humanize %}
+
+{% block page_title %}Plan Details - {{ plan.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-3xl mx-auto">
+    <!-- Header with Actions -->
+    <div class="flex items-center justify-between mb-8">
+        <div class="flex items-center gap-4">
+            <a href="{% url 'platform_subscriptions' %}" class="p-2 rounded-lg hover:bg-white/5 text-text-secondary transition-colors">
+                <span class="material-symbols-outlined">arrow_back</span>
+            </a>
+            <div>
+                <h2 class="text-2xl font-bold text-white">{{ plan.name }}</h2>
+                <p class="text-text-secondary">Subscription Tier Details</p>
+            </div>
+        </div>
+        <a href="{% url 'platform_plan_edit' plan.pk %}" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium flex items-center gap-2 transition-colors">
+            <span class="material-symbols-outlined text-[20px]">edit</span>
+            Edit Plan
+        </a>
+    </div>
+
+    <div class="space-y-6">
+        <!-- Main Info Card -->
+        <div class="glass-card rounded-2xl p-8 border border-border-dark bg-surface-dark/50">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <p class="text-sm text-text-secondary mb-1">Pricing</p>
+                    <p class="text-3xl font-bold text-white">
+                        {% if plan.currency == 'NGN' %}₦{% elif plan.currency == 'USD' %}${% elif plan.currency == 'EUR' %}€{% elif plan.currency == 'GBP' %}£{% else %}{{ plan.currency }} {% endif %}{{ plan.price|intcomma }}<span class="text-lg text-text-secondary font-normal">/month</span>
+                    </p>
+                </div>
+                <div>
+                    <p class="text-sm text-text-secondary mb-1">Status</p>
+                    <div class="flex items-center gap-2">
+                        <span class="size-2 rounded-full {% if plan.is_public %}bg-green-500{% else %}bg-gray-500{% endif %}"></span>
+                        <span class="text-lg font-medium text-white">{% if plan.is_public %}Active (Public){% else %}Hidden (Private){% endif %}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Limits & Quotas -->
+        <div class="glass-card rounded-2xl p-8 border border-border-dark bg-surface-dark/50">
+            <h3 class="text-lg font-bold text-white mb-6 flex items-center gap-2">
+                <span class="material-symbols-outlined text-blue-400">tune</span>
+                Limits & Quotas
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="p-4 rounded-xl bg-surface-light border border-white/5">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="material-symbols-outlined text-gray-400">group</span>
+                        <span class="text-sm text-text-secondary">Staff Users</span>
+                    </div>
+                    <p class="text-xl font-bold text-white">{{ plan.max_users }}</p>
+                </div>
+                <div class="p-4 rounded-xl bg-surface-light border border-white/5">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="material-symbols-outlined text-gray-400">meeting_room</span>
+                        <span class="text-sm text-text-secondary">Room Capacity</span>
+                    </div>
+                    <p class="text-xl font-bold text-white">{{ plan.max_rooms }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modules & Features -->
+        <div class="glass-card rounded-2xl p-8 border border-border-dark bg-surface-dark/50">
+            <h3 class="text-lg font-bold text-white mb-6 flex items-center gap-2">
+                <span class="material-symbols-outlined text-purple-400">extension</span>
+                Included Modules
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex items-center gap-3 p-4 rounded-xl border {% if plan.module_events %}border-green-500/20 bg-green-500/5{% else %}border-white/5 bg-white/5 opacity-50{% endif %}">
+                    <span class="material-symbols-outlined {% if plan.module_events %}text-green-500{% else %}text-gray-500{% endif %}">event</span>
+                    <span class="font-medium text-white">Events Management</span>
+                    {% if plan.module_events %}<span class="ml-auto material-symbols-outlined text-green-500 text-sm">check</span>{% endif %}
+                </div>
+
+                <div class="flex items-center gap-3 p-4 rounded-xl border {% if plan.module_gym %}border-green-500/20 bg-green-500/5{% else %}border-white/5 bg-white/5 opacity-50{% endif %}">
+                    <span class="material-symbols-outlined {% if plan.module_gym %}text-green-500{% else %}text-gray-500{% endif %}">fitness_center</span>
+                    <span class="font-medium text-white">Gym & Fitness</span>
+                    {% if plan.module_gym %}<span class="ml-auto material-symbols-outlined text-green-500 text-sm">check</span>{% endif %}
+                </div>
+
+                <div class="flex items-center gap-3 p-4 rounded-xl border {% if plan.module_restaurant %}border-green-500/20 bg-green-500/5{% else %}border-white/5 bg-white/5 opacity-50{% endif %}">
+                    <span class="material-symbols-outlined {% if plan.module_restaurant %}text-green-500{% else %}text-gray-500{% endif %}">restaurant</span>
+                    <span class="font-medium text-white">Restaurant & Bar</span>
+                    {% if plan.module_restaurant %}<span class="ml-auto material-symbols-outlined text-green-500 text-sm">check</span>{% endif %}
+                </div>
+
+                <div class="flex items-center gap-3 p-4 rounded-xl border {% if plan.module_housekeeping %}border-green-500/20 bg-green-500/5{% else %}border-white/5 bg-white/5 opacity-50{% endif %}">
+                    <span class="material-symbols-outlined {% if plan.module_housekeeping %}text-green-500{% else %}text-gray-500{% endif %}">cleaning_services</span>
+                    <span class="font-medium text-white">Housekeeping</span>
+                    {% if plan.module_housekeeping %}<span class="ml-auto material-symbols-outlined text-green-500 text-sm">check</span>{% endif %}
+                </div>
+
+                <div class="flex items-center gap-3 p-4 rounded-xl border {% if plan.allow_custom_domain %}border-yellow-500/20 bg-yellow-500/5{% else %}border-white/5 bg-white/5 opacity-50{% endif %} col-span-1 md:col-span-2">
+                    <span class="material-symbols-outlined {% if plan.allow_custom_domain %}text-yellow-500{% else %}text-gray-500{% endif %}">language</span>
+                    <span class="font-medium text-white">Custom Domain Support</span>
+                    {% if plan.allow_custom_domain %}<span class="ml-auto material-symbols-outlined text-yellow-500 text-sm">check</span>{% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

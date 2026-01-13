@@ -1,0 +1,21 @@
+{% extends 'emails/base_email.html' %}
+
+{% block content %}
+    <h1>Welcome to {{ company_name }}! 🌟</h1>
+    <p>Dear {{ guest.first_name }} {{ guest.last_name }},</p>
+    
+    <p>We are delighted to welcome you as a guest at <strong>{{ company_name }}</strong>. Your profile has been created in our system.</p>
+    
+    <p>We are committed to making your stay comfortable and memorable. If you have any special requests or need assistance, please don't hesitate to contact our front desk.</p>
+    
+    {% if guest_portal_url %}
+    <p>You can view your bookings and manage your profile using the link below:</p>
+    <div style="text-align: center;">
+        <a href="{{ guest_portal_url }}" class="btn">Guest Portal</a>
+    </div>
+    {% endif %}
+    
+    <p>We look forward to serving you.</p>
+    
+    <p>Warm regards,<br>The {{ company_name }} Team</p>
+{% endblock %}

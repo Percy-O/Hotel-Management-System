@@ -69,18 +69,27 @@
     </main>
 </div>
 
-<!-- Mobile Sidebar Overlay -->
-<div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-30 hidden lg:hidden transition-opacity duration-300 opacity-0"></div>
-
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const toggleBtn = document.getElementById('mobile-sidebar-toggle');
         const sidebar = document.querySelector('aside');
-        const overlay = document.getElementById('sidebar-overlay');
         
-        if (!toggleBtn || !sidebar || !overlay) return;
+        if (!toggleBtn || !sidebar) return;
+
+        function getOrCreateOverlay() {
+            let overlay = document.getElementById('sidebar-overlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = 'sidebar-overlay';
+                overlay.className = 'fixed inset-0 bg-black/50 z-30 hidden lg:hidden transition-opacity duration-300 opacity-0';
+                document.body.appendChild(overlay);
+                overlay.addEventListener('click', closeSidebar);
+            }
+            return overlay;
+        }
 
         function openSidebar() {
+            const overlay = getOrCreateOverlay();
             sidebar.classList.remove('hidden');
             sidebar.classList.add('fixed', 'inset-y-0', 'left-0', 'z-40', 'w-64', 'bg-surface-dark', 'shadow-2xl', 'transform', 'transition-transform', 'duration-300', '-translate-x-full');
             // Small delay to allow transition to work
@@ -89,6 +98,7 @@
             });
             
             overlay.classList.remove('hidden');
+            overlay.style.display = 'block';
             // Small delay for fade in
             requestAnimationFrame(() => {
                 overlay.classList.remove('opacity-0');
@@ -96,13 +106,17 @@
         }
 
         function closeSidebar() {
+            const overlay = document.getElementById('sidebar-overlay');
             sidebar.classList.add('-translate-x-full');
-            overlay.classList.add('opacity-0');
+            if (overlay) overlay.classList.add('opacity-0');
             
             setTimeout(() => {
                 sidebar.classList.add('hidden');
                 sidebar.classList.remove('fixed', 'inset-y-0', 'left-0', 'z-40', 'shadow-2xl', 'transform', 'transition-transform', 'duration-300');
-                overlay.classList.add('hidden');
+                if (overlay) {
+                    overlay.classList.add('hidden');
+                    overlay.style.display = 'none';
+                }
             }, 300);
         }
 
@@ -111,8 +125,6 @@
             openSidebar();
         });
 
-        overlay.addEventListener('click', closeSidebar);
-        
         // Close on escape key
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && !sidebar.classList.contains('hidden')) {

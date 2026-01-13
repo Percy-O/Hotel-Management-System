@@ -8,7 +8,7 @@ class RegistrationForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'first_name', 'last_name', 'phone_number')
+        fields = ('username', 'email')
 
     def clean(self):
         cleaned_data = super().clean()
@@ -24,9 +24,6 @@ class RegistrationForm(forms.ModelForm):
         user = super().save(commit=False)
         user.username = self.cleaned_data['username']
         user.email = self.cleaned_data['email']
-        user.first_name = self.cleaned_data['first_name']
-        user.last_name = self.cleaned_data['last_name']
-        user.phone_number = self.cleaned_data.get('phone_number')
         
         if self.cleaned_data.get('password'):
             user.set_password(self.cleaned_data['password'])
@@ -34,6 +31,27 @@ class RegistrationForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+
+class HotelSignupForm(RegistrationForm):
+    hotel_name = forms.CharField(max_length=100, required=True, label="Hotel Name")
+    subdomain = forms.CharField(max_length=100, required=False, label="Hotel Subdomain", help_text="Leave blank to generate from hotel name")
+    billing_cycle = forms.ChoiceField(choices=[('monthly', 'Monthly'), ('yearly', 'Yearly')], required=True, widget=forms.RadioSelect, initial='monthly')
+
+    class Meta(RegistrationForm.Meta):
+        fields = RegistrationForm.Meta.fields + ('hotel_name', 'subdomain', 'billing_cycle')
+
+    def clean_subdomain(self):
+        subdomain = self.cleaned_data.get('subdomain')
+        if subdomain:
+             # Basic validation (alphanumeric only, but allow hyphens)
+             # if not subdomain.isalnum(): 
+             #    raise forms.ValidationError("Subdomain must be alphanumeric")
+             
+             # Check availability (needs model import inside method to avoid circular imports if in same file, but here models are available)
+             from tenants.models import Tenant
+             if Tenant.objects.filter(subdomain=subdomain).exists():
+                 raise forms.ValidationError("This subdomain is already taken.")
+        return subdomain
 
 class LoginForm(AuthenticationForm):
     pass

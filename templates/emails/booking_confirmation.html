@@ -1,0 +1,51 @@
+{% extends 'emails/base_email.html' %}
+
+{% block content %}
+    <h1>Booking Confirmed! ✅</h1>
+    <p>Dear {{ booking.guest.first_name }},</p>
+    
+    <p>Thank you for choosing <strong>{{ company_name }}</strong>. Your booking has been confirmed.</p>
+    
+    <div class="info-box">
+        <div class="info-row">
+            <span class="info-label">Booking Reference</span>
+            <span class="info-value">#{{ booking.id }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Check-in</span>
+            <span class="info-value">{{ booking.check_in_date }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Check-out</span>
+            <span class="info-value">{{ booking.check_out_date }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Room Type</span>
+            <span class="info-value">{{ booking.room_type.name }}</span>
+        </div>
+        {% if booking.room %}
+        <div class="info-row">
+            <span class="info-label">Room Number</span>
+            <span class="info-value">{{ booking.room.number }}</span>
+        </div>
+        {% endif %}
+        <div class="info-row">
+            <span class="info-label">Total Amount</span>
+            <span class="info-value">{{ booking.total_price }}</span>
+        </div>
+    </div>
+
+    <p><strong>Important Information:</strong></p>
+    <ul>
+        <li>Check-in time is from 2:00 PM.</li>
+        <li>Please present valid ID upon arrival.</li>
+    </ul>
+
+    <div style="text-align: center;">
+        <a href="{{ booking_url }}" class="btn">View Booking Details</a>
+    </div>
+    
+    <p>We wish you a pleasant stay!</p>
+    
+    <p>Best regards,<br>{{ company_name }} Reservations</p>
+{% endblock %}

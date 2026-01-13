@@ -1,0 +1,61 @@
+{% extends 'layouts/platform_base.html' %}
+
+{% block page_title %}Audit Logs{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+    <!-- Filters -->
+    <div class="flex items-center gap-4">
+        <div class="relative flex-1 max-w-xs">
+            <span class="material-symbols-outlined absolute left-3 top-2.5 text-text-secondary">search</span>
+            <input type="text" placeholder="Search logs..." class="w-full pl-10 pr-4 py-2 bg-surface-light border border-border-dark rounded-lg text-white focus:border-blue-500 focus:outline-none transition-colors">
+        </div>
+        <select class="bg-surface-light border border-border-dark rounded-lg px-4 py-2 text-white focus:border-blue-500 focus:outline-none">
+            <option>All Events</option>
+            <option>Login</option>
+            <option>Create Tenant</option>
+            <option>Update Settings</option>
+            <option>Payment</option>
+        </select>
+    </div>
+
+    <!-- Logs Table -->
+    <div class="overflow-hidden rounded-xl border border-border-dark bg-surface-dark/50 backdrop-blur-sm">
+        <table class="w-full text-left text-sm text-text-secondary">
+            <thead class="bg-surface-light text-xs uppercase font-semibold text-text-main">
+                <tr>
+                    <th class="px-6 py-4">Timestamp</th>
+                    <th class="px-6 py-4">User</th>
+                    <th class="px-6 py-4">Event</th>
+                    <th class="px-6 py-4">IP Address</th>
+                    <th class="px-6 py-4">Status</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-border-dark">
+                <!-- Static Placeholders for Demo -->
+                <tr class="hover:bg-white/5 transition-colors">
+                    <td class="px-6 py-4 text-white font-mono text-xs">2024-03-15 14:30:22</td>
+                    <td class="px-6 py-4 text-white">admin@hms.com</td>
+                    <td class="px-6 py-4">Updated Platform Settings</td>
+                    <td class="px-6 py-4 font-mono text-xs">192.168.1.1</td>
+                    <td class="px-6 py-4"><span class="text-success">Success</span></td>
+                </tr>
+                <tr class="hover:bg-white/5 transition-colors">
+                    <td class="px-6 py-4 text-white font-mono text-xs">2024-03-15 14:15:10</td>
+                    <td class="px-6 py-4 text-white">john@hilton.com</td>
+                    <td class="px-6 py-4">Tenant Login</td>
+                    <td class="px-6 py-4 font-mono text-xs">10.0.0.5</td>
+                    <td class="px-6 py-4"><span class="text-success">Success</span></td>
+                </tr>
+                <tr class="hover:bg-white/5 transition-colors">
+                    <td class="px-6 py-4 text-white font-mono text-xs">2024-03-15 13:45:00</td>
+                    <td class="px-6 py-4 text-white">unknown</td>
+                    <td class="px-6 py-4">Failed Login Attempt</td>
+                    <td class="px-6 py-4 font-mono text-xs">45.22.11.9</td>
+                    <td class="px-6 py-4"><span class="text-danger">Failed</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

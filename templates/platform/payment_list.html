@@ -1,0 +1,84 @@
+{% extends 'layouts/platform_base.html' %}
+{% load humanize %}
+
+{% block page_title %}Transactions{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="glass-card p-6 rounded-xl border border-border-dark bg-surface-dark/50">
+            <p class="text-sm text-text-secondary mb-1">Total Volume</p>
+            <h3 class="text-2xl font-bold text-white">$125,000.00</h3>
+        </div>
+        <div class="glass-card p-6 rounded-xl border border-border-dark bg-surface-dark/50">
+            <p class="text-sm text-text-secondary mb-1">Successful</p>
+            <h3 class="text-2xl font-bold text-success">1,240</h3>
+        </div>
+        <div class="glass-card p-6 rounded-xl border border-border-dark bg-surface-dark/50">
+            <p class="text-sm text-text-secondary mb-1">Pending</p>
+            <h3 class="text-2xl font-bold text-warning">45</h3>
+        </div>
+    </div>
+
+    <!-- Transactions Table -->
+    <div class="overflow-hidden rounded-xl border border-border-dark bg-surface-dark/50 backdrop-blur-sm">
+        <div class="p-4 border-b border-white/5 flex items-center justify-between">
+            <h3 class="font-semibold text-white">All Transactions</h3>
+            <button class="text-sm text-blue-400 hover:text-blue-300">Export CSV</button>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-text-secondary">
+                <thead class="bg-surface-light text-xs uppercase font-semibold text-text-main">
+                    <tr>
+                        <th class="px-6 py-4">Transaction ID</th>
+                        <th class="px-6 py-4">Amount</th>
+                        <th class="px-6 py-4">Status</th>
+                        <th class="px-6 py-4">Method</th>
+                        <th class="px-6 py-4">Date</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-border-dark">
+                    {% for payment in payments %}
+                    <tr class="hover:bg-white/5 transition-colors">
+                        <td class="px-6 py-4 font-mono text-xs text-white">{{ payment.transaction_id }}</td>
+                        <td class="px-6 py-4 font-medium text-white">${{ payment.amount|intcomma }}</td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-success/10 text-success border border-success/20">
+                                Successful
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">{{ payment.get_payment_method_display }}</td>
+                        <td class="px-6 py-4">{{ payment.payment_date|date:"M d, Y H:i" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center text-text-secondary">
+                            <span class="material-symbols-outlined text-4xl mb-2 opacity-50">receipt_long</span>
+                            <p>No transactions found.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="flex items-center justify-between pt-4 border-t border-border-dark">
+        <span class="text-sm text-text-secondary">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+        <div class="flex gap-2">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1.5 rounded-lg border border-border-dark text-sm hover:bg-white/5 transition-colors">Previous</a>
+            {% endif %}
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1.5 rounded-lg border border-border-dark text-sm hover:bg-white/5 transition-colors">Next</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

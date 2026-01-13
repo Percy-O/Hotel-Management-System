@@ -26,9 +26,13 @@ def has_tenant_permission(user, tenant, required_roles):
     # Avoid circular import by importing inside function if needed, or assume Membership is loaded
     from .models import Membership
     
+    # Implicit owner check
+    if tenant.owner == user:
+        return True
+    
     try:
         membership = Membership.objects.get(user=user, tenant=tenant, is_active=True)
-        return membership.role in required_roles
+        return membership.role in required_roles or membership.role == 'OWNER'
     except Membership.DoesNotExist:
         return False
 

@@ -18,9 +18,15 @@
                 
                 <div class="hidden md:flex ml-16 space-x-8">
                     <a href="/" class="text-sm font-medium text-text-main hover:text-primary transition-colors py-2 border-b-2 border-transparent hover:border-primary">Home</a>
+                    {% if request.tenant.room_types.exists %}
                     <a href="{% url 'room_list' %}" class="text-sm font-medium text-text-secondary-dark hover:text-text-main transition-colors py-2 border-b-2 border-transparent hover:border-text-main">Rooms & Suites</a>
+                    {% endif %}
+                    {% if site_settings.module_restaurant or request.tenant.plan.module_restaurant %}
                     <a href="#" class="text-sm font-medium text-text-secondary-dark hover:text-text-main transition-colors py-2 border-b-2 border-transparent hover:border-text-main">Dining</a>
-                    <a href="#" class="text-sm font-medium text-text-secondary-dark hover:text-text-main transition-colors py-2 border-b-2 border-transparent hover:border-text-main">Spa & Wellness</a>
+                    {% endif %}
+                    {% if site_settings.module_gym or request.tenant.plan.module_gym %}
+                    <a href="#" class="text-sm font-medium text-text-secondary-dark hover:text-text-main transition-colors py-2 border-b-2 border-transparent hover:border-text-main">Wellness</a>
+                    {% endif %}
                     <a href="#" class="text-sm font-medium text-text-secondary-dark hover:text-text-main transition-colors py-2 border-b-2 border-transparent hover:border-text-main">Contact</a>
                 </div>
             </div>
@@ -55,9 +61,15 @@
     <div id="mobile-menu" class="hidden md:hidden border-t border-border-dark bg-surface-dark">
         <div class="px-4 pt-2 pb-6 space-y-1">
             <a href="/" class="block px-3 py-3 text-base font-medium text-text-main hover:bg-primary/10 hover:text-primary rounded-lg transition-colors">Home</a>
+            {% if request.tenant.room_types.exists %}
             <a href="{% url 'room_list' %}" class="block px-3 py-3 text-base font-medium text-text-main hover:bg-primary/10 hover:text-primary rounded-lg transition-colors">Rooms & Suites</a>
+            {% endif %}
+            {% if site_settings.module_restaurant or request.tenant.plan.module_restaurant %}
             <a href="#" class="block px-3 py-3 text-base font-medium text-text-main hover:bg-primary/10 hover:text-primary rounded-lg transition-colors">Dining</a>
-            <a href="#" class="block px-3 py-3 text-base font-medium text-text-main hover:bg-primary/10 hover:text-primary rounded-lg transition-colors">Spa & Wellness</a>
+            {% endif %}
+            {% if site_settings.module_gym or request.tenant.plan.module_gym %}
+            <a href="#" class="block px-3 py-3 text-base font-medium text-text-main hover:bg-primary/10 hover:text-primary rounded-lg transition-colors">Wellness</a>
+            {% endif %}
             <a href="#" class="block px-3 py-3 text-base font-medium text-text-main hover:bg-primary/10 hover:text-primary rounded-lg transition-colors">Contact</a>
             
             <div class="border-t border-border-dark my-2 pt-2">

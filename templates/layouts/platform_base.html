@@ -1,0 +1,188 @@
+{% extends 'base_layout.html' %}
+{% load static %}
+
+{% block extra_head %}
+<script>
+    tailwind.config = {
+        darkMode: 'class',
+        theme: {
+            extend: {
+                colors: {
+                    "primary": "#3b82f6", // Blue for actions
+                    "primary-hover": "#2563eb",
+                    "background-dark": "#000000", // Deep Black
+                    "surface-dark": "#0a0a0a", // Almost Black
+                    "surface-light": "#171717", // Dark Gray for cards
+                    "border-dark": "#262626", // Subtle border
+                    "text-main": "#ffffff",
+                    "text-secondary-dark": "#a3a3a3",
+                    "success": "#22c55e",
+                    "warning": "#eab308",
+                    "danger": "#ef4444",
+                },
+                fontFamily: {
+                    "sans": ["Inter", "sans-serif"]
+                }
+            }
+        }
+    }
+</script>
+<style>
+    /* Platform Specific Overrides */
+    body {
+        background-color: #000000 !important; /* Force Deep Black */
+    }
+    .bg-surface-dark {
+        background-color: #0a0a0a;
+    }
+</style>
+{% endblock %}
+
+{% block body_content %}
+<div class="flex h-screen w-full overflow-hidden bg-background-dark">
+    <!-- Sidebar -->
+    {% include 'includes/platform_sidebar.html' %}
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden relative">
+        <!-- Header -->
+        <header class="flex items-center justify-between border-b border-border-dark bg-surface-dark px-6 py-4 sticky top-0 z-20">
+            <div class="flex items-center gap-4">
+                <button id="mobile-sidebar-toggle" class="lg:hidden text-text-main">
+                    <span class="material-symbols-outlined">menu</span>
+                </button>
+                <div>
+                    <h2 class="text-text-main text-xl font-bold leading-tight">{% block header_title %}Dashboard{% endblock %}</h2>
+                    <p class="text-text-secondary-dark text-xs">{% block header_subtitle %}Overview{% endblock %}</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <!-- Search -->
+                <div class="hidden md:flex items-center bg-surface-dark border border-border-dark rounded-full px-4 py-2 focus-within:border-primary/50 transition-colors w-64">
+                    <span class="material-symbols-outlined text-text-secondary-dark text-[20px]">search</span>
+                    <input type="text" placeholder="Search platform..." class="bg-transparent border-none outline-none text-sm text-text-main ml-2 w-full placeholder-text-secondary-dark/50">
+                </div>
+
+                <!-- Notifications -->
+                <button class="relative p-2 text-text-secondary-dark hover:text-text-main transition-colors rounded-lg hover:bg-white/5">
+                    <span class="material-symbols-outlined">notifications</span>
+                    <span class="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-background-dark"></span>
+                </button>
+
+                <!-- Profile Dropdown (Simplified) -->
+                <div class="flex items-center gap-3 pl-4 border-l border-border-dark">
+                    <div class="text-right hidden sm:block">
+                        <p class="text-sm font-bold text-text-main">{{ user.first_name|default:"Admin" }}</p>
+                        <p class="text-xs text-text-secondary-dark">Super Admin</p>
+                    </div>
+                    <div class="size-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 p-0.5">
+                        <div class="w-full h-full rounded-full bg-surface-dark flex items-center justify-center">
+                            <span class="font-bold text-blue-500">{{ user.username|slice:":1"|upper }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto p-6">
+            {% if messages %}
+            <div class="mb-6 space-y-2">
+                {% for message in messages %}
+                <div class="p-4 rounded-xl border text-sm flex items-center gap-3 shadow-sm
+                    {% if message.tags == 'success' %}bg-green-500/10 border-green-500/20 text-green-500
+                    {% elif message.tags == 'error' %}bg-red-500/10 border-red-500/20 text-red-500
+                    {% else %}bg-blue-500/10 border-blue-500/20 text-blue-500{% endif %}">
+                    <span class="material-symbols-outlined text-[20px]">
+                        {% if message.tags == 'success' %}check_circle
+                        {% elif message.tags == 'error' %}error
+                        {% else %}info{% endif %}
+                    </span>
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% block dashboard_content %}{% endblock %}
+
+            <!-- Footer -->
+            <div class="mt-12 pt-6 border-t border-border-dark flex flex-col items-center justify-center gap-2">
+                <p class="text-sm text-text-secondary-dark font-medium flex items-center gap-1">
+                    HMS Platform
+                    <span class="text-primary font-bold">v2.0</span>
+                </p>
+                <p class="text-xs text-text-secondary-dark opacity-70">
+                    &copy; {% now "Y" %} All Rights Reserved.
+                </p>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const toggleBtn = document.getElementById('mobile-sidebar-toggle');
+        const sidebar = document.querySelector('aside');
+        
+        if (!toggleBtn || !sidebar) return;
+
+        function getOrCreateOverlay() {
+            let overlay = document.getElementById('sidebar-overlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = 'sidebar-overlay';
+                overlay.className = 'fixed inset-0 bg-black/50 z-30 hidden lg:hidden transition-opacity duration-300 opacity-0';
+                document.body.appendChild(overlay);
+                overlay.addEventListener('click', closeSidebar);
+            }
+            return overlay;
+        }
+
+        function openSidebar() {
+            const overlay = getOrCreateOverlay();
+            sidebar.classList.remove('hidden');
+            sidebar.classList.add('fixed', 'inset-y-0', 'left-0', 'z-40', 'w-64', 'bg-surface-dark', 'shadow-2xl', 'transform', 'transition-transform', 'duration-300', '-translate-x-full');
+            
+            // Small delay to allow transition to work
+            requestAnimationFrame(() => {
+                sidebar.classList.remove('-translate-x-full');
+            });
+            
+            overlay.classList.remove('hidden');
+            overlay.style.display = 'block';
+            // Small delay for fade in
+            requestAnimationFrame(() => {
+                overlay.classList.remove('opacity-0');
+            });
+        }
+
+        function closeSidebar() {
+            const overlay = document.getElementById('sidebar-overlay');
+            sidebar.classList.add('-translate-x-full');
+            if (overlay) overlay.classList.add('opacity-0');
+            
+            setTimeout(() => {
+                sidebar.classList.add('hidden');
+                sidebar.classList.remove('fixed', 'inset-y-0', 'left-0', 'z-40', 'shadow-2xl', 'transform', 'transition-transform', 'duration-300');
+                if (overlay) {
+                    overlay.classList.add('hidden');
+                    overlay.style.display = 'none';
+                }
+            }, 300);
+        }
+
+        toggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openSidebar();
+        });
+
+        // Close on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !sidebar.classList.contains('hidden')) {
+                closeSidebar();
+            }
+        });
+    });
+</script>
+{% endblock %}

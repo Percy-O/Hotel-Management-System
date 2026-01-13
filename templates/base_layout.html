@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Hotel Management System{% endblock %}</title>
     
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+    <!-- Dynamic Font Loading -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:wght@300;400;700&family=Roboto:wght@300;400;500;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 
     <!-- Tailwind CSS -->
@@ -19,211 +19,50 @@
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <script id="tailwind-config">
-        // Theme Configuration based on Database Settings
-        const themeConfig = {
-            'theme-default': {
-                primary: "#13ec6d",
-                primaryHover: "#0fb854",
-                bgDark: "#102218",
-                surfaceDark: "#1c3a2f",
-                borderDark: "#234833",
-                textSecDark: "#92c9a9",
-                textMain: "#ffffff"
-            },
-            'theme-light': {
-                primary: "#13ec6d",
-                primaryHover: "#0fb854",
-                bgDark: "#ffffff",
-                surfaceDark: "#f8fafc",
-                borderDark: "#e2e8f0",
-                textSecDark: "#64748b",
-                textMain: "#0f172a"
-            },
-            'theme-blue': {
-                primary: "#3b82f6",
-                primaryHover: "#2563eb",
-                bgDark: "#0f172a",
-                surfaceDark: "#1e293b",
-                borderDark: "#334155",
-                textSecDark: "#94a3b8",
-                textMain: "#ffffff"
-            },
-            'theme-luxury': {
-                primary: "#d4af37",
-                primaryHover: "#b4941f",
-                bgDark: "#121212",
-                surfaceDark: "#1e1e1e",
-                borderDark: "#333333",
-                textSecDark: "#a1a1aa",
-                textMain: "#ffffff"
-            },
-            'theme-forest': {
-                primary: "#4ade80",
-                primaryHover: "#22c55e",
-                bgDark: "#052e16",
-                surfaceDark: "#064e3b",
-                borderDark: "#065f46",
-                textSecDark: "#6ee7b7",
-                textMain: "#ffffff"
-            },
-            'theme-ocean': {
-                primary: "#06b6d4",
-                primaryHover: "#0891b2",
-                bgDark: "#083344",
-                surfaceDark: "#164e63",
-                borderDark: "#155e75",
-                textSecDark: "#67e8f9",
-                textMain: "#ffffff"
-            },
-            'theme-sunset': {
-                primary: "#f472b6",
-                primaryHover: "#e879f9",
-                bgDark: "#4a044e",
-                surfaceDark: "#701a75",
-                borderDark: "#86198f",
-                textSecDark: "#f0abfc",
-                textMain: "#ffffff"
-            },
-            'theme-royal': {
-                primary: "#a78bfa",
-                primaryHover: "#c084fc",
-                bgDark: "#2e1065",
-                surfaceDark: "#4c1d95",
-                borderDark: "#5b21b6",
-                textSecDark: "#d8b4fe",
-                textMain: "#ffffff"
-            },
-            'theme-minimal': {
-                primary: "#71717a",
-                primaryHover: "#52525b",
-                bgDark: "#18181b",
-                surfaceDark: "#27272a",
-                borderDark: "#3f3f46",
-                textSecDark: "#a1a1aa",
-                textMain: "#ffffff"
-            },
-            'theme-rose': {
-                primary: "#fb7185",
-                primaryHover: "#f43f5e",
-                bgDark: "#881337",
-                surfaceDark: "#9f1239",
-                borderDark: "#be123c",
-                textSecDark: "#fecdd3",
-                textMain: "#ffffff"
-            },
-            'theme-coffee': {
-                primary: "#d6d3d1",
-                primaryHover: "#a8a29e",
-                bgDark: "#451a03",
-                surfaceDark: "#78350f",
-                borderDark: "#92400e",
-                textSecDark: "#f5f5f4",
-                textMain: "#ffffff"
-            },
-            'theme-lavender': {
-                primary: "#c084fc",
-                primaryHover: "#a855f7",
-                bgDark: "#4c1d95",
-                surfaceDark: "#5b21b6",
-                borderDark: "#7c3aed",
-                textSecDark: "#e9d5ff",
-                textMain: "#ffffff"
-            },
-            'theme-midnight': {
-                primary: "#94a3b8",
-                primaryHover: "#64748b",
-                bgDark: "#020617",
-                surfaceDark: "#0f172a",
-                borderDark: "#1e293b",
-                textSecDark: "#cbd5e1",
-                textMain: "#ffffff"
-            },
-            'theme-neon': {
-                primary: "#00ff00",
-                primaryHover: "#00cc00",
-                bgDark: "#000000",
-                surfaceDark: "#111111",
-                borderDark: "#333333",
-                textSecDark: "#00ff00",
-                textMain: "#ffffff"
-            },
-            'theme-retro': {
-                primary: "#ff00ff",
-                primaryHover: "#cc00cc",
-                bgDark: "#2c003e",
-                surfaceDark: "#4b006e",
-                borderDark: "#6a009e",
-                textSecDark: "#ff00ff",
-                textMain: "#ffffff"
-            },
-            'theme-cherry': {
-                primary: "#ff0055",
-                primaryHover: "#cc0044",
-                bgDark: "#2b0000",
-                surfaceDark: "#4a0000",
-                borderDark: "#6a0000",
-                textSecDark: "#ffb3b3",
-                textMain: "#ffffff"
-            },
-            'theme-dracula': {
-                primary: "#bd93f9",
-                primaryHover: "#ff79c6",
-                bgDark: "#282a36",
-                surfaceDark: "#44475a",
-                borderDark: "#6272a4",
-                textSecDark: "#8be9fd",
-                textMain: "#f8f8f2"
-            },
-            'theme-corporate': {
-                primary: "#2563eb",
-                primaryHover: "#1d4ed8",
-                bgDark: "#f8fafc",
-                surfaceDark: "#ffffff",
-                borderDark: "#e2e8f0",
-                textSecDark: "#64748b",
-                textMain: "#0f172a"
-            },
-            'theme-custom': {
-                primary: "{{ site_settings.custom_primary_color }}",
-                primaryHover: "{{ site_settings.custom_primary_color }}", // Simple fallback
-                bgDark: "{{ site_settings.custom_background_color }}",
-                surfaceDark: "{{ site_settings.custom_surface_color }}",
-                borderDark: "{{ site_settings.custom_surface_color }}", // Fallback
-                textSecDark: "#94a3b8", // Fallback
-                textMain: "#ffffff" // Fallback, assuming dark mode for now unless detected light
-            }
-        };
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js"></script>
 
-        const currentTheme = "{{ site_settings.theme|default:'theme-default' }}";
-        const colors = themeConfig[currentTheme] || themeConfig['theme-default'];
-
+    <!-- Tailwind Config -->
+    <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        "primary": colors.primary,
-                        "primary-hover": colors.primaryHover,
-                        "background-light": "#f8fafc",
-                        "background-dark": colors.bgDark,
-                        "surface-light": "#ffffff",
-                        "surface-dark": colors.surfaceDark,
-                        "border-light": "#e2e8f0",
-                        "border-dark": colors.borderDark,
-                        "text-secondary-light": "#64748b",
-                        "text-secondary-dark": colors.textSecDark,
-                        "text-main": colors.textMain,
+                        "primary": "#3b82f6",
+                        "primary-hover": "#2563eb",
+                        "background-dark": "#000000", 
+                        "surface-dark": "#0a0a0a",
+                        "surface-light": "#171717",
+                        "border-dark": "#262626",
+                        "text-main": "#ffffff",
+                        "text-secondary-dark": "#a3a3a3",
+                        "success": "#22c55e",
+                        "warning": "#eab308",
+                        "danger": "#ef4444",
                     },
                     fontFamily: {
+                        "sans": ["Inter", "sans-serif"],
                         "display": ["Inter", "sans-serif"]
-                    },
-                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
-                },
-            },
+                    }
+                }
+            }
         }
     </script>
+
     <style>
+        [x-cloak] { display: none !important; }
+        
+        :root {
+            --primary-color: {{ request.tenant.primary_color|default:"#3b82f6" }};
+            --secondary-color: {{ request.tenant.secondary_color|default:"#1e293b" }};
+            --font-family: '{{ request.tenant.font_family|default:"Inter" }}', sans-serif;
+        }
+        
+        body {
+            font-family: var(--font-family);
+        }
+        
         /* Custom Scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
@@ -248,6 +87,7 @@
            Let's make it theme-aware using CSS variables if possible, 
            or just hardcode a neutral look that blends. */
     </style>
+    {% block extra_head %}{% endblock %}
 </head>
 <body class="bg-background-dark text-text-main font-display flex flex-col min-h-screen">
     
@@ -261,14 +101,22 @@
     <!-- Toast Notifications -->
     {% if messages %}
     <script>
+        // Safely get theme colors or default
+        const getThemeColor = (type) => {
+            if (typeof themeConfig !== 'undefined' && typeof currentTheme !== 'undefined' && themeConfig[currentTheme]) {
+                return type === 'bg' ? themeConfig[currentTheme].surfaceDark : themeConfig[currentTheme].textMain;
+            }
+            return type === 'bg' ? '#1f2937' : '#ffffff';
+        };
+
         const Toast = Swal.mixin({
             toast: true,
             position: 'top-end',
             showConfirmButton: false,
             timer: 3000,
             timerProgressBar: true,
-            background: themeConfig[currentTheme].surfaceDark,
-            color: themeConfig[currentTheme].textMain,
+            background: getThemeColor('bg'),
+            color: getThemeColor('text'),
             didOpen: (toast) => {
                 toast.addEventListener('mouseenter', Swal.stopTimer)
                 toast.addEventListener('mouseleave', Swal.resumeTimer)

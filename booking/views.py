@@ -1,4 +1,6 @@
 import base64
+import io
+import qrcode
 from django.urls import reverse_lazy, reverse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -8,15 +10,14 @@ from django.db.models import Q
 from django.utils import timezone
 from django.http import HttpResponse
 from fpdf import FPDF
-from .models import Booking
-from .forms import BookingForm, AdminBookingForm
+from core.email_utils import send_tenant_email, send_branded_email
+
+# Models
 from hotel.models import RoomType, Room
+from .models import Booking
 from billing.models import Invoice
-from guests.models import GuestProfile
 from core.models import Notification
-from datetime import datetime
-import qrcode
-import io
+from .forms import BookingForm, AdminBookingForm
 
 User = get_user_model()
 
@@ -106,6 +107,28 @@ def create_booking(request, room_type_id):
                                         user.role = User.Role.GUEST
                                     user.save()
                                     messages.info(request, f"Guest Account created! Email: {email}, Password: {password}")
+                                    
+                                    # Send Welcome Email
+                                    try:
+                                        protocol = 'https' if request.is_secure() else 'http'
+                                        host = request.get_host()
+                                        login_url = f"{protocol}://{host}/login/"
+                                        
+                                        send_branded_email(
+                                            subject=f"Welcome to {request.tenant.name}",
+                                            template_name='emails/welcome_user.html',
+                                            context={
+                                                'user': user,
+                                                'role': 'Guest',
+                                                'login_url': login_url,
+                                                'password': password # Only acceptable here as it's auto-generated
+                                            },
+                                            recipient_list=[user.email],
+                                            tenant=request.tenant
+                                        )
+                                    except Exception as e:
+                                        print(f"Error sending welcome email: {e}")
+
                                 except Exception as e:
                                     print(f"Error creating user: {e}")
                                     pass
@@ -146,6 +169,27 @@ def create_booking(request, room_type_id):
                                 user.save()
                                 messages.info(request, f"Account created! Login with Email: {email} and Password: {password}")
                                 
+                                # Send Welcome Email
+                                try:
+                                    protocol = 'https' if request.is_secure() else 'http'
+                                    host = request.get_host()
+                                    login_url = f"{protocol}://{host}/login/"
+                                    
+                                    send_branded_email(
+                                        subject=f"Welcome to {request.tenant.name}",
+                                        template_name='emails/welcome_user.html',
+                                        context={
+                                            'user': user,
+                                            'role': 'Guest',
+                                            'login_url': login_url,
+                                            'password': password
+                                        },
+                                        recipient_list=[user.email],
+                                        tenant=request.tenant
+                                    )
+                                except Exception as e:
+                                    print(f"Error sending welcome email: {e}")
+
                                 # Log the user in
                                 login(request, user)
                             except Exception as e:
@@ -242,6 +286,25 @@ def create_booking(request, room_type_id):
                             notification_type=Notification.Type.SUCCESS,
                             link=f"/booking/{booking.pk}/"
                         )
+                        
+                        # Send Booking Email
+                        try:
+                            protocol = 'https' if request.is_secure() else 'http'
+                            host = request.get_host()
+                            booking_url = f"{protocol}://{host}/booking/{booking.pk}/"
+                            
+                            send_branded_email(
+                                subject=f"Booking Confirmed - #{booking.pk}",
+                                template_name='emails/booking_confirmation.html',
+                                context={
+                                    'booking': booking,
+                                    'booking_url': booking_url,
+                                },
+                                recipient_list=[booking.user.email],
+                                tenant=request.tenant
+                            )
+                        except Exception as e:
+                            print(f"Error sending booking email: {e}")
                     
                     messages.success(request, f"Booking confirmed! Your room number is {room.room_number}.")
                     return redirect('booking_detail', pk=booking.pk)
@@ -434,11 +497,11 @@ def check_out_booking(request, pk):
         # Email Notification
         if cleaner.email:
             try:
-                send_mail(
+                send_tenant_email(
                     subject=f"Cleaning Required: Room {room.room_number}",
                     message=f"Hello {cleaner.first_name},\n\nRoom {room.room_number} has been checked out and is ready for cleaning.\n\nPlease attend to it.\n\nThank you.",
-                    from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[cleaner.email],
+                    tenant=room.tenant,
                     fail_silently=True
                 )
             except Exception as e:

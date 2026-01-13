@@ -1,0 +1,105 @@
+{% extends 'layouts/platform_base.html' %}
+
+{% block page_title %}Payment Gateways{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-4xl space-y-8">
+    
+    <div class="grid md:grid-cols-2 gap-6">
+        <!-- Paystack Card -->
+        <div class="glass-card p-6 rounded-xl border border-border-dark bg-surface-dark/50 relative overflow-hidden group">
+            <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/0/0b/Paystack_Logo.png" alt="Paystack" class="w-24 grayscale invert">
+            </div>
+            
+            <div class="flex items-center justify-between mb-4 relative z-10">
+                <h3 class="text-lg font-bold text-white">Paystack</h3>
+                {% if paystack.is_active %}
+                <span class="px-2 py-1 rounded-full text-xs font-medium bg-success/10 text-success border border-success/20">Active</span>
+                {% else %}
+                <span class="px-2 py-1 rounded-full text-xs font-medium bg-text-secondary/10 text-text-secondary border border-text-secondary/20">Inactive</span>
+                {% endif %}
+            </div>
+            
+            <div class="space-y-3 mb-6 relative z-10">
+                <div class="flex items-center justify-between text-sm">
+                    <span class="text-text-secondary">Mode</span>
+                    <span class="text-white font-medium">
+                        {% if paystack.is_test_mode %}
+                        <span class="text-warning">Test Mode</span>
+                        {% else %}
+                        <span class="text-success">Live Mode</span>
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="flex items-center justify-between text-sm">
+                    <span class="text-text-secondary">Public Key</span>
+                    <span class="text-white font-mono text-xs bg-black/30 px-2 py-1 rounded">
+                        {% if paystack.public_key %}
+                            {{ paystack.public_key|truncatechars:20 }}
+                        {% else %}
+                            Not Set
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <a href="{% url 'platform_gateway_edit' 'paystack' %}" class="block w-full py-2.5 text-center rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors relative z-10">
+                Configure Paystack
+            </a>
+        </div>
+
+        <!-- Flutterwave Card -->
+        <div class="glass-card p-6 rounded-xl border border-border-dark bg-surface-dark/50 relative overflow-hidden group">
+            <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Flutterwave_Logo.png/800px-Flutterwave_Logo.png" alt="Flutterwave" class="w-24 grayscale invert">
+            </div>
+            
+            <div class="flex items-center justify-between mb-4 relative z-10">
+                <h3 class="text-lg font-bold text-white">Flutterwave</h3>
+                {% if flutterwave.is_active %}
+                <span class="px-2 py-1 rounded-full text-xs font-medium bg-success/10 text-success border border-success/20">Active</span>
+                {% else %}
+                <span class="px-2 py-1 rounded-full text-xs font-medium bg-text-secondary/10 text-text-secondary border border-text-secondary/20">Inactive</span>
+                {% endif %}
+            </div>
+            
+            <div class="space-y-3 mb-6 relative z-10">
+                <div class="flex items-center justify-between text-sm">
+                    <span class="text-text-secondary">Mode</span>
+                    <span class="text-white font-medium">
+                        {% if flutterwave.is_test_mode %}
+                        <span class="text-warning">Test Mode</span>
+                        {% else %}
+                        <span class="text-success">Live Mode</span>
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="flex items-center justify-between text-sm">
+                    <span class="text-text-secondary">Public Key</span>
+                    <span class="text-white font-mono text-xs bg-black/30 px-2 py-1 rounded">
+                        {% if flutterwave.public_key %}
+                            {{ flutterwave.public_key|truncatechars:20 }}
+                        {% else %}
+                            Not Set
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <a href="{% url 'platform_gateway_edit' 'flutterwave' %}" class="block w-full py-2.5 text-center rounded-lg bg-yellow-600 hover:bg-yellow-700 text-white font-medium transition-colors relative z-10">
+                Configure Flutterwave
+            </a>
+        </div>
+    </div>
+
+    <!-- Info Section -->
+    <div class="p-4 rounded-lg bg-blue-500/5 border border-blue-500/10 flex gap-3">
+        <span class="material-symbols-outlined text-blue-400">info</span>
+        <div class="text-sm text-text-secondary">
+            <p class="text-white font-medium mb-1">About Payment Gateways</p>
+            <p>Configure your platform-wide payment gateways here. These settings control how tenants pay for their subscriptions. Tenants will configure their own gateways for their hotel guests in their respective dashboards.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

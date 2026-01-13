@@ -49,11 +49,11 @@ def setup():
 
     # Create Tenant
     tenant, created = Tenant.objects.get_or_create(
-        name="Grand Hotel",
+        name="Demo Hotel",
         defaults={
-            'slug': 'grand-hotel', 
+            'slug': 'demo-hotel', 
             'owner': admin, 
-            'subdomain': 'grand',
+            'subdomain': 'demo',
             'plan': premium_plan # Assign premium to default tenant
         }
     )

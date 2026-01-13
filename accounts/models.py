@@ -24,44 +24,67 @@ class User(AbstractUser):
 
     @property
     def can_manage_bookings(self):
+        # Owners are implicitly Admins for their tenant
+        if hasattr(self, 'owned_tenants') and self.owned_tenants.exists():
+            return True
         return self.role in [self.Role.ADMIN, self.Role.MANAGER, self.Role.RECEPTIONIST] or self.has_perm('booking.add_booking')
 
     @property
     def can_view_bookings(self):
+        if hasattr(self, 'owned_tenants') and self.owned_tenants.exists():
+            return True
         return self.can_manage_bookings or self.has_perm('booking.view_booking')
 
     @property
     def can_manage_rooms(self):
+        if hasattr(self, 'owned_tenants') and self.owned_tenants.exists():
+            return True
         return self.role in [self.Role.ADMIN, self.Role.MANAGER] or self.has_perm('hotel.change_room')
 
     @property
     def can_view_rooms(self):
+        if hasattr(self, 'owned_tenants') and self.owned_tenants.exists():
+            return True
         return self.role in [self.Role.ADMIN, self.Role.MANAGER, self.Role.RECEPTIONIST, self.Role.STAFF, self.Role.CLEANER] or self.has_perm('hotel.view_room')
 
     @property
     def can_manage_users(self):
+        if hasattr(self, 'owned_tenants') and self.owned_tenants.exists():
+            return True
         return self.role in [self.Role.ADMIN] or self.has_perm('accounts.change_user')
 
     @property
     def can_manage_staff(self):
+        if hasattr(self, 'owned_tenants') and self.owned_tenants.exists():
+            return True
         return self.role in [self.Role.ADMIN, self.Role.MANAGER] or self.has_perm('accounts.add_user')
 
     @property
     def can_manage_billing(self):
+        if hasattr(self, 'owned_tenants') and self.owned_tenants.exists():
+            return True
         return self.role in [self.Role.ADMIN, self.Role.MANAGER, self.Role.RECEPTIONIST] or self.has_perm('billing.view_invoice')
 
     @property
     def can_manage_settings(self):
+        if hasattr(self, 'owned_tenants') and self.owned_tenants.exists():
+            return True
         return self.role in [self.Role.ADMIN, self.Role.MANAGER] or self.has_perm('core.change_sitesetting')
 
     @property
     def can_manage_menu(self):
+        if hasattr(self, 'owned_tenants') and self.owned_tenants.exists():
+            return True
         return self.role in [self.Role.ADMIN, self.Role.MANAGER, self.Role.KITCHEN] or self.has_perm('services.add_menuitem')
 
     @property
     def can_manage_events(self):
+        if hasattr(self, 'owned_tenants') and self.owned_tenants.exists():
+            return True
         return self.role in [self.Role.ADMIN, self.Role.MANAGER, self.Role.EVENT_MANAGER] or self.has_perm('events.add_eventbooking')
 
     @property
     def can_manage_gym(self):
+        if hasattr(self, 'owned_tenants') and self.owned_tenants.exists():
+            return True
         return self.role in [self.Role.ADMIN, self.Role.MANAGER, self.Role.GYM_MANAGER] or self.has_perm('gym.add_gymmembership')

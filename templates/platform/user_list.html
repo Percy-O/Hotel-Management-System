@@ -1,0 +1,91 @@
+{% extends 'layouts/platform_base.html' %}
+{% load humanize %}
+
+{% block page_title %}Users & Roles{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+    <!-- Actions -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <form method="get" class="flex-1 max-w-md">
+            <div class="relative">
+                <span class="material-symbols-outlined absolute left-3 top-2.5 text-text-secondary">search</span>
+                <input type="text" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Search users..." 
+                    class="w-full pl-10 pr-4 py-2 bg-surface-light border border-border-dark rounded-lg text-white focus:border-blue-500 focus:outline-none transition-colors">
+            </div>
+        </form>
+    </div>
+
+    <!-- Users Table -->
+    <div class="overflow-hidden rounded-xl border border-border-dark bg-surface-dark/50 backdrop-blur-sm">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-text-secondary">
+                <thead class="bg-surface-light text-xs uppercase font-semibold text-text-main">
+                    <tr>
+                        <th class="px-6 py-4">User</th>
+                        <th class="px-6 py-4">Email</th>
+                        <th class="px-6 py-4">Role</th>
+                        <th class="px-6 py-4">Date Joined</th>
+                        <th class="px-6 py-4 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-border-dark">
+                    {% for user in users %}
+                    <tr class="hover:bg-white/5 transition-colors group">
+                        <td class="px-6 py-4 font-medium text-white flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold">
+                                {{ user.username|slice:":1"|upper }}
+                            </div>
+                            <div>
+                                <p>{{ user.get_full_name|default:user.username }}</p>
+                                <p class="text-xs text-text-secondary">@{{ user.username }}</p>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">{{ user.email }}</td>
+                        <td class="px-6 py-4">
+                            {% if user.is_superuser %}
+                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20">Super Admin</span>
+                            {% elif user.is_staff %}
+                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">Staff</span>
+                            {% else %}
+                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-white/10 text-text-secondary border border-white/20">User</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4">{{ user.date_joined|date:"M d, Y" }}</td>
+                        <td class="px-6 py-4 text-right">
+                            <button class="text-text-secondary hover:text-white transition-colors">
+                                <span class="material-symbols-outlined">more_vert</span>
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center text-text-secondary">
+                            <span class="material-symbols-outlined text-4xl mb-2 opacity-50">group_off</span>
+                            <p>No users found.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="flex items-center justify-between pt-4 border-t border-border-dark">
+        <span class="text-sm text-text-secondary">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+        <div class="flex gap-2">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1.5 rounded-lg border border-border-dark text-sm hover:bg-white/5 transition-colors">Previous</a>
+            {% endif %}
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1.5 rounded-lg border border-border-dark text-sm hover:bg-white/5 transition-colors">Next</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

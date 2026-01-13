@@ -1,0 +1,54 @@
+{% extends 'layouts/platform_base.html' %}
+
+{% block header_title %}Configure Gateway{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-2xl mx-auto">
+    <div class="glass-card rounded-2xl p-8">
+        <div class="flex items-center gap-4 mb-8">
+            <a href="{% url 'platform_settings' %}" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
+                <span class="material-symbols-outlined">arrow_back</span>
+            </a>
+            <h2 class="text-2xl font-bold">Configure Payment Provider</h2>
+        </div>
+
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">Provider</label>
+                {{ form.name }}
+            </div>
+
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">Public Key</label>
+                {{ form.public_key }}
+            </div>
+
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">Secret Key</label>
+                {{ form.secret_key }}
+            </div>
+
+            <div class="grid grid-cols-2 gap-6 pt-4">
+                <label class="flex items-center gap-3 cursor-pointer p-4 rounded-xl border border-border-light dark:border-border-dark hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                    {{ form.is_active }}
+                    <span class="text-sm font-medium">Enable Gateway</span>
+                </label>
+
+                <label class="flex items-center gap-3 cursor-pointer p-4 rounded-xl border border-border-light dark:border-border-dark hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                    {{ form.is_test_mode }}
+                    <span class="text-sm font-medium">Test Mode</span>
+                </label>
+            </div>
+
+            <div class="pt-6 flex items-center justify-end gap-4">
+                <a href="{% url 'platform_settings' %}" class="px-6 py-3 rounded-xl text-text-secondary-light dark:text-text-secondary-dark hover:bg-gray-100 dark:hover:bg-white/5 transition-colors font-medium">Cancel</a>
+                <button type="submit" class="px-8 py-3 bg-primary hover:bg-primary-hover text-white rounded-xl shadow-lg hover:shadow-primary/25 transition-all font-bold">
+                    Save Configuration
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

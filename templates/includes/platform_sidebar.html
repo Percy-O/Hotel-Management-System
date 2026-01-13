@@ -1,0 +1,85 @@
+<aside class="hidden lg:flex w-64 flex-col border-r border-border-dark bg-surface-dark/80 backdrop-blur-md h-full shadow-xl z-30">
+    <div class="flex h-full flex-col justify-between p-4">
+        <div class="flex flex-col gap-6">
+            <!-- Brand -->
+            <div class="flex items-center gap-3 px-2">
+                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+                    <span class="material-symbols-outlined text-xl">hotel_class</span>
+                </div>
+                <div class="flex flex-col">
+                    <h1 class="text-text-main text-base font-bold leading-normal line-clamp-1">HMS Platform</h1>
+                    <p class="text-text-secondary-dark text-xs font-medium uppercase tracking-wider">Super Admin</p>
+                </div>
+            </div>
+            
+            <!-- Navigation -->
+            <nav class="flex flex-col gap-2 overflow-y-auto max-h-[calc(100vh-200px)]">
+                <!-- Dashboard -->
+                {% url 'platform_dashboard' as u %}
+                {% include "includes/components/sidebar_item.html" with url=u icon="dashboard" label="Overview" active_name="platform_dashboard" %}
+
+                <!-- Management Header -->
+                <div class="px-3 mt-4 mb-2">
+                    <span class="text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Management</span>
+                </div>
+
+                <!-- Tenants -->
+                {% url 'platform_tenants' as u %}
+                {% include "includes/components/sidebar_item.html" with url=u icon="domain" label="Tenants (Hotels)" active_name="platform_tenants" %}
+
+                <!-- Users -->
+                {% url 'platform_users' as u %}
+                {% include "includes/components/sidebar_item.html" with url=u icon="group" label="Users & Roles" active_name="platform_users" %}
+
+                <!-- Plans -->
+                {% url 'platform_subscriptions' as u %}
+                {% include "includes/components/sidebar_item.html" with url=u icon="loyalty" label="Plans & Subs" active_name="platform_subscriptions" %}
+
+                <!-- Finance Header -->
+                <div class="px-3 mt-4 mb-2">
+                    <span class="text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">Finance</span>
+                </div>
+
+                <!-- Transactions -->
+                {% url 'platform_payments' as u %}
+                {% include "includes/components/sidebar_item.html" with url=u icon="payments" label="Transactions" active_name="platform_payments" %}
+
+                <!-- Gateways -->
+                {% url 'platform_finance_settings' as u %}
+                {% include "includes/components/sidebar_item.html" with url=u icon="account_balance_wallet" label="Payment Gateways" active_name="platform_finance_settings" %}
+
+                <!-- System Header -->
+                <div class="px-3 mt-4 mb-2">
+                    <span class="text-xs font-semibold text-text-secondary-dark uppercase tracking-wider">System</span>
+                </div>
+
+                <!-- Settings -->
+                {% url 'platform_settings' as u %}
+                {% include "includes/components/sidebar_item.html" with url=u icon="settings" label="Platform Settings" active_name="platform_settings" %}
+                
+                <!-- Logs -->
+                {% url 'platform_logs' as u %}
+                {% include "includes/components/sidebar_item.html" with url=u icon="history" label="Audit Logs" active_name="platform_logs" %}
+                
+            </nav>
+        </div>
+
+        <!-- User Profile -->
+        <div class="mt-auto space-y-4">
+            <!-- User Info -->
+            <div class="flex items-center gap-3 px-3 py-3 rounded-xl bg-background-dark/50 border border-border-dark">
+                <div class="bg-center bg-no-repeat bg-cover rounded-full size-9" style='background-image: url("https://ui-avatars.com/api/?name={{ user.username }}&background=3b82f6&color=fff");'></div>
+                <div class="flex flex-col overflow-hidden">
+                    <p class="text-text-main text-sm font-semibold truncate">{{ user.first_name|default:user.username }}</p>
+                    <p class="text-text-secondary-dark text-xs truncate">Super Admin</p>
+                </div>
+                <form action="{% url 'logout' %}" method="post" class="ml-auto">
+                    {% csrf_token %}
+                    <button type="submit" class="text-text-secondary-dark hover:text-text-main" title="Logout">
+                        <span class="material-symbols-outlined text-[20px]">logout</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</aside>

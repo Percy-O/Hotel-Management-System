@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 
 class GymPlan(models.Model):
+    tenant = models.ForeignKey('tenants.Tenant', on_delete=models.CASCADE, related_name='gym_plans', null=True, blank=True)
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)

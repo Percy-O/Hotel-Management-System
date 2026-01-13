@@ -54,7 +54,7 @@ class TenantSetting(models.Model):
     custom_surface_color = models.CharField(max_length=7, default='#1e293b', help_text="Hex code for surface/card color")
     
     # Hotel Identity
-    hotel_name = models.CharField(max_length=255, default="Grand Hotel")
+    hotel_name = models.CharField(max_length=255, default="My Hotel")
     hotel_logo = models.ImageField(upload_to='site/', blank=True, null=True)
 
     # Currency Settings
@@ -72,9 +72,9 @@ class TenantSetting(models.Model):
     currency = models.CharField(max_length=10, choices=CURRENCY_CHOICES, default='USD')
     
     # Contact Info
-    contact_email = models.EmailField(default="info@grandhotel.com")
+    contact_email = models.EmailField(default="info@example.com")
     contact_phone = models.CharField(max_length=50, default="+1 234 567 8900")
-    address = models.TextField(default="123 Luxury Ave, Paradise City")
+    address = models.TextField(default="123 Luxury Ave, City")
     
     # Housekeeping Information
     housekeeping_info = models.TextField(blank=True, default="Standard housekeeping is available from 9:00 AM to 5:00 PM daily. Please request special services at least 2 hours in advance.", help_text="Information about cleaning schedules and policies.")
@@ -88,6 +88,15 @@ class TenantSetting(models.Model):
     enable_events = models.BooleanField(default=False, help_text="Enable Events Management module (Halls, Bookings)")
     enable_gym = models.BooleanField(default=False, help_text="Enable Gym & Fitness module (Memberships, Access)")
     
+    # Email Settings (Premium Only)
+    email_host = models.CharField(max_length=255, blank=True, help_text="SMTP Server (e.g., smtp.gmail.com)")
+    email_port = models.IntegerField(default=587, help_text="SMTP Port (e.g., 587 or 465)")
+    email_host_user = models.CharField(max_length=255, blank=True, help_text="Email Address")
+    email_host_password = models.CharField(max_length=255, blank=True, help_text="Email Password")
+    email_use_tls = models.BooleanField(default=True, help_text="Use TLS (usually for port 587)")
+    email_use_ssl = models.BooleanField(default=False, help_text="Use SSL (usually for port 465)")
+    default_from_email = models.EmailField(blank=True, help_text="Default Sender Email")
+
     @property
     def currency_symbol(self):
         symbols = {
@@ -108,3 +117,28 @@ class TenantSetting(models.Model):
         
     def __str__(self):
         return f"Settings for {self.tenant}"
+
+class GlobalSetting(models.Model):
+    # SMTP Settings
+    email_host = models.CharField(max_length=255, default='mail.techohr.com.ng')
+    email_port = models.IntegerField(default=465)
+    email_host_user = models.CharField(max_length=255, default='ihotel@techohr.com.ng')
+    email_host_password = models.CharField(max_length=255, blank=True)
+    email_use_tls = models.BooleanField(default=False)
+    email_use_ssl = models.BooleanField(default=True)
+    default_from_email = models.EmailField(default='ihotel@techohr.com.ng')
+
+    def __str__(self):
+        return "Global Site Settings"
+
+    def save(self, *args, **kwargs):
+        if not self.pk and GlobalSetting.objects.exists():
+            # If you're trying to create a new one but one exists, just update the existing one?
+            # Or prevent creation. For simplicity, we assume one instance.
+            return GlobalSetting.objects.first()
+        return super(GlobalSetting, self).save(*args, **kwargs)
+
+    @classmethod
+    def load(cls):
+        obj, created = cls.objects.get_or_create(pk=1)
+        return obj

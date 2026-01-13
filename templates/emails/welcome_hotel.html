@@ -1,0 +1,33 @@
+{% extends 'emails/base_email.html' %}
+
+{% block content %}
+    <h1>Welcome to IHotel! 🏨</h1>
+    <p>Dear {{ user.first_name|default:user.username }},</p>
+    
+    <p>Congratulations! Your hotel workspace <strong>{{ tenant.name }}</strong> has been successfully created.</p>
+    
+    <div class="info-box">
+        <div class="info-row">
+            <span class="info-label">Workspace URL</span>
+            <span class="info-value"><a href="{{ dashboard_url }}">{{ dashboard_url }}</a></span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Plan</span>
+            <span class="info-value">{{ tenant.plan.name }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Status</span>
+            <span class="info-value">{% if tenant.is_active %}Active{% else %}Pending Payment{% endif %}</span>
+        </div>
+    </div>
+
+    <p>You can now start managing your rooms, bookings, and staff from your dedicated dashboard.</p>
+
+    <div style="text-align: center;">
+        <a href="{{ dashboard_url }}" class="btn">Go to Dashboard</a>
+    </div>
+    
+    <p>If you have any questions, our support team is here to help.</p>
+    
+    <p>Best regards,<br>The IHotel Team</p>
+{% endblock %}

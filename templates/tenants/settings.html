@@ -1,0 +1,169 @@
+{% extends 'base_layout.html' %}
+
+{% block title %}Hotel Settings - {{ request.tenant.name }}{% endblock %}
+
+{% block body_content %}
+<div class="min-h-screen bg-background-light dark:bg-background-dark p-8">
+    <div class="max-w-2xl mx-auto space-y-8">
+        
+        <!-- Branding Settings -->
+        <div class="glass-card rounded-2xl p-8">
+            <h2 class="text-2xl font-bold mb-6 text-text-main-light dark:text-text-main">Hotel Branding & Settings</h2>
+            
+            {% if messages %}
+            <div class="mb-6 space-y-2">
+                {% for message in messages %}
+                <div class="p-4 rounded-xl bg-green-50 text-green-600 dark:bg-green-500/10 dark:text-green-400 border border-green-200 dark:border-green-500/20">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Name -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">Hotel Name</label>
+                    <input type="text" name="name" value="{{ form.name.value }}" class="w-full bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all">
+                </div>
+
+                <!-- Logo -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">Logo</label>
+                    {% if form.instance.logo %}
+                    <img src="{{ form.instance.logo.url }}" class="h-16 mb-2 rounded-lg bg-gray-100 dark:bg-gray-800 object-contain p-2">
+                    {% endif %}
+                    <input type="file" name="logo" class="w-full text-sm text-text-secondary-light dark:text-text-secondary-dark file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20">
+                </div>
+
+                <!-- Colors -->
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">Primary Color</label>
+                        <div class="flex items-center gap-3">
+                            <input type="color" name="primary_color" value="{{ form.primary_color.value }}" class="size-10 rounded-lg border-0 cursor-pointer">
+                            <input type="text" name="primary_color" value="{{ form.primary_color.value }}" class="flex-1 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl px-4 py-2 uppercase">
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">Secondary Color</label>
+                        <div class="flex items-center gap-3">
+                            <input type="color" name="secondary_color" value="{{ form.secondary_color.value }}" class="size-10 rounded-lg border-0 cursor-pointer">
+                            <input type="text" name="secondary_color" value="{{ form.secondary_color.value }}" class="flex-1 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl px-4 py-2 uppercase">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Font -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">Font Family</label>
+                    <select name="font_family" class="w-full bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl px-4 py-3">
+                        <option value="Inter" {% if form.font_family.value == 'Inter' %}selected{% endif %}>Inter (Modern)</option>
+                        <option value="Merriweather" {% if form.font_family.value == 'Merriweather' %}selected{% endif %}>Merriweather (Serif)</option>
+                        <option value="Roboto" {% if form.font_family.value == 'Roboto' %}selected{% endif %}>Roboto</option>
+                        <option value="Poppins" {% if form.font_family.value == 'Poppins' %}selected{% endif %}>Poppins</option>
+                    </select>
+                </div>
+
+                <!-- Custom Domain Settings -->
+                <div class="border-t border-border-light dark:border-white/10 pt-6 mt-6">
+                    <h3 class="text-lg font-bold mb-4 text-text-main-light dark:text-text-main flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">language</span>
+                        Domain Settings
+                    </h3>
+                    
+                    {% if request.tenant.plan.allow_custom_domain %}
+                        <div class="space-y-2">
+                            <label class="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">Custom Domain</label>
+                            <div class="flex gap-2">
+                                <input type="text" name="custom_domain" value="{{ form.custom_domain.value|default:'' }}" placeholder="e.g. myhotel.com" class="flex-1 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none">
+                            </div>
+                            <p class="text-xs text-text-secondary-light dark:text-text-secondary-dark">Enter your custom domain to point to your hotel workspace.</p>
+                        </div>
+                    {% else %}
+                        <div class="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4 flex items-start gap-4">
+                            <div class="p-2 bg-yellow-500/20 rounded-lg text-yellow-600 dark:text-yellow-400">
+                                <span class="material-symbols-outlined">lock</span>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-bold text-yellow-700 dark:text-yellow-400 mb-1">Custom Domains are Locked</h4>
+                                <p class="text-sm text-yellow-600/80 dark:text-yellow-400/80 mb-3">Upgrade to the Premium plan to connect your own domain (e.g., hotel.com).</p>
+                                <a href="#" class="inline-flex items-center gap-2 text-sm font-bold text-yellow-700 dark:text-yellow-400 hover:underline">
+                                    Upgrade Now
+                                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                                </a>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="pt-6 flex items-center justify-end gap-4">
+                    <a href="{% url 'dashboard' %}" class="px-6 py-3 rounded-xl text-text-secondary-light dark:text-text-secondary-dark hover:bg-gray-100 dark:hover:bg-white/5 transition-colors font-medium">Back to Dashboard</a>
+                    <button type="submit" class="px-8 py-3 bg-primary hover:bg-primary-hover text-white rounded-xl shadow-lg hover:shadow-primary/25 transition-all font-bold">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Subscription Management -->
+        <div class="glass-card rounded-2xl p-8 border-t-4 border-t-primary">
+            <h2 class="text-2xl font-bold mb-6 text-text-main-light dark:text-text-main flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">credit_card</span>
+                Subscription & Billing
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-surface-light dark:bg-white/5 p-4 rounded-xl border border-border-light dark:border-white/10">
+                    <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark mb-1">Current Plan</p>
+                    <p class="text-xl font-bold text-text-main-light dark:text-white">{{ request.tenant.plan.name|default:"Free Plan" }}</p>
+                </div>
+                <div class="bg-surface-light dark:bg-white/5 p-4 rounded-xl border border-border-light dark:border-white/10">
+                    <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark mb-1">Status</p>
+                    <div class="flex items-center gap-2">
+                        {% if request.tenant.subscription_status == 'active' %}
+                            <span class="size-2 rounded-full bg-green-500"></span>
+                            <span class="text-xl font-bold text-green-500 capitalize">Active</span>
+                        {% else %}
+                            <span class="size-2 rounded-full bg-red-500"></span>
+                            <span class="text-xl font-bold text-red-500 capitalize">{{ request.tenant.subscription_status }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="bg-surface-light dark:bg-white/5 p-4 rounded-xl border border-border-light dark:border-white/10">
+                    <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark mb-1">Renewal Date</p>
+                    <p class="text-lg font-medium text-text-main-light dark:text-white">{{ request.tenant.subscription_end_date|date:"F d, Y"|default:"Lifetime" }}</p>
+                </div>
+                <div class="bg-surface-light dark:bg-white/5 p-4 rounded-xl border border-border-light dark:border-white/10">
+                    <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark mb-1">Auto-Renewal</p>
+                    <p class="text-lg font-medium {% if request.tenant.auto_renew %}text-green-500{% else %}text-red-500{% endif %}">
+                        {{ request.tenant.auto_renew|yesno:"Enabled,Disabled" }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex justify-end border-t border-border-light dark:border-white/10 pt-6">
+                {% if request.tenant.auto_renew %}
+                <form action="{% url 'cancel_subscription' %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="px-6 py-2.5 rounded-xl border border-red-500/30 bg-red-500/10 text-red-500 hover:bg-red-500/20 font-bold transition-all text-sm flex items-center gap-2">
+                        <span class="material-symbols-outlined text-lg">cancel</span>
+                        Cancel Auto-Renewal
+                    </button>
+                </form>
+                {% else %}
+                <form action="{% url 'enable_auto_renew' %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="px-6 py-2.5 rounded-xl border border-green-500/30 bg-green-500/10 text-green-500 hover:bg-green-500/20 font-bold transition-all text-sm flex items-center gap-2">
+                        <span class="material-symbols-outlined text-lg">autorenew</span>
+                        Enable Auto-Renewal
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

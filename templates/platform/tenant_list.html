@@ -1,0 +1,157 @@
+{% extends 'layouts/platform_base.html' %}
+{% load humanize %}
+
+{% block page_title %}Tenants (Hotels){% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+    <!-- Actions Bar -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <form method="get" class="flex-1 max-w-md">
+            <div class="relative">
+                <span class="material-symbols-outlined absolute left-3 top-2.5 text-text-secondary">search</span>
+                <input type="text" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Search hotels..." 
+                    class="w-full pl-10 pr-4 py-2 bg-surface-light border border-border-dark rounded-lg text-white focus:border-blue-500 focus:outline-none transition-colors">
+            </div>
+        </form>
+        
+        <!-- Add New Button (Placeholder URL or Modal) -->
+        <a href="#" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium">
+            <span class="material-symbols-outlined">add</span>
+            Add Hotel
+        </a>
+    </div>
+
+    <!-- Desktop Table (Hidden on Mobile) -->
+    <div class="hidden md:block overflow-hidden rounded-xl border border-border-dark bg-surface-dark/50 backdrop-blur-sm">
+        <table class="w-full text-left text-sm text-text-secondary">
+            <thead class="bg-surface-light text-xs uppercase font-semibold text-text-main">
+                <tr>
+                    <th class="px-6 py-4">Hotel Name</th>
+                    <th class="px-6 py-4">Subdomain</th>
+                    <th class="px-6 py-4">Plan</th>
+                    <th class="px-6 py-4">Status</th>
+                    <th class="px-6 py-4">Created</th>
+                    <th class="px-6 py-4 text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-border-dark">
+                {% for tenant in tenants %}
+                <tr class="hover:bg-white/5 transition-colors group">
+                    <td class="px-6 py-4 font-medium text-white flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold">
+                            {{ tenant.name|slice:":1" }}
+                        </div>
+                        {{ tenant.name }}
+                    </td>
+                    <td class="px-6 py-4">{{ tenant.subdomain }}</td>
+                    <td class="px-6 py-4">
+                        {% if tenant.plan %}
+                        <span class="px-2 py-1 rounded-full text-xs font-medium bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                            {{ tenant.plan.name }}
+                        </span>
+                        {% else %}
+                        <span class="text-text-secondary">Free</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4">
+                        {% if tenant.is_active %}
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-success/10 text-success border border-success/20">
+                            <span class="w-1.5 h-1.5 rounded-full bg-success"></span> Active
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-danger/10 text-danger border border-danger/20">
+                            <span class="w-1.5 h-1.5 rounded-full bg-danger"></span> Inactive
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4">{{ tenant.created_at|date:"M d, Y" }}</td>
+                    <td class="px-6 py-4 text-right">
+                        <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <a href="{% url 'platform_tenant_edit' tenant.pk %}" class="p-1.5 rounded-lg hover:bg-white/10 text-text-secondary hover:text-white" title="Edit">
+                                <span class="material-symbols-outlined text-lg">edit</span>
+                            </a>
+                            <a href="{% url 'platform_tenant_delete' tenant.pk %}" class="p-1.5 rounded-lg hover:bg-danger/20 text-text-secondary hover:text-danger" title="Delete">
+                                <span class="material-symbols-outlined text-lg">delete</span>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="px-6 py-12 text-center text-text-secondary">
+                        <span class="material-symbols-outlined text-4xl mb-2 opacity-50">domain_disabled</span>
+                        <p>No hotels found matching your search.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Mobile Cards (Visible on Mobile) -->
+    <div class="md:hidden space-y-4">
+        {% for tenant in tenants %}
+        <div class="glass-card p-4 rounded-xl border border-border-dark bg-surface-dark/50">
+            <div class="flex items-start justify-between mb-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-lg">
+                        {{ tenant.name|slice:":1" }}
+                    </div>
+                    <div>
+                        <h3 class="font-medium text-white">{{ tenant.name }}</h3>
+                        <p class="text-xs text-text-secondary">{{ tenant.subdomain }}</p>
+                    </div>
+                </div>
+                {% if tenant.is_active %}
+                <span class="w-2 h-2 rounded-full bg-success"></span>
+                {% else %}
+                <span class="w-2 h-2 rounded-full bg-danger"></span>
+                {% endif %}
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4 mb-4 text-sm">
+                <div>
+                    <p class="text-xs text-text-secondary mb-1">Plan</p>
+                    <p class="text-white">{{ tenant.plan.name|default:"Free" }}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-text-secondary mb-1">Created</p>
+                    <p class="text-white">{{ tenant.created_at|date:"M d, Y" }}</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 pt-3 border-t border-white/5">
+                <a href="{% url 'platform_tenant_edit' tenant.pk %}" class="flex-1 py-2 text-center rounded-lg bg-white/5 hover:bg-white/10 text-sm font-medium transition-colors">
+                    Edit
+                </a>
+                <a href="{% url 'platform_tenant_delete' tenant.pk %}" class="flex-1 py-2 text-center rounded-lg bg-danger/10 hover:bg-danger/20 text-danger text-sm font-medium transition-colors">
+                    Delete
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-12 text-text-secondary">
+            <p>No hotels found.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="flex items-center justify-between pt-4 border-t border-border-dark">
+        <span class="text-sm text-text-secondary">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+        <div class="flex gap-2">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1.5 rounded-lg border border-border-dark text-sm hover:bg-white/5 transition-colors">Previous</a>
+            {% endif %}
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1.5 rounded-lg border border-border-dark text-sm hover:bg-white/5 transition-colors">Next</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.core.mail import send_mail
+from core.email_utils import send_tenant_email
 from django.conf import settings
 from .models import MenuItem, GuestOrder, OrderItem, HousekeepingRequest, HousekeepingServiceType
 from .forms import HousekeepingSettingsForm
@@ -271,10 +271,20 @@ def request_housekeeping(request):
 
         # Notify Staff
         staff_users = User.objects.filter(role__in=[User.Role.MANAGER, User.Role.RECEPTIONIST, User.Role.CLEANER])
-        staff_emails = [user.email for user in staff_users if user.email]
         
-        # Send Email (simplified for reconstruction)
-        # ...
+        # Send Email
+        for staff in staff_users:
+            if staff.email:
+                try:
+                    send_tenant_email(
+                        subject=f"New Housekeeping Request: {room_num}",
+                        message=f"New housekeeping request for Room {room_num}.\n\nService: {service_type.name}\nNote: {note or 'N/A'}\n\nPlease attend to it.",
+                        recipient_list=[staff.email],
+                        tenant=request.tenant if hasattr(request, 'tenant') else None,
+                        fail_silently=True
+                    )
+                except Exception:
+                    pass
 
         for staff in staff_users:
             Notification.objects.create(

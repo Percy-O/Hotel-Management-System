@@ -1,0 +1,48 @@
+<nav class="fixed w-full z-50 transition-all duration-300 border-b border-white/5" 
+     :class="scrolled ? 'bg-[#020617]/90 backdrop-blur-xl py-4' : 'bg-transparent py-6'"
+     x-data="{ mobileMenuOpen: false }">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between">
+            <!-- Logo -->
+            <a href="/" class="flex items-center gap-2">
+                <div class="size-8 rounded-lg bg-blue-600 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-white text-lg">domain</span>
+                </div>
+                <span class="text-xl font-bold tracking-tight text-white">IHotel</span>
+            </a>
+
+            <!-- Desktop Menu -->
+            <div class="hidden md:flex items-center gap-8">
+                <a href="/#features" class="text-sm font-medium text-gray-400 hover:text-white transition-colors">Features</a>
+                <a href="/#services" class="text-sm font-medium text-gray-400 hover:text-white transition-colors">Services</a>
+                <a href="/#pricing" class="text-sm font-medium text-gray-400 hover:text-white transition-colors">Pricing</a>
+            </div>
+
+            <!-- Auth Buttons -->
+            <div class="hidden md:flex items-center gap-4">
+                <a href="{% url 'login' %}" class="text-sm font-medium text-white hover:text-blue-400 transition-colors">Log in</a>
+                <a href="/#pricing" class="px-5 py-2.5 rounded-full bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_0_30px_rgba(37,99,235,0.5)]">
+                    Get Started
+                </a>
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <button @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden text-white">
+                <span class="material-symbols-outlined text-2xl">menu</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div x-show="mobileMenuOpen" 
+         x-transition.opacity
+         class="md:hidden absolute top-full left-0 w-full bg-[#020617] border-b border-white/10 p-4 space-y-4 shadow-2xl">
+        <a href="/#features" class="block text-gray-400 hover:text-white">Features</a>
+        <a href="/#services" class="block text-gray-400 hover:text-white">Services</a>
+        <a href="/#pricing" class="block text-gray-400 hover:text-white">Pricing</a>
+        <div class="pt-4 border-t border-white/10 flex flex-col gap-3">
+            <a href="{% url 'login' %}" class="block text-center text-white">Log in</a>
+            <a href="/#pricing" class="block w-full text-center py-3 bg-blue-600 rounded-xl font-bold">Get Started</a>
+        </div>
+    </div>
+</nav>

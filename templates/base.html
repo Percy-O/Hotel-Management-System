@@ -1,7 +1,9 @@
 {% extends 'base_layout.html' %}
 
 {% block body_content %}
-    {% include 'includes/navbar.html' %}
+    {% block navbar %}
+        {% include 'includes/navbar.html' %}
+    {% endblock %}
     
     <div class="flex-grow">
         {% if messages %}
@@ -17,5 +19,7 @@
         {% block content %}{% endblock %}
     </div>
 
-    {% include 'includes/footer.html' %}
+    {% block footer %}
+        {% include 'includes/footer.html' %}
+    {% endblock %}
 {% endblock %}

@@ -4,6 +4,7 @@ from booking.models import Booking
 from billing.models import Invoice
 
 class MenuItem(models.Model):
+    tenant = models.ForeignKey('tenants.Tenant', on_delete=models.CASCADE, related_name='menu_items', null=True, blank=True)
     CATEGORY_CHOICES = [
         ('FOOD', 'Food'),
         ('DRINK', 'Drink'),

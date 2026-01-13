@@ -2,7 +2,7 @@
     <div class="flex h-full flex-col justify-between p-4">
         <div class="flex flex-col gap-6">
             <!-- Brand -->
-            <div class="flex items-center gap-3 px-2">
+            <a href="{% url 'dashboard' %}" class="flex items-center gap-3 px-2">
                 {% if site_settings.hotel_logo %}
                 <div class="bg-center bg-no-repeat bg-cover rounded-full size-10 border-2 border-primary" style='background-image: url("{{ site_settings.hotel_logo.url }}");'></div>
                 {% else %}
@@ -12,7 +12,7 @@
                     <h1 class="text-text-main text-base font-bold leading-normal line-clamp-1">{{ site_settings.hotel_name }}</h1>
                     <p class="text-text-secondary-dark text-xs font-medium uppercase tracking-wider">{{ user.get_role_display }} Panel</p>
                 </div>
-            </div>
+            </a>
             
             <!-- Navigation -->
             <nav class="flex flex-col gap-2 overflow-y-auto max-h-[calc(100vh-200px)]">
@@ -88,49 +88,55 @@
                 </div>
                 {% endif %}
 
-                <!-- Menu & Orders -->
-                {% if user.can_manage_menu %}
-                <div class="space-y-1">
-                    {% include "includes/components/sidebar_submenu_header.html" with id="menu-management" icon="restaurant_menu" label="Food & Menu" %}
-                    <div id="menu-management" class="hidden pl-10 space-y-1">
-                        {% url 'staff_order_list' as u %}
-                        {% include "includes/components/sidebar_item.html" with url=u label="Orders" %}
-                        
-                        {% url 'menu_item_list' as u %}
-                        {% include "includes/components/sidebar_item.html" with url=u label="Manage Menu" %}
-                        
-                        {% url 'menu_item_create' as u %}
-                        {% include "includes/components/sidebar_item.html" with url=u label="Add Item" %}
-                    </div>
-                </div>
-                {% endif %}
-                
                 <!-- Events Menu -->
-                {% if site_settings.enable_events and user.can_manage_events %}
-                <div class="space-y-1">
-                    {% include "includes/components/sidebar_submenu_header.html" with id="events-menu" icon="celebration" label="Events" %}
-                    <div id="events-menu" class="hidden pl-10 space-y-1">
-                        {% url 'event_hall_list' as u %}
-                        {% include "includes/components/sidebar_item.html" with url=u label="Event Halls" %}
-                        
-                        {% url 'event_booking_list' as u %}
-                        {% include "includes/components/sidebar_item.html" with url=u label="Bookings" %}
+                {% if site_settings.enable_events or request.tenant.plan.module_events %}
+                    {% if user.can_manage_events %}
+                    <div class="space-y-1">
+                        {% include "includes/components/sidebar_submenu_header.html" with id="events-menu" icon="celebration" label="Events" %}
+                        <div id="events-menu" class="hidden pl-10 space-y-1">
+                            {% url 'event_hall_list' as u %}
+                            {% include "includes/components/sidebar_item.html" with url=u label="Event Halls" %}
+                            
+                            {% url 'event_booking_list' as u %}
+                            {% include "includes/components/sidebar_item.html" with url=u label="Bookings" %}
+                        </div>
                     </div>
-                </div>
+                    {% endif %}
                 {% endif %}
 
                 <!-- Gym Menu -->
-                {% if site_settings.enable_gym and user.can_manage_gym %}
-                <div class="space-y-1">
-                    {% include "includes/components/sidebar_submenu_header.html" with id="gym-menu" icon="fitness_center" label="Gym & Fitness" %}
-                    <div id="gym-menu" class="hidden pl-10 space-y-1">
-                        {% url 'gym_membership_list' as u %}
-                        {% include "includes/components/sidebar_item.html" with url=u label="Memberships" %}
-                        
-                        {% url 'gym_plan_list' as u %}
-                        {% include "includes/components/sidebar_item.html" with url=u label="Plans" %}
+                {% if site_settings.enable_gym or request.tenant.plan.module_gym %}
+                    {% if user.can_manage_gym %}
+                    <div class="space-y-1">
+                        {% include "includes/components/sidebar_submenu_header.html" with id="gym-menu" icon="fitness_center" label="Gym & Fitness" %}
+                        <div id="gym-menu" class="hidden pl-10 space-y-1">
+                            {% url 'gym_membership_list' as u %}
+                            {% include "includes/components/sidebar_item.html" with url=u label="Memberships" %}
+                            
+                            {% url 'gym_plan_list' as u %}
+                            {% include "includes/components/sidebar_item.html" with url=u label="Plans" %}
+                        </div>
                     </div>
-                </div>
+                    {% endif %}
+                {% endif %}
+
+                <!-- Restaurant/Menu -->
+                {% if site_settings.module_restaurant or request.tenant.plan.module_restaurant %}
+                    {% if user.can_manage_menu %}
+                    <div class="space-y-1">
+                        {% include "includes/components/sidebar_submenu_header.html" with id="menu-management" icon="restaurant_menu" label="Food & Menu" %}
+                        <div id="menu-management" class="hidden pl-10 space-y-1">
+                            {% url 'staff_order_list' as u %}
+                            {% include "includes/components/sidebar_item.html" with url=u label="Orders" %}
+                            
+                            {% url 'menu_item_list' as u %}
+                            {% include "includes/components/sidebar_item.html" with url=u label="Manage Menu" %}
+                            
+                            {% url 'menu_item_create' as u %}
+                            {% include "includes/components/sidebar_item.html" with url=u label="Add Item" %}
+                        </div>
+                    </div>
+                    {% endif %}
                 {% endif %}
 
                 <!-- Housekeeping -->

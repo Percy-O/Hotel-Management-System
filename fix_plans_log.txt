@@ -1,0 +1,4 @@
+Starting fix_plans...
+Existing plans: 3
+Updated 3 plans to be public.
+Final public plans count: 3

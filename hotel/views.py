@@ -174,15 +174,25 @@ class RoomTypeCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         return self.request.user.is_staff
 
     def form_valid(self, form):
-        # Assign default hotel (assuming single hotel system for now, or pick first)
-        # If Hotel is required, we should set it. Assuming ID 1 exists or user selects it.
-        # But RoomTypeForm might handle it or we set it here.
-        # Let's assume we use the first hotel or create one if none.
-        hotel = Hotel.objects.first()
+        # Assign hotel based on current tenant
+        tenant = self.request.tenant
+        if not tenant:
+            messages.error(self.request, "No tenant context found.")
+            return redirect('dashboard')
+            
+        hotel = Hotel.objects.filter(tenant=tenant).first()
         if not hotel:
-            hotel = Hotel.objects.create(name="Grand Hotel", address="Default Address", email="info@grandhotel.com", phone="1234567890")
+            # Create a default Hotel object for this tenant if missing
+            hotel = Hotel.objects.create(
+                tenant=tenant,
+                name=tenant.name,
+                address="Address not set",
+                email=f"info@{tenant.subdomain}.com",
+                phone="000-000-0000"
+            )
         
         form.instance.hotel = hotel
+        form.instance.tenant = tenant # Ensure tenant is also set on RoomType
         response = super().form_valid(form)
         
         # Handle multiple images
@@ -297,7 +307,14 @@ class RoomCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         # Assign default hotel
         hotel = Hotel.objects.filter(tenant=self.request.tenant).first()
         if not hotel:
-            hotel = Hotel.objects.create(tenant=self.request.tenant, name=self.request.tenant.name, address="Default Address", email="info@grandhotel.com", phone="1234567890")
+            # Create a default Hotel object for this tenant if missing
+            hotel = Hotel.objects.create(
+                tenant=self.request.tenant,
+                name=self.request.tenant.name,
+                address="Address not set",
+                email=f"info@{self.request.tenant.subdomain}.com",
+                phone="000-000-0000"
+            )
         
         form.instance.hotel = hotel
         form.instance.tenant = self.request.tenant

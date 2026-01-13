@@ -2,6 +2,7 @@ from django.db import models
 from booking.models import Booking
 
 class Invoice(models.Model):
+    tenant = models.ForeignKey('tenants.Tenant', on_delete=models.CASCADE, related_name='invoices', null=True, blank=True)
     class Status(models.TextChoices):
         PENDING = 'PENDING', 'Pending'
         PAID = 'PAID', 'Paid'
@@ -41,11 +42,12 @@ class PaymentGateway(models.Model):
         PAYSTACK = 'PAYSTACK', 'Paystack'
         FLUTTERWAVE = 'FLUTTERWAVE', 'Flutterwave'
 
-    tenant = models.ForeignKey('tenants.Tenant', on_delete=models.CASCADE, related_name='payment_gateways', null=True)
+    tenant = models.ForeignKey('tenants.Tenant', on_delete=models.CASCADE, related_name='payment_gateways', null=True, blank=True)
     name = models.CharField(max_length=20, choices=Provider.choices)
     public_key = models.CharField(max_length=255)
     secret_key = models.CharField(max_length=255)
     is_active = models.BooleanField(default=False)
+    is_test_mode = models.BooleanField(default=True, help_text="Check to use Test Keys")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

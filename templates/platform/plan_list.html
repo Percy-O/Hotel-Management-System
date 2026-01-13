@@ -1,0 +1,61 @@
+{% extends 'layouts/platform_base.html' %}
+{% load humanize %}
+
+{% block page_title %}Subscription Plans{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+    <!-- Actions -->
+    <div class="flex items-center justify-between">
+        <p class="text-text-secondary">Manage the pricing tiers available to hotels.</p>
+        <a href="{% url 'platform_plan_add' %}" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium">
+            <span class="material-symbols-outlined">add</span>
+            New Plan
+        </a>
+    </div>
+
+    <!-- Plans Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {% for plan in plans %}
+        <div class="glass-card p-6 rounded-2xl border border-border-dark bg-surface-dark/50 flex flex-col relative overflow-hidden group">
+            <div class="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                <a href="{% url 'platform_plan_edit' plan.pk %}" class="text-text-secondary hover:text-white">
+                    <span class="material-symbols-outlined">edit</span>
+                </a>
+            </div>
+
+            <div class="mb-4">
+                <h3 class="text-xl font-bold text-white">{{ plan.name }}</h3>
+                <p class="text-3xl font-bold text-blue-400 mt-2">
+                    {% if plan.currency == 'NGN' %}₦{% elif plan.currency == 'USD' %}${% elif plan.currency == 'EUR' %}€{% elif plan.currency == 'GBP' %}£{% else %}{{ plan.currency }} {% endif %}{{ plan.price|intcomma }}<span class="text-sm text-text-secondary font-normal">/month</span>
+                </p>
+            </div>
+            
+            <div class="flex-1 space-y-3 mb-6">
+                <div class="flex items-center gap-3 text-sm text-text-secondary">
+                    <span class="material-symbols-outlined text-green-500">check_circle</span>
+                    <span>{{ plan.max_users }} Staff Users</span>
+                </div>
+                <div class="flex items-center gap-3 text-sm text-text-secondary">
+                    <span class="material-symbols-outlined text-green-500">check_circle</span>
+                    <span>{{ plan.max_rooms }} Rooms</span>
+                </div>
+                <div class="flex items-center gap-3 text-sm text-text-secondary">
+                    <span class="material-symbols-outlined text-green-500">check_circle</span>
+                    <span>{% if plan.allow_custom_domain %}Custom Domain{% else %}Subdomain Only{% endif %}</span>
+                </div>
+            </div>
+
+            <a href="{% url 'platform_plan_detail' plan.pk %}" class="w-full py-2 rounded-lg bg-white/5 hover:bg-white/10 text-white text-sm font-medium transition-colors border border-white/10 text-center">
+                View Details
+            </a>
+        </div>
+        {% empty %}
+        <div class="col-span-3 text-center py-12 text-text-secondary glass-card rounded-2xl border border-border-dark">
+            <span class="material-symbols-outlined text-4xl mb-2 opacity-50">layers_clear</span>
+            <p>No subscription plans found.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

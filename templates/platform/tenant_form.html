@@ -1,0 +1,82 @@
+{% extends 'layouts/platform_base.html' %}
+
+{% block header_title %}{{ object|yesno:"Edit Tenant,Add Tenant" }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-3xl mx-auto">
+    <div class="glass-card rounded-2xl p-8">
+        <div class="flex items-center gap-4 mb-8">
+            <a href="{% url 'platform_tenant_list' %}" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
+                <span class="material-symbols-outlined">arrow_back</span>
+            </a>
+            <h2 class="text-2xl font-bold">Tenant Details</h2>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Name -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">Hotel Name</label>
+                    <input type="text" name="name" value="{{ form.name.value|default:'' }}" class="w-full bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all">
+                    {% if form.name.errors %}
+                    <p class="text-xs text-red-500">{{ form.name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Subdomain -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">Subdomain</label>
+                    <div class="flex items-center">
+                        <input type="text" name="subdomain" value="{{ form.subdomain.value|default:'' }}" class="flex-1 bg-surface-light dark:bg-surface-dark border border-r-0 border-border-light dark:border-border-dark rounded-l-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all">
+                        <span class="bg-gray-50 dark:bg-white/5 border border-l-0 border-border-light dark:border-border-dark px-4 py-3 rounded-r-xl text-text-secondary-light dark:text-text-secondary-dark text-sm font-medium">.saas.com</span>
+                    </div>
+                    {% if form.subdomain.errors %}
+                    <p class="text-xs text-red-500">{{ form.subdomain.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Plan -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">Subscription Plan</label>
+                    <select name="plan" class="w-full bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all">
+                        <option value="">Select Plan</option>
+                        {% for plan in form.fields.plan.queryset %}
+                        <option value="{{ plan.id }}" {% if form.plan.value == plan.id %}selected{% endif %}>{{ plan.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Status -->
+                <div class="space-y-2 flex items-center pt-8">
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" name="is_active" {% if form.is_active.value %}checked{% endif %} class="size-5 rounded text-primary focus:ring-primary border-gray-300 dark:border-gray-600 bg-surface-light dark:bg-surface-dark">
+                        <span class="text-sm font-medium">Active Status</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Logo -->
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">Brand Logo</label>
+                <div class="border-2 border-dashed border-border-light dark:border-border-dark rounded-xl p-8 text-center hover:border-primary transition-colors cursor-pointer relative">
+                    <input type="file" name="logo" class="absolute inset-0 opacity-0 cursor-pointer">
+                    <span class="material-symbols-outlined text-4xl text-text-secondary-light dark:text-text-secondary-dark mb-2">cloud_upload</span>
+                    <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Drag and drop or click to upload</p>
+                    {% if form.instance.logo %}
+                    <p class="mt-2 text-xs text-green-500">Current: {{ form.instance.logo.name }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="pt-6 flex items-center justify-end gap-4">
+                <a href="{% url 'platform_tenant_list' %}" class="px-6 py-3 rounded-xl text-text-secondary-light dark:text-text-secondary-dark hover:bg-gray-100 dark:hover:bg-white/5 transition-colors font-medium">Cancel</a>
+                <button type="submit" class="px-8 py-3 bg-primary hover:bg-primary-hover text-white rounded-xl shadow-lg hover:shadow-primary/25 transition-all font-bold">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
