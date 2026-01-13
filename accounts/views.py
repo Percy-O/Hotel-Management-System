@@ -52,6 +52,10 @@ def login_view(request):
             # and the user owns a tenant, send them there.
             
             if not request.tenant or request.tenant.subdomain == 'public':
+                # Superuser Redirect (Platform Dashboard)
+                if user.is_superuser:
+                    return redirect('platform_dashboard')
+
                 # Check for owned tenants
                 owned_tenant = user.owned_tenants.first()
                 if owned_tenant:
