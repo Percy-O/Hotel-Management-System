@@ -12,22 +12,33 @@
                     </div>
                     <div class="flex flex-col">
                         <span class="text-xl font-bold text-text-main leading-none">{{ site_settings.hotel_name }}</span>
-                        <span class="text-[10px] uppercase tracking-[0.2em] text-primary font-medium mt-1 group-hover:text-text-main transition-colors">Luxury Stay</span>
+                        <span class="text-[10px] uppercase tracking-[0.2em] text-primary font-medium mt-1 group-hover:text-text-main transition-colors">{{ site_settings.hotel_tagline|default:"Luxury Stay" }}</span>
                     </div>
                 </a>
                 
                 <div class="hidden md:flex ml-16 space-x-8">
                     <a href="/" class="text-sm font-medium text-text-main hover:text-primary transition-colors py-2 border-b-2 border-transparent hover:border-primary">Home</a>
+                    
                     {% if request.tenant.room_types.exists %}
-                    <a href="{% url 'room_list' %}" class="text-sm font-medium text-text-secondary-dark hover:text-text-main transition-colors py-2 border-b-2 border-transparent hover:border-text-main">Rooms & Suites</a>
+                    <div class="relative group h-full flex items-center">
+                        <a href="{% url 'room_list' %}" class="text-sm font-medium text-text-secondary-dark hover:text-text-main transition-colors py-2 border-b-2 border-transparent hover:border-text-main flex items-center gap-1">
+                            Rooms
+                            <span class="material-symbols-outlined text-[16px]">expand_more</span>
+                        </a>
+                        <div class="absolute top-full left-0 w-48 bg-surface-dark border border-border-dark rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0">
+                            <div class="py-2">
+                                <a href="{% url 'room_list' %}" class="block px-4 py-2 text-sm text-text-secondary-dark hover:text-text-main hover:bg-white/5">All Rooms</a>
+                                {% for rt in request.tenant.room_types.all|slice:":5" %}
+                                <a href="{% url 'room_detail' rt.id %}" class="block px-4 py-2 text-sm text-text-secondary-dark hover:text-text-main hover:bg-white/5">{{ rt.name }}</a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
                     {% endif %}
-                    {% if site_settings.module_restaurant or request.tenant.plan.module_restaurant %}
-                    <a href="#" class="text-sm font-medium text-text-secondary-dark hover:text-text-main transition-colors py-2 border-b-2 border-transparent hover:border-text-main">Dining</a>
-                    {% endif %}
-                    {% if site_settings.module_gym or request.tenant.plan.module_gym %}
-                    <a href="#" class="text-sm font-medium text-text-secondary-dark hover:text-text-main transition-colors py-2 border-b-2 border-transparent hover:border-text-main">Wellness</a>
-                    {% endif %}
-                    <a href="#" class="text-sm font-medium text-text-secondary-dark hover:text-text-main transition-colors py-2 border-b-2 border-transparent hover:border-text-main">Contact</a>
+
+                    <a href="{% url 'about_us' %}" class="text-sm font-medium text-text-secondary-dark hover:text-text-main transition-colors py-2 border-b-2 border-transparent hover:border-text-main">About Us</a>
+                    
+                    <a href="{% url 'contact_us' %}" class="text-sm font-medium text-text-secondary-dark hover:text-text-main transition-colors py-2 border-b-2 border-transparent hover:border-text-main">Contact Us</a>
                 </div>
             </div>
             
@@ -46,7 +57,7 @@
                     </div>
                 {% else %}
                     <div class="hidden md:flex items-center gap-6">
-                        <a href="{% url 'login' %}" class="text-sm font-medium text-text-main hover:text-primary transition-colors">Sign In</a>
+                        <a href="{% url 'login' %}" class="text-sm font-bold bg-white text-black px-6 py-2.5 rounded-full hover:bg-gray-200 transition-colors">Sign In</a>
                     </div>
                 {% endif %}
                 
@@ -64,13 +75,8 @@
             {% if request.tenant.room_types.exists %}
             <a href="{% url 'room_list' %}" class="block px-3 py-3 text-base font-medium text-text-main hover:bg-primary/10 hover:text-primary rounded-lg transition-colors">Rooms & Suites</a>
             {% endif %}
-            {% if site_settings.module_restaurant or request.tenant.plan.module_restaurant %}
-            <a href="#" class="block px-3 py-3 text-base font-medium text-text-main hover:bg-primary/10 hover:text-primary rounded-lg transition-colors">Dining</a>
-            {% endif %}
-            {% if site_settings.module_gym or request.tenant.plan.module_gym %}
-            <a href="#" class="block px-3 py-3 text-base font-medium text-text-main hover:bg-primary/10 hover:text-primary rounded-lg transition-colors">Wellness</a>
-            {% endif %}
-            <a href="#" class="block px-3 py-3 text-base font-medium text-text-main hover:bg-primary/10 hover:text-primary rounded-lg transition-colors">Contact</a>
+            <a href="{% url 'about_us' %}" class="block px-3 py-3 text-base font-medium text-text-main hover:bg-primary/10 hover:text-primary rounded-lg transition-colors">About Us</a>
+            <a href="{% url 'contact_us' %}" class="block px-3 py-3 text-base font-medium text-text-main hover:bg-primary/10 hover:text-primary rounded-lg transition-colors">Contact Us</a>
             
             <div class="border-t border-border-dark my-2 pt-2">
                 {% if user.is_authenticated %}

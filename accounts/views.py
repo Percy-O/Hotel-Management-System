@@ -19,7 +19,7 @@ from events.models import EventBooking
 from gym.models import GymMembership
 from tenants.models import Tenant, Domain, Plan, Membership
 from django.utils import timezone
-
+from datetime import timedelta
 from core.email_utils import send_branded_email
 
 def login_view(request):
@@ -322,7 +322,6 @@ def dashboard(request):
     # Receptionist Dashboard
     if user.role == User.Role.RECEPTIONIST:
         # Focus on Today's Check-ins/outs
-        from django.utils import timezone
         today = timezone.now().date()
         
         check_ins = Booking.objects.filter(check_in_date__date=today, status=Booking.Status.CONFIRMED)
@@ -398,6 +397,59 @@ def dashboard(request):
     # Recent Bookings
     recent_bookings = Booking.objects.filter(**tenant_filter).select_related('room', 'room__room_type').order_by('-created_at')[:5]
 
+    # Dynamic Data for Charts
+    # Occupancy Trends (Last 7 Days vs Previous 7 Days)
+    today = timezone.now().date()
+    start_of_week = today - timedelta(days=today.weekday()) # Monday
+    last_week_start = start_of_week - timedelta(days=7)
+    
+    occupancy_data = {
+        'this_week': [],
+        'last_week': []
+    }
+    
+    # Calculate daily occupancy for this week
+    for i in range(7):
+        day = start_of_week + timedelta(days=i)
+        # Count rooms booked for this specific day
+        count = Booking.objects.filter(
+            **tenant_filter,
+            check_in_date__date__lte=day,
+            check_out_date__date__gt=day,
+            status__in=[Booking.Status.CONFIRMED, Booking.Status.CHECKED_IN]
+        ).count()
+        occupancy_data['this_week'].append(count)
+        
+    # Calculate daily occupancy for last week
+    for i in range(7):
+        day = last_week_start + timedelta(days=i)
+        count = Booking.objects.filter(
+            **tenant_filter,
+            check_in_date__date__lte=day,
+            check_out_date__date__gt=day,
+            status__in=[Booking.Status.CONFIRMED, Booking.Status.CHECKED_IN]
+        ).count()
+        occupancy_data['last_week'].append(count)
+
+    # Revenue Overview (Last 7 Days)
+    revenue_data = {
+        'days': [],
+        'amounts': [],
+        'total_7_days': 0
+    }
+    
+    for i in range(7):
+        day = today - timedelta(days=6-i) # 6 days ago to today
+        revenue_data['days'].append(day.strftime("%a")) # Mon, Tue, etc.
+        
+        daily_revenue = invoices.filter(
+            status=Invoice.Status.PAID,
+            issued_date__date=day
+        ).aggregate(total=Sum('amount'))['total'] or 0
+        
+        revenue_data['amounts'].append(float(daily_revenue))
+        revenue_data['total_7_days'] += daily_revenue
+
     context = {
         'total_guests': total_guests,
         'total_revenue': total_revenue,
@@ -407,6 +459,10 @@ def dashboard(request):
         'available_rooms': available_rooms,
         'recent_bookings': recent_bookings,
         'is_platform_admin': False,
+        'occupancy_data': occupancy_data,
+        'revenue_data': revenue_data,
+        'occupancy_max': max(max(occupancy_data['this_week'], default=0), max(occupancy_data['last_week'], default=0), 10), # For chart scaling
+        'revenue_max': max(revenue_data['amounts'], default=1000),
     }
     
     return render(request, 'accounts/dashboard.html', context)
@@ -463,6 +519,18 @@ def guest_dashboard(request):
     # Gym Memberships
     gym_memberships = GymMembership.objects.filter(user=request.user).order_by('-end_date')
     
+    # Recent Transactions (Paid Invoices)
+    # We want to show a combined list of payments for bookings, events, and gym
+    from billing.models import Payment
+    recent_transactions = Payment.objects.filter(
+        invoice__booking__user=request.user
+    ) | Payment.objects.filter(
+        invoice__event_booking__user=request.user
+    ) | Payment.objects.filter(
+        invoice__gym_membership__user=request.user
+    )
+    recent_transactions = recent_transactions.distinct().order_by('-payment_date')[:10]
+
     context = {
         'total_bookings': total_bookings,
         'active_bookings': active_bookings,
@@ -470,6 +538,7 @@ def guest_dashboard(request):
         'recent_bookings': recent_bookings,
         'event_bookings': event_bookings,
         'gym_memberships': gym_memberships,
+        'recent_transactions': recent_transactions,
         'welcome_mode': welcome_param,
     }
     return render(request, 'accounts/guest_dashboard.html', context)
@@ -507,9 +576,21 @@ class UserListView(TenantAdminRequiredMixin, ListView):
              return User.objects.none()
              
         from tenants.models import Membership
-        # Get all users who have a membership in this tenant
-        tenant_members = Membership.objects.filter(tenant=self.request.tenant).values_list('user', flat=True)
-        return User.objects.filter(id__in=tenant_members)
+        # Get memberships for this tenant to access specific roles
+        # Use select_related to fetch user data efficiently
+        memberships = Membership.objects.filter(tenant=self.request.tenant).select_related('user')
+        
+        # We need to return User objects but with the specific tenant role attached
+        # because the user.role field is global/default, but we want the tenant-specific role
+        
+        users = []
+        for m in memberships:
+            u = m.user
+            # Dynamically attach the role from the membership to the user object for display
+            u.tenant_role = m.role 
+            users.append(u)
+            
+        return users
 
 class UserCreateView(TenantAdminRequiredMixin, CreateView):
     model = User
@@ -521,6 +602,97 @@ class UserCreateView(TenantAdminRequiredMixin, CreateView):
         kwargs = super().get_form_kwargs()
         kwargs['user'] = self.request.user
         return kwargs
+
+    def get_initial(self):
+        initial = super().get_initial()
+        # Pre-fill role from Membership
+        if self.request.tenant and self.object:
+            from tenants.models import Membership
+            membership = Membership.objects.filter(user=self.object, tenant=self.request.tenant).first()
+            if membership:
+                initial['role'] = membership.role
+        return initial
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        user = self.object
+        
+        # Update Membership role
+        if self.request.tenant:
+            from tenants.models import Membership
+            Membership.objects.update_or_create(
+                user=user,
+                tenant=self.request.tenant,
+                defaults={'role': form.cleaned_data.get('role', 'GUEST')}
+            )
+            messages.success(self.request, "User updated successfully.")
+        return response
+
+    def get_initial(self):
+        initial = super().get_initial()
+        # Pre-fill role from Membership
+        if self.request.tenant and self.object:
+            from tenants.models import Membership
+            membership = Membership.objects.filter(user=self.object, tenant=self.request.tenant).first()
+            if membership:
+                initial['role'] = membership.role
+        return initial
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        user = self.object
+        
+        # Update Membership role
+        if self.request.tenant:
+            from tenants.models import Membership
+            Membership.objects.update_or_create(
+                user=user,
+                tenant=self.request.tenant,
+                defaults={'role': form.cleaned_data.get('role', 'GUEST')}
+            )
+            messages.success(self.request, "User updated successfully.")
+        return response
+
+    def get_initial(self):
+        initial = super().get_initial()
+        # Pre-fill role from Membership
+        if self.request.tenant and self.object:
+            from tenants.models import Membership
+            membership = Membership.objects.filter(user=self.object, tenant=self.request.tenant).first()
+            if membership:
+                initial['role'] = membership.role
+        return initial
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        user = self.object
+        
+        # Update Membership role
+        if self.request.tenant:
+            from tenants.models import Membership
+            Membership.objects.update_or_create(
+                user=user,
+                tenant=self.request.tenant,
+                defaults={'role': form.cleaned_data.get('role', 'GUEST')}
+            )
+            messages.success(self.request, "User updated successfully.")
+        return response
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        user = self.object
+        
+        # Create Membership for the current tenant
+        if self.request.tenant:
+            from tenants.models import Membership
+            Membership.objects.create(
+                user=user,
+                tenant=self.request.tenant,
+                role=form.cleaned_data.get('role', 'GUEST'),
+                is_active=True
+            )
+            messages.success(self.request, f"User {user.username} created successfully.")
+        return response
 
 class UserDeleteView(TenantAdminRequiredMixin, DeleteView):
     model = User
@@ -572,3 +744,28 @@ class UserUpdateView(TenantAdminRequiredMixin, UpdateView):
         kwargs = super().get_form_kwargs()
         kwargs['user'] = self.request.user
         return kwargs
+
+    def get_initial(self):
+        initial = super().get_initial()
+        # Pre-fill role from Membership
+        if self.request.tenant and self.object:
+            from tenants.models import Membership
+            membership = Membership.objects.filter(user=self.object, tenant=self.request.tenant).first()
+            if membership:
+                initial['role'] = membership.role
+        return initial
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        user = self.object
+        
+        # Update Membership role
+        if self.request.tenant:
+            from tenants.models import Membership
+            Membership.objects.update_or_create(
+                user=user,
+                tenant=self.request.tenant,
+                defaults={'role': form.cleaned_data.get('role', 'GUEST')}
+            )
+            messages.success(self.request, "User updated successfully.")
+        return response

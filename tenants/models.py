@@ -43,6 +43,7 @@ class Tenant(models.Model):
     subscription_status = models.CharField(max_length=50, default='active') # active, past_due, canceled
     subscription_end_date = models.DateTimeField(null=True, blank=True)
     auto_renew = models.BooleanField(default=True)
+    payment_auth_code = models.CharField(max_length=255, blank=True, null=True, help_text="Token for recurring payments")
     billing_cycle = models.CharField(max_length=10, choices=[('monthly', 'Monthly'), ('yearly', 'Yearly')], default='monthly')
     
     def save(self, *args, **kwargs):

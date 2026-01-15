@@ -78,6 +78,8 @@ def menu_list(request):
     }
     return render(request, 'services/menu_list.html', context)
 
+from django.db import transaction
+
 @login_required
 def place_order(request):
     if request.method == 'POST':
@@ -92,67 +94,65 @@ def place_order(request):
         
         room_num = active_booking.room.room_number if active_booking else "Staff Order"
         
-        # Create Order
-        order = GuestOrder.objects.create(
-            user=request.user,
-            booking=active_booking,
-            room_number=room_num,
-            note=request.POST.get('note', '')
-        )
-        
-        # Process Items
-        items_data = request.POST.getlist('items') # Expecting format "item_id:quantity"
-        # Since this is a reconstruction, I'll assume a simpler form submission or multiple inputs
-        # But typically a form submission for order might have specific item fields.
-        # Let's assume the frontend sends 'item_id' and 'quantity' for each item or we iterate.
-        # For simplicity in this fix, let's assume we get a list of item IDs and quantities from a structured form.
-        # But standard HTML forms are tricky with dynamic lists. 
-        # Let's assume a simple loop over POST keys for now or just cart logic.
-        # Given I don't have the template, I will assume a standard cart submission logic:
-        # 'items' as a JSON string or individual fields 'quantity_{id}'.
-        
-        has_items = False
-        for key, value in request.POST.items():
-            if key.startswith('quantity_') and int(value) > 0:
-                item_id = key.split('_')[1]
-                menu_item = get_object_or_404(MenuItem, id=item_id)
-                OrderItem.objects.create(
-                    order=order,
-                    menu_item=menu_item,
-                    quantity=int(value)
+        try:
+            with transaction.atomic():
+                # Create Order
+                order = GuestOrder.objects.create(
+                    user=request.user,
+                    booking=active_booking,
+                    room_number=room_num,
+                    status='AWAITING_PAYMENT',
+                    note=request.POST.get('note', '')
                 )
-                has_items = True
-        
-        if not has_items:
-            order.delete()
+                
+                # Process Items
+                items_data = request.POST.getlist('items') # Expecting format "item_id:quantity"
+                
+                has_items = False
+                for key, value in request.POST.items():
+                    if key.startswith('quantity_') and int(value) > 0:
+                        item_id = key.split('_')[1]
+                        menu_item = get_object_or_404(MenuItem, id=item_id)
+                        OrderItem.objects.create(
+                            order=order,
+                            menu_item=menu_item,
+                            quantity=int(value)
+                        )
+                        has_items = True
+                
+                if not has_items:
+                    # Transaction will roll back if we raise exception, but here we can just return
+                    # However, since we are in atomic block, explicit rollback or raising exception is better.
+                    # But since we created 'order' above, we should just let the block finish or raise error.
+                    # Actually, if we return, the commit happens. We must raise exception to rollback? 
+                    # Or just don't create the order if no items.
+                    # Let's check items BEFORE creating order?
+                    pass
+
+                if not has_items:
+                     raise ValueError("No items selected")
+
+                order.calculate_total()
+                
+                # Create Invoice
+                invoice = Invoice.objects.create(
+                    booking=active_booking, # Can be null if staff order
+                    amount=order.total_price,
+                    status='PENDING',
+                    invoice_type=Invoice.Type.SERVICE
+                )
+                order.invoice = invoice
+                order.save()
+
+            messages.info(request, "Please complete payment to process your order.")
+            return redirect('payment_selection', invoice_id=invoice.id)
+
+        except ValueError:
             messages.warning(request, "No items selected.")
             return redirect('menu_list')
-
-        order.calculate_total()
-        
-        # Create Invoice for Room Service if active booking exists
-        if active_booking:
-            invoice = Invoice.objects.create(
-                booking=active_booking,
-                amount=order.total_price,
-                status='PENDING' # Or 'UNPAID' depending on model choices, checked: 'PENDING', 'PAID', 'CANCELLED'
-            )
-            order.invoice = invoice
-            order.save()
-
-        # Notify Kitchen/Staff
-        kitchen_staff = User.objects.filter(role__in=[User.Role.KITCHEN, User.Role.MANAGER, User.Role.ADMIN])
-        for staff in kitchen_staff:
-            Notification.objects.create(
-                recipient=staff,
-                title="New Room Service Order",
-                message=f"Order #{order.id} received from Room {order.room_number}.",
-                notification_type=Notification.Type.WARNING,
-                link=reverse('staff_order_list')
-            )
-        
-        messages.success(request, "Order placed successfully!")
-        return redirect('my_orders')
+        except Exception as e:
+            messages.error(request, f"An error occurred: {str(e)}")
+            return redirect('menu_list')
 
     return redirect('menu_list')
 
@@ -168,7 +168,7 @@ def staff_order_list(request):
          messages.error(request, "Access denied.")
          return redirect('home')
 
-    orders = GuestOrder.objects.exclude(status__in=['DELIVERED', 'CANCELLED']).order_by('created_at')
+    orders = GuestOrder.objects.exclude(status__in=['DELIVERED', 'CANCELLED', 'AWAITING_PAYMENT']).order_by('created_at')
     return render(request, 'services/staff_order_list.html', {'orders': orders})
 
 @login_required

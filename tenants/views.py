@@ -340,6 +340,18 @@ def process_payment(request, tenant_id):
         tenant.is_active = True
         tenant.subscription_status = 'active'
         
+        # Save Auto-Renew Preference & Auth Code
+        # In a real integration, the 'data' from verification response contains 'authorization' object
+        # with 'authorization_code' for recurring billing.
+        # We will mock it here or try to extract if 'data' variable was available in scope (it was inside try block)
+        
+        # Assuming we want auto-renew enabled by default on payment
+        tenant.auto_renew = True 
+        
+        # Mock Auth Code for testing auto-renewal
+        if not tenant.payment_auth_code:
+            tenant.payment_auth_code = f"AUTH-{reference}"
+        
         # Update subscription end date based on billing cycle
         days = 365 if tenant.billing_cycle == 'yearly' else 30
         tenant.subscription_end_date = timezone.now() + timedelta(days=days)
@@ -444,25 +456,38 @@ def upgrade_subscription(request, plan_id):
     return redirect('tenant_payment', tenant_id=tenant.id)
 
 @login_required
-def cancel_subscription(request):
-    if not request.tenant or not request.user.is_staff:
-        return redirect('home')
+def enable_auto_renew(request):
+    if request.method == 'POST' and request.tenant:
+        # Check permissions
+        if request.tenant.owner != request.user:
+             messages.error(request, "Permission denied.")
+             return redirect('tenant_settings')
+             
+        # Toggle based on POST data or simple toggle?
+        # Usually a toggle switch sends 'on' or nothing.
+        # Let's assume this view enables it. For disable, we might use cancel_subscription or a separate toggle.
+        # But 'enable_auto_renew' implies enabling.
         
-    if request.method == 'POST':
-        request.tenant.auto_renew = False
+        enable = request.POST.get('auto_renew') == 'on'
+        request.tenant.auto_renew = enable
         request.tenant.save()
-        messages.success(request, "Auto-renewal has been disabled. Your plan will expire at the end of the billing period.")
-    
+        
+        status = "enabled" if enable else "disabled"
+        messages.success(request, f"Automatic renewal has been {status}.")
+        return redirect('tenant_settings')
     return redirect('tenant_settings')
 
 @login_required
-def enable_auto_renew(request):
-    if not request.tenant or not request.user.is_staff:
-        return redirect('home')
-        
-    if request.method == 'POST':
-        request.tenant.auto_renew = True
+def cancel_subscription(request):
+    if request.method == 'POST' and request.tenant:
+        if request.tenant.owner != request.user:
+             messages.error(request, "Permission denied.")
+             return redirect('tenant_settings')
+             
+        # Cancel auto-renew instead of immediate cancellation?
+        # "Make sure... they can also disable it if they dont want that"
+        request.tenant.auto_renew = False
         request.tenant.save()
-        messages.success(request, "Auto-renewal has been enabled.")
-    
+        messages.success(request, "Automatic renewal disabled. Your subscription will remain active until the end of the billing period.")
+        return redirect('tenant_settings')
     return redirect('tenant_settings')

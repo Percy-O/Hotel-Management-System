@@ -1,0 +1,124 @@
+{% extends 'base_layout.html' %}
+
+{% block title %}Contact Us - {{ site_settings.hotel_name }}{% endblock %}
+
+{% block body_content %}
+    <div class="min-h-screen bg-background-dark flex flex-col">
+        <!-- Navbar -->
+        {% include 'includes/navbar.html' %}
+
+        <div class="py-20 bg-background-dark flex-grow">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16">
+            <!-- Contact Info -->
+            <div class="space-y-10">
+                <div>
+                    <h1 class="text-4xl md:text-5xl font-bold text-text-main mb-6">Get in Touch</h1>
+                    <p class="text-xl text-text-secondary-dark leading-relaxed">
+                        We are here to assist you with any inquiries or special requests. Reach out to us and let us help you plan your perfect stay.
+                    </p>
+                </div>
+
+                <div class="space-y-8">
+                    <div class="flex items-start gap-6 group">
+                        <div class="size-14 rounded-2xl bg-surface-dark border border-border-dark flex items-center justify-center text-primary group-hover:border-primary transition-colors">
+                            <span class="material-symbols-outlined text-2xl">location_on</span>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-text-main mb-1">Visit Us</h3>
+                            <p class="text-text-secondary-dark">{{ site_settings.address }}</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-6 group">
+                        <div class="size-14 rounded-2xl bg-surface-dark border border-border-dark flex items-center justify-center text-primary group-hover:border-primary transition-colors">
+                            <span class="material-symbols-outlined text-2xl">call</span>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-text-main mb-1">Call Us</h3>
+                            <p class="text-text-secondary-dark">{{ site_settings.contact_phone }}</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-6 group">
+                        <div class="size-14 rounded-2xl bg-surface-dark border border-border-dark flex items-center justify-center text-primary group-hover:border-primary transition-colors">
+                            <span class="material-symbols-outlined text-2xl">mail</span>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-text-main mb-1">Email Us</h3>
+                            <p class="text-text-secondary-dark">{{ site_settings.contact_email }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Social Media -->
+                <div>
+                    <h3 class="text-lg font-bold text-text-main mb-4">Follow Us</h3>
+                    <div class="flex gap-4">
+                        {% if site_settings.facebook_url %}
+                        <a href="{{ site_settings.facebook_url }}" target="_blank" class="px-6 py-3 bg-surface-dark border border-border-dark rounded-xl text-text-main font-bold hover:bg-primary hover:text-slate-900 transition-all text-sm">
+                            Facebook
+                        </a>
+                        {% endif %}
+                        {% if site_settings.instagram_url %}
+                        <a href="{{ site_settings.instagram_url }}" target="_blank" class="px-6 py-3 bg-surface-dark border border-border-dark rounded-xl text-text-main font-bold hover:bg-primary hover:text-slate-900 transition-all text-sm">
+                            Instagram
+                        </a>
+                        {% endif %}
+                        {% if site_settings.twitter_url %}
+                        <a href="{{ site_settings.twitter_url }}" target="_blank" class="px-6 py-3 bg-surface-dark border border-border-dark rounded-xl text-text-main font-bold hover:bg-primary hover:text-slate-900 transition-all text-sm">
+                            Twitter
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Form -->
+            <div class="bg-surface-dark p-10 rounded-3xl border border-border-dark shadow-xl">
+                <h2 class="text-2xl font-bold text-text-main mb-8">Send a Message</h2>
+                <form action="{% url 'contact_us' %}" method="POST" class="space-y-6">
+                    {% csrf_token %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-text-main">First Name</label>
+                            <input type="text" name="name" required class="w-full bg-background-dark border border-border-dark rounded-xl px-4 py-3 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none" placeholder="John">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-text-main">Last Name</label>
+                            <input type="text" name="last_name" class="w-full bg-background-dark border border-border-dark rounded-xl px-4 py-3 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none" placeholder="Doe">
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium text-text-main">Email Address</label>
+                        <input type="email" name="email" required class="w-full bg-background-dark border border-border-dark rounded-xl px-4 py-3 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none" placeholder="john@example.com">
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium text-text-main">Subject</label>
+                        <select name="subject" class="w-full bg-background-dark border border-border-dark rounded-xl px-4 py-3 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none">
+                            <option value="General Inquiry">General Inquiry</option>
+                            <option value="Booking Assistance">Booking Assistance</option>
+                            <option value="Event Planning">Event Planning</option>
+                            <option value="Feedback">Feedback</option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium text-text-main">Message</label>
+                        <textarea name="message" required rows="4" class="w-full bg-background-dark border border-border-dark rounded-xl px-4 py-3 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none" placeholder="How can we help you?"></textarea>
+                    </div>
+
+                    <button type="submit" class="w-full bg-primary hover:bg-primary-hover text-slate-900 font-bold py-4 rounded-xl shadow-lg shadow-primary/20 transition-all hover:scale-[1.02]">
+                        Send Message
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    {% include 'includes/footer.html' %}
+</div>
+{% endblock %}

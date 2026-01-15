@@ -12,6 +12,7 @@ class Invoice(models.Model):
         BOOKING = 'BOOKING', 'Booking'
         EVENT = 'EVENT', 'Event'
         GYM = 'GYM', 'Gym'
+        SERVICE = 'SERVICE', 'Room Service'
         SUBSCRIPTION = 'SUBSCRIPTION', 'Subscription'
         OTHER = 'OTHER', 'Other'
 

@@ -49,20 +49,20 @@
                     <td class="px-6 py-4">
                         <div class="group relative inline-block">
                             <span class="px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wide border cursor-help
-                                {% if user_obj.role == 'ADMIN' %}bg-purple-500/10 text-purple-500 border-purple-500/20
-                                {% elif user_obj.role == 'MANAGER' %}bg-blue-500/10 text-blue-500 border-blue-500/20
-                                {% elif user_obj.role == 'STAFF' %}bg-green-500/10 text-green-500 border-green-500/20
+                                {% if user_obj.tenant_role == 'ADMIN' %}bg-purple-500/10 text-purple-500 border-purple-500/20
+                                {% elif user_obj.tenant_role == 'MANAGER' %}bg-blue-500/10 text-blue-500 border-blue-500/20
+                                {% elif user_obj.tenant_role == 'STAFF' %}bg-green-500/10 text-green-500 border-green-500/20
                                 {% else %}bg-gray-500/10 text-gray-400 border-gray-500/20{% endif %}">
-                                {{ user_obj.get_role_display }}
+                                {{ user_obj.tenant_role|default:user_obj.role }}
                             </span>
                             
                             <!-- Tooltip -->
                             <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-surface-dark border border-border-dark rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 pointer-events-none">
                                 <p class="text-[10px] text-text-secondary-dark text-center leading-tight">
-                                    {% if user_obj.role == 'ADMIN' %}Full system access & settings.{% endif %}
-                                    {% if user_obj.role == 'MANAGER' %}Manage rooms & bookings.{% endif %}
-                                    {% if user_obj.role == 'STAFF' %}Check-in & front desk.{% endif %}
-                                    {% if user_obj.role == 'GUEST' %}Personal booking access.{% endif %}
+                                    {% if user_obj.tenant_role == 'ADMIN' %}Full system access & settings.{% endif %}
+                                    {% if user_obj.tenant_role == 'MANAGER' %}Manage rooms & bookings.{% endif %}
+                                    {% if user_obj.tenant_role == 'STAFF' %}Check-in & front desk.{% endif %}
+                                    {% if user_obj.tenant_role == 'GUEST' %}Personal booking access.{% endif %}
                                 </p>
                                 <div class="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-border-dark"></div>
                             </div>

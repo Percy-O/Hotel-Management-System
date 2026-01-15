@@ -70,13 +70,16 @@ class TenantSetting(models.Model):
     theme = models.CharField(max_length=50, choices=THEME_CHOICES, default='theme-default')
     
     # Custom Theme Fields
-    custom_primary_color = models.CharField(max_length=7, default='#13ec6d', help_text="Hex code for primary color")
-    custom_background_color = models.CharField(max_length=7, default='#0f172a', help_text="Hex code for background color")
-    custom_surface_color = models.CharField(max_length=7, default='#1e293b', help_text="Hex code for surface/card color")
+    custom_primary_color = models.CharField(max_length=7, default='#13ec6d', help_text="Hex code for primary color", blank=True)
+    custom_background_color = models.CharField(max_length=7, default='#0f172a', help_text="Hex code for background color", blank=True)
+    custom_surface_color = models.CharField(max_length=7, default='#1e293b', help_text="Hex code for surface/card color", blank=True)
     
     # Hotel Identity
-    hotel_name = models.CharField(max_length=255, default="My Hotel")
+    hotel_name = models.CharField(max_length=255, default="My Hotel", blank=True)
+    hotel_tagline = models.CharField(max_length=255, default="Luxury Stay", blank=True, help_text="A short tagline shown below the hotel name")
+    hotel_description = models.TextField(blank=True, default="Experience a world of comfort and elegance in the heart of the city. Your perfect gateway begins here.", help_text="Short description for the footer")
     hotel_logo = models.ImageField(upload_to='site/', blank=True, null=True)
+    booking_id_prefix = models.CharField(max_length=10, default="HMS", blank=True, help_text="Prefix for booking IDs (e.g., HMS -> HMS-2024-0001)")
 
     # Currency Settings
     CURRENCY_CHOICES = [
@@ -90,13 +93,25 @@ class TenantSetting(models.Model):
         ('INR', 'INR (₹)'),
         ('ZAR', 'ZAR (R)'),
     ]
-    currency = models.CharField(max_length=10, choices=CURRENCY_CHOICES, default='NGN')
+    currency = models.CharField(max_length=10, choices=CURRENCY_CHOICES, default='NGN', blank=True)
     
     # Contact Info
-    contact_email = models.EmailField(default="info@example.com")
-    contact_phone = models.CharField(max_length=50, default="+1 234 567 8900")
-    address = models.TextField(default="123 Luxury Ave, City")
+    contact_email = models.EmailField(default="info@example.com", blank=True)
+    contact_phone = models.CharField(max_length=50, default="+1 234 567 8900", blank=True)
+    address = models.TextField(default="123 Luxury Ave, City", blank=True)
     
+    # Hero Section
+    hero_title = models.CharField(max_length=255, default="Experience Luxury", blank=True)
+    hero_subtitle = models.CharField(max_length=255, default="Discover comfort, elegance, and unforgettable moments.", blank=True)
+    hero_background = models.ImageField(upload_to='site/hero/', blank=True, null=True, help_text="Main hero background image")
+    hero_cta_text = models.CharField(max_length=50, default="Book Now", blank=True)
+    hero_cta_link = models.CharField(max_length=255, default="#rooms", blank=True)
+
+    # Pages Content
+    faq_content = models.TextField(blank=True, default="No FAQs available yet.", help_text="HTML content for FAQs page")
+    privacy_policy = models.TextField(blank=True, default="Privacy Policy content goes here.", help_text="HTML content for Privacy Policy page")
+    terms_conditions = models.TextField(blank=True, default="Terms and Conditions content goes here.", help_text="HTML content for Terms & Conditions page")
+
     # Housekeeping Information
     housekeeping_info = models.TextField(blank=True, default="Standard housekeeping is available from 9:00 AM to 5:00 PM daily. Please request special services at least 2 hours in advance.", help_text="Information about cleaning schedules and policies.")
 
@@ -111,7 +126,7 @@ class TenantSetting(models.Model):
     
     # Email Settings (Premium Only)
     email_host = models.CharField(max_length=255, blank=True, help_text="SMTP Server (e.g., smtp.gmail.com)")
-    email_port = models.IntegerField(default=587, help_text="SMTP Port (e.g., 587 or 465)")
+    email_port = models.IntegerField(default=587, help_text="SMTP Port (e.g., 587 or 465)", blank=True, null=True)
     email_host_user = models.CharField(max_length=255, blank=True, help_text="Email Address")
     email_host_password = models.CharField(max_length=255, blank=True, help_text="Email Password")
     email_use_tls = models.BooleanField(default=True, help_text="Use TLS (usually for port 587)")
@@ -138,6 +153,18 @@ class TenantSetting(models.Model):
         
     def __str__(self):
         return f"Settings for {self.tenant}"
+
+class ContactMessage(models.Model):
+    tenant = models.ForeignKey('tenants.Tenant', on_delete=models.CASCADE, related_name='contact_messages', null=True)
+    name = models.CharField(max_length=255)
+    email = models.EmailField()
+    subject = models.CharField(max_length=255, default="General Inquiry")
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Message from {self.name} - {self.subject}"
 
 class GlobalSetting(models.Model):
     # SMTP Settings

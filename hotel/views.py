@@ -217,7 +217,10 @@ class BulkRoomCreateView(LoginRequiredMixin, UserPassesTestMixin, FormView):
     success_url = reverse_lazy('staff_room_list')
 
     def test_func(self):
-        return self.request.user.is_staff
+        tenant = getattr(self.request, 'tenant', None)
+        if not tenant: return False
+        allowed_roles = ['ADMIN', 'MANAGER']
+        return has_tenant_permission(self.request.user, tenant, allowed_roles)
 
     def form_valid(self, form):
         # Enforce Plan Limits

@@ -29,14 +29,14 @@
             theme: {
                 extend: {
                     colors: {
-                        "primary": "#3b82f6",
-                        "primary-hover": "#2563eb",
-                        "background-dark": "#000000", 
-                        "surface-dark": "#0a0a0a",
-                        "surface-light": "#171717",
-                        "border-dark": "#262626",
-                        "text-main": "#ffffff",
-                        "text-secondary-dark": "#a3a3a3",
+                        "primary": "var(--primary-color)",
+                        "primary-hover": "var(--primary-hover-color)",
+                        "background-dark": "var(--background-color)", 
+                        "surface-dark": "var(--surface-color)",
+                        "surface-light": "var(--surface-light-color)",
+                        "border-dark": "var(--border-color)",
+                        "text-main": "var(--text-main-color)",
+                        "text-secondary-dark": "var(--text-secondary-color)",
                         "success": "#22c55e",
                         "warning": "#eab308",
                         "danger": "#ef4444",
@@ -54,13 +54,246 @@
         [x-cloak] { display: none !important; }
         
         :root {
-            --primary-color: {{ request.tenant.primary_color|default:"#3b82f6" }};
-            --secondary-color: {{ request.tenant.secondary_color|default:"#1e293b" }};
-            --font-family: '{{ request.tenant.font_family|default:"Inter" }}', sans-serif;
+            /* Default Theme (Dark) */
+            --primary-color: #3b82f6;
+            --primary-hover-color: #2563eb;
+            --background-color: #000000;
+            --surface-color: #0a0a0a;
+            --surface-light-color: #171717;
+            --border-color: #262626;
+            --text-main-color: #ffffff;
+            --text-secondary-color: #a3a3a3;
         }
+
+        /* Inject Django Tenant Settings if available */
+        {% with current_settings=site_settings %}
+        {% if current_settings %}
+            {% if current_settings.theme == 'theme-custom' %}
+                :root {
+                    --primary-color: {{ current_settings.custom_primary_color|default:'#3b82f6' }};
+                    --primary-hover-color: {{ current_settings.custom_primary_color|default:'#2563eb' }};
+                    --background-color: {{ current_settings.custom_background_color|default:'#000000' }};
+                    --surface-color: {{ current_settings.custom_surface_color|default:'#0a0a0a' }};
+                }
+            {% elif current_settings.theme == 'theme-light' %}
+                :root {
+                    --primary-color: #3b82f6;
+                    --primary-hover-color: #2563eb;
+                    --background-color: #f8fafc;
+                    --surface-color: #ffffff;
+                    --surface-light-color: #f1f5f9;
+                    --border-color: #e2e8f0;
+                    --text-main-color: #0f172a;
+                    --text-secondary-color: #64748b;
+                }
+            {% elif current_settings.theme == 'theme-forest' %}
+                :root {
+                    --primary-color: #10b981;
+                    --primary-hover-color: #059669;
+                    --background-color: #022c22;
+                    --surface-color: #064e3b;
+                    --surface-light-color: #065f46;
+                    --border-color: #047857;
+                    --text-main-color: #ecfdf5;
+                    --text-secondary-color: #a7f3d0;
+                }
+            {% elif current_settings.theme == 'theme-ocean' %}
+                :root {
+                    --primary-color: #0ea5e9;
+                    --primary-hover-color: #0284c7;
+                    --background-color: #0c4a6e;
+                    --surface-color: #075985;
+                    --surface-light-color: #0369a1;
+                    --border-color: #0c4a6e;
+                    --text-main-color: #f0f9ff;
+                    --text-secondary-color: #bae6fd;
+                }
+            {% elif current_settings.theme == 'theme-sunset' %}
+                :root {
+                    --primary-color: #f97316;
+                    --primary-hover-color: #ea580c;
+                    --background-color: #4a044e;
+                    --surface-color: #701a75;
+                    --surface-light-color: #86198f;
+                    --border-color: #701a75;
+                    --text-main-color: #fdf4ff;
+                    --text-secondary-color: #f5d0fe;
+                }
+            {% elif current_settings.theme == 'theme-royal' %}
+                :root {
+                    --primary-color: #d8b4fe;
+                    --primary-hover-color: #c084fc;
+                    --background-color: #2e1065;
+                    --surface-color: #4c1d95;
+                    --surface-light-color: #5b21b6;
+                    --border-color: #4c1d95;
+                    --text-main-color: #faf5ff;
+                    --text-secondary-color: #e9d5ff;
+                }
+            {% elif current_settings.theme == 'theme-minimal' %}
+                :root {
+                    --primary-color: #e4e4e7;
+                    --primary-hover-color: #d4d4d8;
+                    --background-color: #18181b;
+                    --surface-color: #27272a;
+                    --surface-light-color: #3f3f46;
+                    --border-color: #3f3f46;
+                    --text-main-color: #f4f4f5;
+                    --text-secondary-color: #a1a1aa;
+                }
+            {% elif current_settings.theme == 'theme-rose' %}
+                :root {
+                    --primary-color: #fb7185;
+                    --primary-hover-color: #f43f5e;
+                    --background-color: #881337;
+                    --surface-color: #9f1239;
+                    --surface-light-color: #be123c;
+                    --border-color: #9f1239;
+                    --text-main-color: #fff1f2;
+                    --text-secondary-color: #fecdd3;
+                }
+            {% elif current_settings.theme == 'theme-blue' %}
+                :root {
+                    --primary-color: #3b82f6;
+                    --primary-hover-color: #2563eb;
+                    --background-color: #0f172a;
+                    --surface-color: #1e293b;
+                    --surface-light-color: #334155;
+                    --border-color: #334155;
+                    --text-main-color: #f8fafc;
+                    --text-secondary-color: #94a3b8;
+                }
+            {% elif current_settings.theme == 'theme-luxury' %}
+                :root {
+                    --primary-color: #eab308;
+                    --primary-hover-color: #ca8a04;
+                    --background-color: #000000;
+                    --surface-color: #1c1917;
+                    --surface-light-color: #292524;
+                    --border-color: #44403c;
+                    --text-main-color: #fefce8;
+                    --text-secondary-color: #a8a29e;
+                }
+            {% elif current_settings.theme == 'theme-lavender' %}
+                :root {
+                    --primary-color: #a78bfa;
+                    --primary-hover-color: #8b5cf6;
+                    --background-color: #2e1065;
+                    --surface-color: #4c1d95;
+                    --surface-light-color: #5b21b6;
+                    --border-color: #5b21b6;
+                    --text-main-color: #f5f3ff;
+                    --text-secondary-color: #ddd6fe;
+                }
+            {% elif current_settings.theme == 'theme-midnight' %}
+                :root {
+                    --primary-color: #6366f1;
+                    --primary-hover-color: #4f46e5;
+                    --background-color: #020617;
+                    --surface-color: #0f172a;
+                    --surface-light-color: #1e293b;
+                    --border-color: #1e293b;
+                    --text-main-color: #f8fafc;
+                    --text-secondary-color: #94a3b8;
+                }
+            {% elif current_settings.theme == 'theme-neon' %}
+                :root {
+                    --primary-color: #22c55e;
+                    --primary-hover-color: #16a34a;
+                    --background-color: #000000;
+                    --surface-color: #111111;
+                    --surface-light-color: #222222;
+                    --border-color: #22c55e;
+                    --text-main-color: #ffffff;
+                    --text-secondary-color: #a3a3a3;
+                }
+            {% elif current_settings.theme == 'theme-retro' %}
+                :root {
+                    --primary-color: #f43f5e;
+                    --primary-hover-color: #e11d48;
+                    --background-color: #2c003e;
+                    --surface-color: #4c0519;
+                    --surface-light-color: #881337;
+                    --border-color: #881337;
+                    --text-main-color: #ffe4e6;
+                    --text-secondary-color: #fda4af;
+                }
+            {% elif current_settings.theme == 'theme-cherry' %}
+                :root {
+                    --primary-color: #ef4444;
+                    --primary-hover-color: #dc2626;
+                    --background-color: #2b0000;
+                    --surface-color: #450a0a;
+                    --surface-light-color: #7f1d1d;
+                    --border-color: #7f1d1d;
+                    --text-main-color: #fef2f2;
+                    --text-secondary-color: #fca5a5;
+                }
+            {% elif current_settings.theme == 'theme-dracula' %}
+                :root {
+                    --primary-color: #bd93f9;
+                    --primary-hover-color: #ff79c6;
+                    --background-color: #282a36;
+                    --surface-color: #44475a;
+                    --surface-light-color: #6272a4;
+                    --border-color: #6272a4;
+                    --text-main-color: #f8f8f2;
+                    --text-secondary-color: #6272a4;
+                }
+            {% elif current_settings.theme == 'theme-corporate' %}
+                :root {
+                    --primary-color: #0f172a;
+                    --primary-hover-color: #334155;
+                    --background-color: #f8fafc;
+                    --surface-color: #ffffff;
+                    --surface-light-color: #e2e8f0;
+                    --border-color: #cbd5e1;
+                    --text-main-color: #0f172a;
+                    --text-secondary-color: #64748b;
+                }
+            {% elif current_settings.theme == 'theme-coffee' %}
+                :root {
+                    --primary-color: #d6d3d1;
+                    --primary-hover-color: #a8a29e;
+                    --background-color: #451a03;
+                    --surface-color: #78350f;
+                    --surface-light-color: #92400e;
+                    --border-color: #78350f;
+                    --text-main-color: #f5f5f4;
+                    --text-secondary-color: #e7e5e4;
+                }
+            {% elif current_settings.theme == 'theme-default' %}
+                /* Explicit default theme (Dark) */
+                :root {
+                    --primary-color: #3b82f6;
+                    --primary-hover-color: #2563eb;
+                    --background-color: #000000;
+                    --surface-color: #0a0a0a;
+                    --surface-light-color: #171717;
+                    --border-color: #262626;
+                    --text-main-color: #ffffff;
+                    --text-secondary-color: #a3a3a3;
+                }
+            {% else %}
+                /* Fallback for unknown theme: {{ current_settings.theme }} */
+                :root {
+                    --primary-color: #3b82f6;
+                    --primary-hover-color: #2563eb;
+                    --background-color: #000000;
+                    --surface-color: #0a0a0a;
+                    --surface-light-color: #171717;
+                    --border-color: #262626;
+                    --text-main-color: #ffffff;
+                    --text-secondary-color: #a3a3a3;
+                }
+            {% endif %}
+        {% endif %}
+        {% endwith %}
         
         body {
-            font-family: var(--font-family);
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-main-color);
         }
         
         /* Custom Scrollbar */

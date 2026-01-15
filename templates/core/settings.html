@@ -252,73 +252,154 @@
         </div>
         {% endif %}
 
-        <!-- Hotel Identity -->
+        <!-- Branding & Identity -->
         <div class="bg-surface-dark p-8 rounded-2xl border border-border-dark shadow-sm">
             <h3 class="text-xl font-bold text-text-main mb-6 flex items-center gap-2">
-                <span class="material-symbols-outlined text-primary">storefront</span>
+                <span class="material-symbols-outlined text-primary">store</span>
                 Hotel Identity
             </h3>
-            
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label class="block text-sm font-medium text-text-main mb-2">Hotel Name</label>
-                    {% render_field form.hotel_name class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm" %}
+                    <label class="block text-sm font-medium text-text-secondary-dark mb-2">Hotel Name</label>
+                    {{ form.hotel_name|add_class:"w-full bg-background-dark border border-border-dark rounded-xl px-4 py-3 text-text-main focus:ring-2 focus:ring-primary outline-none transition-all" }}
                 </div>
-                
                 <div>
-                    <label class="block text-sm font-medium text-text-main mb-2">Currency</label>
-                    {% render_field form.currency class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm" %}
-                    <p class="text-xs text-text-secondary-dark mt-1">This currency symbol will be used across the site.</p>
+                    <label class="block text-sm font-medium text-text-secondary-dark mb-2">Tagline</label>
+                    {{ form.hotel_tagline|add_class:"w-full bg-background-dark border border-border-dark rounded-xl px-4 py-3 text-text-main focus:ring-2 focus:ring-primary outline-none transition-all" }}
                 </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-text-main mb-2">Hotel Logo</label>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-text-secondary-dark mb-2">Description (Footer)</label>
+                    {{ form.hotel_description|add_class:"w-full bg-background-dark border border-border-dark rounded-xl px-4 py-3 text-text-main focus:ring-2 focus:ring-primary outline-none transition-all" }}
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-text-secondary-dark mb-2">Hotel Logo</label>
                     <div class="flex items-center gap-4">
                         {% if form.instance.hotel_logo %}
-                        <img src="{{ form.instance.hotel_logo.url }}" alt="Current Logo" class="h-12 w-12 rounded-lg object-cover bg-white">
+                        <div class="size-16 rounded-lg overflow-hidden bg-white/5 border border-white/10">
+                            <img src="{{ form.instance.hotel_logo.url }}" class="w-full h-full object-cover">
+                        </div>
                         {% endif %}
-                        {% render_field form.hotel_logo class="text-sm text-text-secondary-dark file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-slate-900 hover:file:bg-primary-hover" %}
+                        <div class="flex-1">
+                            {{ form.hotel_logo|add_class:"w-full bg-background-dark border border-border-dark rounded-xl px-4 py-2 text-text-main file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-slate-900 hover:file:bg-primary-hover" }}
+                        </div>
                     </div>
-                </div>
-
-                <div class="md:col-span-2">
-                    <label class="block text-sm font-medium text-text-main mb-2">Address</label>
-                    {% render_field form.address class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm" rows="2" %}
                 </div>
             </div>
         </div>
 
-        <!-- Contact & Social -->
+        <!-- Hero Section Configuration -->
+        <div class="bg-surface-dark p-8 rounded-2xl border border-border-dark shadow-sm">
+            <h3 class="text-xl font-bold text-text-main mb-6 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">campaign</span>
+                Homepage Hero Section
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-text-secondary-dark mb-2">Hero Title</label>
+                    {{ form.hero_title|add_class:"w-full bg-background-dark border border-border-dark rounded-xl px-4 py-3 text-text-main focus:ring-2 focus:ring-primary outline-none transition-all font-bold text-lg" }}
+                    <p class="text-xs text-text-secondary-dark mt-1">Main headline on the homepage.</p>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-text-secondary-dark mb-2">Hero Subtitle</label>
+                    {{ form.hero_subtitle|add_class:"w-full bg-background-dark border border-border-dark rounded-xl px-4 py-3 text-text-main focus:ring-2 focus:ring-primary outline-none transition-all" }}
+                    <p class="text-xs text-text-secondary-dark mt-1">Secondary text under the headline.</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-text-secondary-dark mb-2">CTA Button Text</label>
+                    {{ form.hero_cta_text|add_class:"w-full bg-background-dark border border-border-dark rounded-xl px-4 py-3 text-text-main focus:ring-2 focus:ring-primary outline-none transition-all" }}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-text-secondary-dark mb-2">CTA Button Link</label>
+                    {{ form.hero_cta_link|add_class:"w-full bg-background-dark border border-border-dark rounded-xl px-4 py-3 text-text-main focus:ring-2 focus:ring-primary outline-none transition-all" }}
+                    <p class="text-xs text-text-secondary-dark mt-1">e.g. #rooms, /contact/</p>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-text-secondary-dark mb-2">Hero Background Image</label>
+                    <div class="flex items-center gap-4">
+                        {% if form.instance.hero_background %}
+                        <div class="h-24 w-40 rounded-lg overflow-hidden bg-white/5 border border-white/10">
+                            <img src="{{ form.instance.hero_background.url }}" class="w-full h-full object-cover">
+                        </div>
+                        {% endif %}
+                        <div class="flex-1">
+                            {{ form.hero_background|add_class:"w-full bg-background-dark border border-border-dark rounded-xl px-4 py-2 text-text-main file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-slate-900 hover:file:bg-primary-hover" }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Information -->
         <div class="bg-surface-dark p-8 rounded-2xl border border-border-dark shadow-sm">
             <h3 class="text-xl font-bold text-text-main mb-6 flex items-center gap-2">
                 <span class="material-symbols-outlined text-primary">contact_support</span>
-                Contact & Social Media
+                Contact & Support
             </h3>
-            
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label class="block text-sm font-medium text-text-main mb-2">Contact Email</label>
-                    {% render_field form.contact_email class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm" %}
+                    <label class="block text-sm font-medium text-text-secondary-dark mb-2">Contact Email</label>
+                    {{ form.contact_email|add_class:"w-full bg-background-dark border border-border-dark rounded-xl px-4 py-3 text-text-main focus:ring-2 focus:ring-primary outline-none transition-all" }}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-text-secondary-dark mb-2">Contact Phone</label>
+                    {{ form.contact_phone|add_class:"w-full bg-background-dark border border-border-dark rounded-xl px-4 py-3 text-text-main focus:ring-2 focus:ring-primary outline-none transition-all" }}
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-text-secondary-dark mb-2">Address</label>
+                    {{ form.address|add_class:"w-full bg-background-dark border border-border-dark rounded-xl px-4 py-3 text-text-main focus:ring-2 focus:ring-primary outline-none transition-all" }}
                 </div>
                 
-                <div>
-                    <label class="block text-sm font-medium text-text-main mb-2">Contact Phone</label>
-                    {% render_field form.contact_phone class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm" %}
+                <!-- Social Media -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-text-secondary-dark mb-4 mt-2">Social Media Links</label>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary-dark text-xs font-bold">FB</span>
+                                {{ form.facebook_url|add_class:"w-full bg-background-dark border border-border-dark rounded-xl pl-10 pr-4 py-3 text-text-main focus:ring-2 focus:ring-primary outline-none transition-all text-sm" }}
+                            </div>
+                        </div>
+                        <div>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary-dark text-xs font-bold">TW</span>
+                                {{ form.twitter_url|add_class:"w-full bg-background-dark border border-border-dark rounded-xl pl-10 pr-4 py-3 text-text-main focus:ring-2 focus:ring-primary outline-none transition-all text-sm" }}
+                            </div>
+                        </div>
+                        <div>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary-dark text-xs font-bold">IG</span>
+                                {{ form.instagram_url|add_class:"w-full bg-background-dark border border-border-dark rounded-xl pl-10 pr-4 py-3 text-text-main focus:ring-2 focus:ring-primary outline-none transition-all text-sm" }}
+                            </div>
+                        </div>
+                    </div>
                 </div>
+            </div>
+        </div>
 
+        <!-- Pages Content -->
+        <div class="bg-surface-dark p-8 rounded-2xl border border-border-dark shadow-sm">
+            <h3 class="text-xl font-bold text-text-main mb-6 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">description</span>
+                Pages Content
+            </h3>
+            
+            <div class="space-y-8">
                 <div>
-                    <label class="block text-sm font-medium text-text-main mb-2">Facebook URL</label>
-                    {% render_field form.facebook_url class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm" placeholder="https://facebook.com/..." %}
+                    <label class="block text-sm font-medium text-text-secondary-dark mb-2">FAQs Content</label>
+                    {{ form.faq_content|add_class:"w-full bg-background-dark border border-border-dark rounded-xl px-4 py-3 text-text-main focus:ring-2 focus:ring-primary outline-none transition-all font-mono text-sm" }}
+                    <p class="text-xs text-text-secondary-dark mt-1">HTML content allowed.</p>
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-medium text-text-main mb-2">Twitter URL</label>
-                    {% render_field form.twitter_url class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm" placeholder="https://twitter.com/..." %}
+                    <label class="block text-sm font-medium text-text-secondary-dark mb-2">Privacy Policy</label>
+                    {{ form.privacy_policy|add_class:"w-full bg-background-dark border border-border-dark rounded-xl px-4 py-3 text-text-main focus:ring-2 focus:ring-primary outline-none transition-all font-mono text-sm" }}
+                    <p class="text-xs text-text-secondary-dark mt-1">HTML content allowed.</p>
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-medium text-text-main mb-2">Instagram URL</label>
-                    {% render_field form.instagram_url class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm" placeholder="https://instagram.com/..." %}
+                    <label class="block text-sm font-medium text-text-secondary-dark mb-2">Terms & Conditions</label>
+                    {{ form.terms_conditions|add_class:"w-full bg-background-dark border border-border-dark rounded-xl px-4 py-3 text-text-main focus:ring-2 focus:ring-primary outline-none transition-all font-mono text-sm" }}
+                    <p class="text-xs text-text-secondary-dark mt-1">HTML content allowed.</p>
                 </div>
             </div>
         </div>

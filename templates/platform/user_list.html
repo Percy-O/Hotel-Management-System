@@ -24,7 +24,7 @@
                     <tr>
                         <th class="px-6 py-4">User</th>
                         <th class="px-6 py-4">Email</th>
-                        <th class="px-6 py-4">Role</th>
+                        <th class="px-6 py-4">Workspaces & Roles</th>
                         <th class="px-6 py-4">Date Joined</th>
                         <th class="px-6 py-4 text-right">Actions</th>
                     </tr>
@@ -44,11 +44,26 @@
                         <td class="px-6 py-4">{{ user.email }}</td>
                         <td class="px-6 py-4">
                             {% if user.is_superuser %}
-                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20">Super Admin</span>
-                            {% elif user.is_staff %}
-                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">Staff</span>
+                            <div class="mb-2">
+                                <span class="px-2 py-1 rounded-full text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20">Platform Super Admin</span>
+                            </div>
+                            {% endif %}
+                            
+                            {% if user.memberships.all %}
+                                <div class="flex flex-col gap-1.5">
+                                    {% for membership in user.memberships.all %}
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs text-white font-medium">{{ membership.tenant.name }}</span>
+                                            <span class="px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                                                {{ membership.role }}
+                                            </span>
+                                        </div>
+                                    {% endfor %}
+                                </div>
                             {% else %}
-                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-white/10 text-text-secondary border border-white/20">User</span>
+                                {% if not user.is_superuser %}
+                                    <span class="text-xs text-text-secondary italic">No Workspace</span>
+                                {% endif %}
                             {% endif %}
                         </td>
                         <td class="px-6 py-4">{{ user.date_joined|date:"M d, Y" }}</td>

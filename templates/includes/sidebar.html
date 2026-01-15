@@ -80,7 +80,7 @@
                         {% url 'invoice_list' as u %}
                         {% include "includes/components/sidebar_item.html" with url=u label="Invoices" %}
                         
-                        {% if user.is_staff %}
+                        {% if user.can_manage_settings %}
                         {% url 'payment_settings' as u %}
                         {% include "includes/components/sidebar_item.html" with url=u label="Payment Settings" %}
                         {% endif %}

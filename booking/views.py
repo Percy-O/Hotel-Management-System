@@ -47,7 +47,13 @@ def get_available_rooms(room_type, check_in, check_out):
 
 def create_booking(request, room_type_id):
     room_type = get_object_or_404(RoomType, pk=room_type_id)
-    form_class = AdminBookingForm if request.user.is_staff else BookingForm
+    
+    # Check if user can manage bookings (Admin, Manager, Receptionist)
+    can_manage = False
+    if request.user.is_authenticated:
+        can_manage = request.user.is_staff or request.user.can_manage_bookings
+        
+    form_class = AdminBookingForm if can_manage else BookingForm
     
     # Context variables
     available_rooms = None
@@ -78,7 +84,7 @@ def create_booking(request, room_type_id):
                 booking.room = room
                 
                 # Handle User Assignment & Auto-creation
-                if request.user.is_staff:
+                if can_manage:
                     # Admin booking logic
                     if booking.user:
                         if not booking.guest_name:
@@ -218,10 +224,10 @@ def create_booking(request, room_type_id):
                 # If guest: PENDING
                 
                 payment_method = 'ONLINE' # Default
-                if request.user.is_staff:
+                if can_manage:
                     payment_method = form.cleaned_data.get('payment_method')
                 
-                if request.user.is_staff and payment_method in ['CASH', 'TRANSFER']:
+                if can_manage and payment_method in ['CASH', 'TRANSFER']:
                     booking.status = Booking.Status.CONFIRMED
                 else:
                     booking.status = Booking.Status.PENDING
@@ -256,6 +262,7 @@ def create_booking(request, room_type_id):
                 booking.save()
                 # Generate Invoice
                 invoice = Invoice.objects.create(
+                    tenant=request.tenant,
                     booking=booking,
                     amount=booking.total_price,
                     status=Invoice.Status.PENDING,
@@ -263,7 +270,7 @@ def create_booking(request, room_type_id):
                 )
 
                 # Handle Payment if Staff and Manual
-                if request.user.is_staff and payment_method in ['CASH', 'TRANSFER']:
+                if can_manage and payment_method in ['CASH', 'TRANSFER']:
                     # Create Payment Record
                     from billing.models import Payment
                     Payment.objects.create(
@@ -366,7 +373,7 @@ def create_booking(request, room_type_id):
              })
         form = form_class(initial=initial_data)
 
-    if request.user.is_staff:
+    if can_manage:
         template_name = 'booking/staff_booking_form.html'
     else:
         template_name = 'booking/booking_form.html'
@@ -379,9 +386,15 @@ def create_booking(request, room_type_id):
 
 def booking_detail(request, pk):
     booking = get_object_or_404(Booking, pk=pk)
+    
+    # Check permissions
+    can_manage = False
+    if request.user.is_authenticated:
+        can_manage = request.user.is_staff or request.user.can_manage_bookings
+
     # Security check: only show booking to the owner or staff
     if request.user.is_authenticated:
-        if not request.user.is_staff and booking.user != request.user:
+        if not can_manage and booking.user != request.user:
              messages.error(request, "You do not have permission to view this booking.")
              return redirect('home')
     # If unauthenticated, maybe allow via token? For now, require login or rely on session messages.
@@ -692,11 +705,26 @@ def download_receipt(request, pk):
          messages.error(request, "You do not have permission to download this receipt.")
          return redirect('home')
 
-    # Import SiteSetting to get theme
-    from core.models import SiteSetting
-    settings = SiteSetting.load()
-    current_theme = settings.theme
-    currency_symbol = settings.currency_symbol if hasattr(settings, 'currency_symbol') and settings.currency_symbol else '$'
+    # Import TenantSetting to get theme
+    from core.models import TenantSetting
+    settings = None
+    if request.tenant:
+        settings = TenantSetting.objects.filter(tenant=request.tenant).first()
+    
+    # Fallback values
+    current_theme = settings.theme if settings else 'theme-default'
+    hotel_name = settings.hotel_name if settings else "Hotel Management System"
+    
+    # Currency Symbol Mapping
+    CURRENCY_SYMBOLS = {
+        'USD': '$', 'EUR': '€', 'GBP': '£', 'NGN': '₦', 
+        'JPY': '¥', 'CAD': '$', 'AUD': '$', 'INR': '₹', 'ZAR': 'R'
+    }
+    currency_symbol = '$'
+    if settings:
+        currency_symbol = CURRENCY_SYMBOLS.get(settings.currency, settings.currency)
+        if hasattr(settings, 'currency_symbol'): # In case it was added as property
+             currency_symbol = settings.currency_symbol
 
     # Define Theme Colors (R, G, B)
     # Default fallback: Green (#13ec6d -> 19, 236, 109)
@@ -733,7 +761,7 @@ def download_receipt(request, pk):
     
     # Try to use Logo first
     logo_path = None
-    if settings.hotel_logo:
+    if settings and settings.hotel_logo:
         try:
             if os.path.exists(settings.hotel_logo.path):
                 logo_path = settings.hotel_logo.path
@@ -760,7 +788,7 @@ def download_receipt(request, pk):
         pdf.set_text_color(245, 245, 245) # Very light gray
         
         # Calculate rough width of text
-        text = settings.hotel_name.upper()
+        text = hotel_name.upper()
         # Add a very small separator to distinguish repeats slightly, or none as requested
         text_w = pdf.get_string_width(text) + 2 
         text_h = 8 # Line height
@@ -787,7 +815,7 @@ def download_receipt(request, pk):
     pdf.set_y(10)
     pdf.set_font("Arial", 'B', 16)
     pdf.set_text_color(*primary_color)
-    pdf.cell(0, 8, txt=settings.hotel_name.upper(), ln=1, align="R")
+    pdf.cell(0, 8, txt=hotel_name.upper(), ln=1, align="R")
     
     # Address & Contact Info (Small, below name)
     pdf.set_font("Arial", '', 8)
@@ -911,8 +939,8 @@ def download_receipt(request, pk):
     pdf.set_font("Arial", '', 9)
     
     # Room Charge
-    currency_symbol = '$'
-    if hasattr(settings, 'currency_symbol') and settings.currency_symbol:
+    # Currency already set at top
+    if settings and hasattr(settings, 'currency_symbol') and settings.currency_symbol:
         currency_symbol = settings.currency_symbol
         if currency_symbol == '₦':
              currency_symbol = 'N'

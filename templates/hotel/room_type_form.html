@@ -67,16 +67,16 @@
 
         <!-- Step 2: Images -->
         <div class="step-content hidden" data-step="2">
-            <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-6">Room Images</h3>
+            <h3 class="text-lg font-bold text-text-main mb-6">Room Images</h3>
             
             <div class="space-y-6">
                 <!-- Main Image -->
                 <div>
-                    <label class="block text-sm font-medium text-slate-900 dark:text-white mb-2">Main Cover Image</label>
-                    <div class="relative group cursor-pointer border-2 border-dashed border-border-light dark:border-border-dark rounded-xl p-8 text-center hover:border-primary transition-colors bg-gray-50 dark:bg-[#1A2C23]" onclick="document.getElementById('id_image').click()">
+                    <label class="block text-sm font-medium text-text-main mb-2">Main Cover Image</label>
+                    <div class="relative group cursor-pointer border-2 border-dashed border-border-dark rounded-xl p-8 text-center hover:border-primary transition-colors bg-background-dark" onclick="document.getElementById('id_image').click()">
                         <input type="file" name="image" id="id_image" class="hidden" accept="image/*" onchange="previewImage(this, 'main-preview')">
                         <div id="main-preview" class="hidden w-full h-48 bg-cover bg-center rounded-lg mb-4"></div>
-                        <div class="text-text-secondary-light dark:text-text-secondary-dark">
+                        <div class="text-text-secondary-dark">
                             <span class="material-symbols-outlined text-4xl mb-2">add_photo_alternate</span>
                             <p class="text-sm">Click to upload main image</p>
                         </div>
@@ -85,11 +85,11 @@
 
                 <!-- Gallery Images -->
                 <div>
-                    <label class="block text-sm font-medium text-slate-900 dark:text-white mb-2">Gallery Images (Multiple)</label>
-                    <div class="relative group cursor-pointer border-2 border-dashed border-border-light dark:border-border-dark rounded-xl p-8 text-center hover:border-primary transition-colors bg-gray-50 dark:bg-[#1A2C23]" onclick="document.getElementById('gallery_images').click()">
+                    <label class="block text-sm font-medium text-text-main mb-2">Gallery Images (Multiple)</label>
+                    <div class="relative group cursor-pointer border-2 border-dashed border-border-dark rounded-xl p-8 text-center hover:border-primary transition-colors bg-background-dark" onclick="document.getElementById('gallery_images').click()">
                         <input type="file" name="gallery_images" id="gallery_images" class="hidden" accept="image/*" multiple onchange="previewGallery(this)">
                         <div id="gallery-preview" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 empty:hidden"></div>
-                        <div class="text-text-secondary-light dark:text-text-secondary-dark">
+                        <div class="text-text-secondary-dark">
                             <span class="material-symbols-outlined text-4xl mb-2">collections</span>
                             <p class="text-sm">Click to upload multiple images</p>
                         </div>

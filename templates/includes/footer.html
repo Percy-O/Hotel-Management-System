@@ -13,22 +13,28 @@
                     </div>
                     <div class="flex flex-col">
                         <span class="text-xl font-bold text-text-main leading-none">{{ site_settings.hotel_name }}</span>
-                        <span class="text-[10px] uppercase tracking-[0.2em] text-primary font-medium mt-1">Luxury Stay</span>
+                        <span class="text-[10px] uppercase tracking-[0.2em] text-primary font-medium mt-1">{{ site_settings.hotel_tagline|default:"Luxury Stay" }}</span>
                     </div>
                 </a>
                 <p class="text-text-secondary-dark text-sm leading-relaxed mb-6">
-                    Experience a world of comfort and elegance in the heart of the city. Your perfect gateway begins here.
+                    {{ site_settings.hotel_description|default:"Experience a world of comfort and elegance in the heart of the city. Your perfect gateway begins here." }}
                 </p>
                 <div class="flex gap-4">
-                    <a href="#" class="size-10 rounded-full bg-surface-dark hover:bg-primary hover:text-slate-900 flex items-center justify-center text-text-main transition-all">
+                    {% if site_settings.facebook_url %}
+                    <a href="{{ site_settings.facebook_url }}" target="_blank" class="size-10 rounded-full bg-surface-dark hover:bg-primary hover:text-slate-900 flex items-center justify-center text-text-main transition-all">
                         <span class="text-xs font-bold">FB</span>
                     </a>
-                    <a href="#" class="size-10 rounded-full bg-surface-dark hover:bg-primary hover:text-slate-900 flex items-center justify-center text-text-main transition-all">
+                    {% endif %}
+                    {% if site_settings.instagram_url %}
+                    <a href="{{ site_settings.instagram_url }}" target="_blank" class="size-10 rounded-full bg-surface-dark hover:bg-primary hover:text-slate-900 flex items-center justify-center text-text-main transition-all">
                         <span class="text-xs font-bold">IG</span>
                     </a>
-                    <a href="#" class="size-10 rounded-full bg-surface-dark hover:bg-primary hover:text-slate-900 flex items-center justify-center text-text-main transition-all">
+                    {% endif %}
+                    {% if site_settings.twitter_url %}
+                    <a href="{{ site_settings.twitter_url }}" target="_blank" class="size-10 rounded-full bg-surface-dark hover:bg-primary hover:text-slate-900 flex items-center justify-center text-text-main transition-all">
                         <span class="text-xs font-bold">TW</span>
                     </a>
+                    {% endif %}
                 </div>
             </div>
 
@@ -36,17 +42,14 @@
             <div>
                 <h4 class="text-text-main font-bold mb-6">Quick Links</h4>
                 <ul class="space-y-3">
-                    <li><a href="#" class="text-text-secondary-dark hover:text-primary text-sm transition-colors">About Us</a></li>
+                    <li><a href="{% url 'about_us' %}" class="text-text-secondary-dark hover:text-primary text-sm transition-colors">About Us</a></li>
                     {% if request.tenant.room_types.exists %}
                     <li><a href="{% url 'room_list' %}" class="text-text-secondary-dark hover:text-primary text-sm transition-colors">Our Rooms</a></li>
                     {% endif %}
                     {% if site_settings.module_restaurant or request.tenant.plan.module_restaurant %}
                     <li><a href="#" class="text-text-secondary-dark hover:text-primary text-sm transition-colors">Dining & Bar</a></li>
                     {% endif %}
-                    {% if site_settings.module_gym or request.tenant.plan.module_gym %}
-                    <li><a href="#" class="text-text-secondary-dark hover:text-primary text-sm transition-colors">Spa & Wellness</a></li>
-                    {% endif %}
-                    <li><a href="#" class="text-text-secondary-dark hover:text-primary text-sm transition-colors">Contact</a></li>
+                    <li><a href="{% url 'contact_us' %}" class="text-text-secondary-dark hover:text-primary text-sm transition-colors">Contact</a></li>
                 </ul>
             </div>
 
@@ -54,35 +57,46 @@
             <div>
                 <h4 class="text-text-main font-bold mb-6">Support</h4>
                 <ul class="space-y-3">
-                    <li><a href="#" class="text-text-secondary-dark hover:text-primary text-sm transition-colors">Contact Us</a></li>
-                    <li><a href="#" class="text-text-secondary-dark hover:text-primary text-sm transition-colors">FAQs</a></li>
-                    <li><a href="#" class="text-text-secondary-dark hover:text-primary text-sm transition-colors">Privacy Policy</a></li>
-                    <li><a href="#" class="text-text-secondary-dark hover:text-primary text-sm transition-colors">Terms of Service</a></li>
+                    <li><a href="{% url 'contact_us' %}" class="text-text-secondary-dark hover:text-primary text-sm transition-colors">Contact Us</a></li>
+                    <li><a href="{% url 'faqs' %}" class="text-text-secondary-dark hover:text-primary text-sm transition-colors">FAQs</a></li>
+                    <li><a href="{% url 'privacy_policy' %}" class="text-text-secondary-dark hover:text-primary text-sm transition-colors">Privacy Policy</a></li>
+                    <li><a href="{% url 'terms_conditions' %}" class="text-text-secondary-dark hover:text-primary text-sm transition-colors">Terms of Service</a></li>
                 </ul>
             </div>
 
-            <!-- Newsletter -->
+            <!-- Highlights -->
             <div>
-                <h4 class="text-text-main font-bold mb-6">Newsletter</h4>
-                <p class="text-text-secondary-dark text-sm mb-4">Subscribe to our newsletter and get 10% off your first booking.</p>
-                <form class="flex flex-col gap-3">
-                    <input type="email" placeholder="Your email address" class="bg-surface-dark border border-border-dark rounded-lg px-4 py-3 text-text-main placeholder-text-secondary-dark focus:ring-1 focus:ring-primary focus:border-primary text-sm">
-                    <button type="submit" class="w-full bg-primary hover:bg-primary-hover text-slate-900 font-bold py-3 rounded-lg transition-colors text-sm">
-                        Subscribe
-                    </button>
-                </form>
+                <h4 class="text-text-main font-bold mb-6">Experience Luxury</h4>
+                <div class="space-y-4">
+                    <div class="flex items-start gap-3">
+                        <div class="bg-primary/10 p-2 rounded-lg text-primary shrink-0">
+                            <span class="material-symbols-outlined text-xl">verified</span>
+                        </div>
+                        <div>
+                            <h5 class="text-text-main text-sm font-semibold">Premium Service</h5>
+                            <p class="text-text-secondary-dark text-xs mt-1">24/7 dedicated concierge and support for all your needs.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div class="bg-primary/10 p-2 rounded-lg text-primary shrink-0">
+                            <span class="material-symbols-outlined text-xl">king_bed</span>
+                        </div>
+                        <div>
+                            <h5 class="text-text-main text-sm font-semibold">Comfort First</h5>
+                            <p class="text-text-secondary-dark text-xs mt-1">Spacious rooms designed for your ultimate relaxation.</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
         <div class="border-t border-border-dark pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
             <p class="text-text-secondary-dark text-sm">
-                &copy; {% now "Y" %} {{ site_settings.hotel_name }}. All Rights Reserved.
+                &copy; {% now "Y" %} {{ site_settings.hotel_name }}. All Rights Reserved | <a href="http://127.0.0.1:8000" target="_blank" class="hover:text-primary transition-colors">IHotel</a>
             </p>
-            <div class="flex gap-6">
-                <a href="#" class="text-text-secondary-dark hover:text-text-main text-sm transition-colors">Privacy</a>
-                <a href="#" class="text-text-secondary-dark hover:text-text-main text-sm transition-colors">Terms</a>
-                <a href="#" class="text-text-secondary-dark hover:text-text-main text-sm transition-colors">Sitemap</a>
-            </div>
+            <p class="text-text-secondary-dark text-sm flex items-center gap-1">
+                Powered by <a href="https://techohr.com.ng" target="_blank" class="hover:text-primary transition-colors font-semibold">Techohr</a>
+            </p>
         </div>
     </div>
 </footer>

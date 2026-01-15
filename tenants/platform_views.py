@@ -186,14 +186,18 @@ class PlatformUserListView(SuperUserRequiredMixin, ListView):
 
     def get_queryset(self):
         query = self.request.GET.get('q')
-        queryset = User.objects.all().order_by('-date_joined')
+        # Prefetch memberships and tenants to avoid N+1 queries
+        queryset = User.objects.prefetch_related('memberships__tenant').order_by('-date_joined')
+        
         if query:
             queryset = queryset.filter(
                 Q(username__icontains=query) | 
                 Q(email__icontains=query) |
                 Q(first_name__icontains=query) |
-                Q(last_name__icontains=query)
-            )
+                Q(last_name__icontains=query) |
+                Q(memberships__tenant__name__icontains=query) # Allow searching by hotel name
+            ).distinct()
+            
         return queryset
 
 # --- Plan Management ---

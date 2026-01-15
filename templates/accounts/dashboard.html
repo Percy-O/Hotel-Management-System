@@ -100,27 +100,75 @@
                     </span>
                 </div>
             </div>
-            <!-- SVG Chart Placeholder -->
+            <!-- SVG Chart -->
             <div class="h-48 w-full relative">
-                <svg class="w-full h-full" viewBox="0 0 100 40" preserveAspectRatio="none">
+                <svg class="w-full h-full" viewBox="0 0 100 50" preserveAspectRatio="none">
                     <!-- Grid Lines -->
+                    <line x1="0" y1="40" x2="100" y2="40" class="text-border-dark stroke-current" stroke-width="0.1" stroke-dasharray="2" />
                     <line x1="0" y1="30" x2="100" y2="30" class="text-border-dark stroke-current" stroke-width="0.1" stroke-dasharray="2" />
                     <line x1="0" y1="20" x2="100" y2="20" class="text-border-dark stroke-current" stroke-width="0.1" stroke-dasharray="2" />
                     <line x1="0" y1="10" x2="100" y2="10" class="text-border-dark stroke-current" stroke-width="0.1" stroke-dasharray="2" />
                     
-                    <!-- Last Week Path (Gray) -->
-                    <path d="M0,25 Q20,30 40,20 T80,15 T100,25" fill="none" stroke="#6b7280" stroke-width="0.5" stroke-opacity="0.3" />
+                    <!-- Chart Scaling Logic -->
+                    <!-- Rendered via JavaScript below for accuracy and simplicity -->
                     
-                    <!-- This Week Path (Green Gradient) -->
                     <defs>
                         <linearGradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
                             <stop offset="0%" stop-color="#13ec6d" stop-opacity="0.2"/>
                             <stop offset="100%" stop-color="#13ec6d" stop-opacity="0"/>
                         </linearGradient>
                     </defs>
-                    <path d="M0,25 Q20,15 40,25 T80,20 T100,10 V40 H0 Z" fill="url(#chartGradient)" />
-                    <path d="M0,25 Q20,15 40,25 T80,20 T100,10" fill="none" class="text-primary stroke-current" stroke-width="0.5" />
                 </svg>
+                
+                <!-- JS-based SVG rendering for accuracy -->
+                <script>
+                    document.addEventListener('DOMContentLoaded', () => {
+                        const svg = document.querySelector('svg');
+                        const thisWeekData = {{ occupancy_data.this_week|safe }};
+                        const lastWeekData = {{ occupancy_data.last_week|safe }};
+                        const maxVal = {{ occupancy_max }};
+                        const height = 50;
+                        const width = 100;
+                        const step = width / 6; // 7 points, 6 segments
+
+                        function getPoints(data) {
+                            return data.map((val, index) => {
+                                const x = index * step;
+                                const y = height - ((val / maxVal) * 40) - 5; // 5px padding bottom
+                                return `${x},${y}`;
+                            }).join(' ');
+                        }
+
+                        // Create Last Week Line
+                        const lastWeekLine = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+                        lastWeekLine.setAttribute('points', getPoints(lastWeekData));
+                        lastWeekLine.setAttribute('fill', 'none');
+                        lastWeekLine.setAttribute('stroke', '#6b7280');
+                        lastWeekLine.setAttribute('stroke-width', '0.5');
+                        lastWeekLine.setAttribute('stroke-opacity', '0.3');
+                        svg.appendChild(lastWeekLine);
+
+                        // Create This Week Line
+                        const thisWeekLine = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+                        thisWeekLine.setAttribute('points', getPoints(thisWeekData));
+                        thisWeekLine.setAttribute('fill', 'none');
+                        thisWeekLine.setAttribute('class', 'text-primary stroke-current');
+                        thisWeekLine.setAttribute('stroke-width', '0.5');
+                        svg.appendChild(thisWeekLine);
+                        
+                        // Create Area Gradient
+                        const areaPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                        const points = getPoints(thisWeekData);
+                        const firstPoint = points.split(' ')[0];
+                        const lastPoint = points.split(' ')[points.split(' ').length - 1];
+                        const d = `M ${points.replace(/ /g, ' L ')} L ${width},${height} L 0,${height} Z`;
+                        
+                        areaPath.setAttribute('d', d);
+                        areaPath.setAttribute('fill', 'url(#chartGradient)');
+                        areaPath.setAttribute('stroke', 'none');
+                        svg.insertBefore(areaPath, thisWeekLine); // Put behind line
+                    });
+                </script>
             </div>
             <div class="flex justify-between mt-2 text-xs text-text-secondary-dark">
                 <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
@@ -150,34 +198,36 @@
             <div class="bg-surface-dark p-6 rounded-xl border border-border-dark shadow-sm flex-1">
                 <h3 class="text-lg font-bold text-text-main mb-4">Revenue Overview</h3>
                 <div class="space-y-4">
-                    <div>
-                        <div class="flex justify-between text-xs mb-1">
-                            <span class="text-text-main">Mon</span>
-                            <span class="text-text-main font-bold">{{ site_settings.currency_symbol }}12k</span>
-                        </div>
-                        <div class="h-2 w-full bg-background-dark/50 rounded-full overflow-hidden">
-                            <div class="h-full bg-primary rounded-full" style="width: 40%"></div>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="flex justify-between text-xs mb-1">
-                            <span class="text-text-main">Tue</span>
-                            <span class="text-text-main font-bold">{{ site_settings.currency_symbol }}18k</span>
-                        </div>
-                        <div class="h-2 w-full bg-background-dark/50 rounded-full overflow-hidden">
-                            <div class="h-full bg-primary rounded-full" style="width: 65%"></div>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="flex justify-between text-xs mb-1">
-                            <span class="text-text-main">Wed</span>
-                            <span class="text-text-main font-bold">{{ site_settings.currency_symbol }}8k</span>
-                        </div>
-                        <div class="h-2 w-full bg-background-dark/50 rounded-full overflow-hidden">
-                            <div class="h-full bg-primary rounded-full" style="width: 25%"></div>
-                        </div>
-                    </div>
+                    <!-- JS Render Target -->
+                    <div id="revenue-bars-container" class="space-y-4"></div>
                 </div>
+                <script>
+                    document.addEventListener('DOMContentLoaded', () => {
+                        const container = document.getElementById('revenue-bars-container');
+                        const days = {{ revenue_data.days|safe }};
+                        const amounts = {{ revenue_data.amounts|safe }};
+                        const maxRev = {{ revenue_max }};
+                        const currency = "{{ site_settings.currency_symbol }}";
+
+                        days.forEach((day, index) => {
+                            const amount = amounts[index];
+                            const percentage = maxRev > 0 ? (amount / maxRev) * 100 : 0;
+                            
+                            const barHtml = `
+                                <div>
+                                    <div class="flex justify-between text-xs mb-1">
+                                        <span class="text-text-main">${day}</span>
+                                        <span class="text-text-main font-bold">${currency}${amount.toLocaleString()}</span>
+                                    </div>
+                                    <div class="h-2 w-full bg-background-dark/50 rounded-full overflow-hidden">
+                                        <div class="h-full bg-primary rounded-full" style="width: ${percentage}%"></div>
+                                    </div>
+                                </div>
+                            `;
+                            container.innerHTML += barHtml;
+                        });
+                    });
+                </script>
             </div>
         </div>
     </div>

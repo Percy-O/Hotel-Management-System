@@ -4,49 +4,90 @@
 {% block title %}{{ tenant.name }} - Book Your Stay{% endblock %}
 
 {% block body_content %}
-<div class="min-h-screen bg-background-dark flex flex-col">
-    <!-- Navbar -->
-    <nav class="bg-surface-dark/80 backdrop-blur-md border-b border-border-dark sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                <div class="flex items-center gap-3">
-                    {% if tenant.logo %}
-                    <img src="{{ tenant.logo.url }}" alt="{{ tenant.name }}" class="h-10 w-10 rounded-full object-cover">
-                    {% else %}
-                    <div class="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xl">
-                        {{ tenant.name|slice:":1" }}
-                    </div>
-                    {% endif %}
-                    <span class="text-text-main font-bold text-xl">{{ tenant.name }}</span>
-                </div>
-                <div class="flex items-center gap-4">
-                    {% if user.is_authenticated %}
-                        <a href="{% url 'dashboard' %}" class="text-text-secondary-dark hover:text-primary transition-colors">Dashboard</a>
-                    {% else %}
-                        <a href="{% url 'login' %}" class="text-text-secondary-dark hover:text-primary transition-colors">Login</a>
-                        <a href="{% url 'register' %}" class="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg transition-colors">Sign Up</a>
-                    {% endif %}
-                </div>
+    <div class="min-h-screen bg-background-dark flex flex-col">
+        <!-- Navbar -->
+        {% include 'includes/navbar.html' %}
+    <!-- Hero Section -->
+    <div class="relative bg-surface-dark h-[80vh] min-h-[600px] overflow-hidden flex items-center justify-center">
+        <!-- Background Image with Zoom Effect -->
+        <div class="absolute inset-0 z-0">
+            {% if site_settings.hero_background %}
+            <div class="absolute inset-0 bg-cover bg-center animate-ken-burns" style="background-image: url('{{ site_settings.hero_background.url }}');"></div>
+            {% else %}
+            <div class="absolute inset-0 bg-gradient-to-br from-primary/20 to-purple-900/40"></div>
+            {% endif %}
+            <div class="absolute inset-0 bg-black/50 backdrop-blur-[2px]"></div>
+        </div>
+        
+        <!-- Floating Shapes -->
+        <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
+            <div class="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/20 rounded-full blur-[100px] animate-float"></div>
+            <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-[120px] animate-float-delayed"></div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+            <h1 class="text-5xl lg:text-7xl font-extrabold text-white mb-8 tracking-tight animate-fade-in-up">
+                {{ site_settings.hero_title|default:"Experience Luxury" }}
+            </h1>
+            <p class="text-xl md:text-2xl text-gray-200 max-w-3xl mx-auto mb-12 font-light leading-relaxed animate-fade-in-up animation-delay-200">
+                {{ site_settings.hero_subtitle|default:"Discover comfort, elegance, and unforgettable moments. Your perfect gateway begins here." }}
+            </p>
+            <div class="animate-fade-in-up animation-delay-400">
+                <a href="{{ site_settings.hero_cta_link|default:'#rooms' }}" class="group relative inline-flex items-center justify-center px-8 py-4 bg-white/10 backdrop-blur-md border border-white/20 text-white text-lg font-semibold rounded-full overflow-hidden transition-all hover:bg-white/20 hover:scale-105 hover:shadow-[0_0_30px_rgba(255,255,255,0.3)]">
+                    <span class="absolute inset-0 w-full h-full bg-gradient-to-r from-primary/40 to-purple-500/40 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                    <span class="relative flex items-center gap-3">
+                        {{ site_settings.hero_cta_text|default:"Book Now" }}
+                        <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                    </span>
+                </a>
             </div>
         </div>
-    </nav>
-
-    <!-- Hero Section -->
-    <div class="relative bg-surface-dark py-20 lg:py-32 overflow-hidden">
-        <div class="absolute inset-0 bg-gradient-to-br from-primary/10 to-purple-500/10 opacity-50"></div>
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-            <h1 class="text-4xl lg:text-6xl font-extrabold text-text-main mb-6">
-                Experience Luxury at <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-400">{{ tenant.name }}</span>
-            </h1>
-            <p class="text-lg text-text-secondary-dark max-w-2xl mx-auto mb-10">
-                Discover comfort, elegance, and unforgettable moments. Book your perfect stay with us today.
-            </p>
-            <a href="#rooms" class="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-white text-lg font-semibold px-8 py-4 rounded-full transition-all shadow-lg hover:shadow-primary/25">
-                <span class="material-symbols-outlined">calendar_month</span>
-                Book Now
+        
+        <!-- Scroll Down Indicator -->
+        <div class="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce">
+            <a href="#rooms" class="text-white/50 hover:text-white transition-colors">
+                <span class="material-symbols-outlined text-4xl">keyboard_arrow_down</span>
             </a>
         </div>
     </div>
+
+    <style>
+        @keyframes ken-burns {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        @keyframes float-delayed {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(20px); }
+        }
+        .animate-ken-burns {
+            animation: ken-burns 20s ease-out infinite alternate;
+        }
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+        .animate-float-delayed {
+            animation: float-delayed 8s ease-in-out infinite;
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.8s ease-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        .animation-delay-200 { animation-delay: 0.2s; }
+        .animation-delay-400 { animation-delay: 0.4s; }
+        
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
 
     <!-- Rooms Section -->
     <div id="rooms" class="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -77,7 +118,7 @@
                         <div class="text-2xl font-bold text-primary">
                             {{ tenant.currency_symbol|default:"$" }}{{ room.price_per_night }} <span class="text-sm text-text-secondary-dark font-normal">/ night</span>
                         </div>
-                        <a href="{% url 'create_booking' room.id %}" class="text-white bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg transition-colors">
+                        <a href="{% url 'room_detail' room.id %}" class="text-white bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg transition-colors">
                             Details
                         </a>
                     </div>
@@ -98,81 +139,38 @@
                 <!-- Info -->
                 <div>
                     <h2 class="text-3xl font-bold text-text-main mb-6">About {{ tenant.name }}</h2>
-                    <p class="text-text-secondary-dark text-lg mb-8 leading-relaxed">
-                        {{ hotel.description|default:"Welcome to our premier hotel, where luxury meets comfort. We are dedicated to providing you with an unforgettable experience." }}
+                    <p class="text-text-secondary-dark mb-6 leading-relaxed">
+                        {{ site_settings.hotel_description|default:"Experience a world of comfort and elegance in the heart of the city. Your perfect gateway begins here." }}
                     </p>
-                    
-                    <div class="space-y-6">
-                        <div class="flex items-start gap-4">
-                            <div class="bg-primary/10 p-3 rounded-lg text-primary">
-                                <span class="material-symbols-outlined text-2xl">location_on</span>
-                            </div>
-                            <div>
-                                <h4 class="text-text-main font-semibold mb-1">Our Location</h4>
-                                <p class="text-text-secondary-dark">{{ hotel.address|default:"123 Hotel Street, Hospitality City" }}</p>
-                            </div>
+                    <div class="grid grid-cols-2 gap-6 mb-8">
+                        <div>
+                            <h4 class="font-bold text-text-main mb-2">Location</h4>
+                            <p class="text-text-secondary-dark text-sm">{{ site_settings.address }}</p>
                         </div>
-                        
-                        <div class="flex items-start gap-4">
-                            <div class="bg-primary/10 p-3 rounded-lg text-primary">
-                                <span class="material-symbols-outlined text-2xl">mail</span>
-                            </div>
-                            <div>
-                                <h4 class="text-text-main font-semibold mb-1">Email Us</h4>
-                                <p class="text-text-secondary-dark">{{ hotel.email|default:"contact@hotel.com" }}</p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-start gap-4">
-                            <div class="bg-primary/10 p-3 rounded-lg text-primary">
-                                <span class="material-symbols-outlined text-2xl">phone</span>
-                            </div>
-                            <div>
-                                <h4 class="text-text-main font-semibold mb-1">Call Us</h4>
-                                <p class="text-text-secondary-dark">{{ hotel.phone|default:"+1 234 567 890" }}</p>
-                            </div>
+                        <div>
+                            <h4 class="font-bold text-text-main mb-2">Contact</h4>
+                            <p class="text-text-secondary-dark text-sm">{{ site_settings.contact_email }}</p>
+                            <p class="text-text-secondary-dark text-sm">{{ site_settings.contact_phone }}</p>
                         </div>
                     </div>
+                    <a href="{% url 'about_us' %}" class="text-primary hover:text-primary-hover font-semibold flex items-center gap-2">
+                        Learn More <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                    </a>
                 </div>
-
-                <!-- Contact Form -->
-                <div class="bg-background-dark p-8 rounded-2xl border border-border-dark shadow-xl">
-                    <h3 class="text-2xl font-bold text-text-main mb-6">Send us a message</h3>
-                    <form action="#" method="POST" class="space-y-4">
-                        {% csrf_token %}
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-text-secondary-dark mb-1">First Name</label>
-                                <input type="text" class="w-full bg-surface-dark border border-border-dark rounded-lg px-4 py-2 text-text-main focus:ring-2 focus:ring-primary outline-none transition-all">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-text-secondary-dark mb-1">Last Name</label>
-                                <input type="text" class="w-full bg-surface-dark border border-border-dark rounded-lg px-4 py-2 text-text-main focus:ring-2 focus:ring-primary outline-none transition-all">
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-text-secondary-dark mb-1">Email Address</label>
-                            <input type="email" class="w-full bg-surface-dark border border-border-dark rounded-lg px-4 py-2 text-text-main focus:ring-2 focus:ring-primary outline-none transition-all">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-text-secondary-dark mb-1">Message</label>
-                            <textarea rows="4" class="w-full bg-surface-dark border border-border-dark rounded-lg px-4 py-2 text-text-main focus:ring-2 focus:ring-primary outline-none transition-all"></textarea>
-                        </div>
-                        <button type="button" class="w-full bg-primary hover:bg-primary-hover text-white font-bold py-3 rounded-xl transition-all shadow-lg hover:shadow-primary/20">
-                            Send Message
-                        </button>
-                    </form>
+                
+                <!-- Map Placeholder -->
+                <div class="h-80 bg-surface-dark rounded-2xl border border-border-dark flex items-center justify-center relative overflow-hidden">
+                    <div class="absolute inset-0 bg-cover bg-center opacity-50" style="background-image: url('https://maps.googleapis.com/maps/api/staticmap?center={{ site_settings.address|urlencode }}&zoom=14&size=600x300&key=YOUR_API_KEY');"></div>
+                    <div class="z-10 bg-surface-dark/90 p-4 rounded-xl text-center">
+                        <span class="material-symbols-outlined text-4xl text-primary mb-2">map</span>
+                        <p class="text-text-main font-bold">Find Us Here</p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Footer -->
-    <footer class="bg-surface-dark border-t border-border-dark py-12 mt-auto">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <p class="text-text-secondary-dark mb-4">&copy; {% now "Y" %} {{ tenant.name }}. All rights reserved.</p>
-            <p class="text-xs text-text-secondary-dark/50">Powered by Hotel SaaS Platform</p>
-        </div>
-    </footer>
+    {% include 'includes/footer.html' %}
 </div>
 {% endblock %}

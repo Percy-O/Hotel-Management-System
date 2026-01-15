@@ -1,50 +1,84 @@
 {% extends 'dashboard_base.html' %}
+{% load widget_tweaks %}
 
 {% block header_title %}Payment Settings{% endblock %}
-{% block header_subtitle %}Configure Payment Gateways{% endblock %}
+{% block header_subtitle %}Configure your payment gateways for online transactions{% endblock %}
 
 {% block dashboard_content %}
 <div class="max-w-4xl mx-auto">
-    <form method="POST" class="space-y-6">
+    {% if messages %}
+    <div class="mb-6">
+        {% for message in messages %}
+        <div class="p-4 rounded-lg {% if message.tags == 'error' %}bg-red-900/20 text-red-400 border border-red-900/50{% else %}bg-green-900/20 text-green-400 border border-green-900/50{% endif %} flex items-center gap-2">
+            <span class="material-symbols-outlined text-sm">info</span>
+            <span class="text-sm font-medium">{{ message }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="POST" class="space-y-8">
         {% csrf_token %}
         
-        {% for gateway in gateways %}
-        <div class="bg-surface-dark rounded-xl border border-border-dark p-6">
-            <div class="flex items-center justify-between mb-4">
+        <!-- Paystack Configuration -->
+        <div class="bg-surface-dark p-8 rounded-2xl border border-border-dark shadow-sm">
+            <div class="flex items-center justify-between mb-6">
                 <div class="flex items-center gap-3">
-                    <div class="size-10 rounded-full bg-surface-light/5 flex items-center justify-center">
-                        <span class="material-symbols-outlined text-primary">payments</span>
+                    <div class="size-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500 font-bold">P</div>
+                    <div>
+                        <h3 class="text-lg font-bold text-text-main">Paystack</h3>
+                        <p class="text-xs text-text-secondary-dark">Nigerian & African Payments</p>
                     </div>
-                    <h3 class="text-lg font-bold text-text-main">{{ gateway.get_name_display }}</h3>
                 </div>
-                
-                <label class="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" name="{{ gateway.name }}_active" class="sr-only peer" {% if gateway.is_active %}checked{% endif %}>
-                    <div class="w-11 h-6 bg-surface-light/10 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-                    <span class="ms-3 text-sm font-medium text-text-secondary-dark">Enable</span>
-                </label>
+                <div class="flex items-center gap-2">
+                    <label class="text-sm text-text-main font-medium">Enable</label>
+                    {{ form.paystack_active }}
+                </div>
             </div>
             
             <div class="grid grid-cols-1 gap-6">
                 <div>
-                    <label class="block text-sm font-medium text-text-secondary-dark mb-2">Public Key</label>
-                    <input type="text" name="{{ gateway.name }}_public" value="{{ gateway.public_key }}" 
-                        class="w-full px-4 py-3 rounded-xl bg-background-dark border border-border-dark text-text-main focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                        placeholder="pk_test_...">
+                    <label class="block text-sm font-medium text-text-main mb-2">Public Key</label>
+                    {{ form.paystack_public_key }}
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-text-secondary-dark mb-2">Secret Key</label>
-                    <input type="password" name="{{ gateway.name }}_secret" value="{{ gateway.secret_key }}" 
-                        class="w-full px-4 py-3 rounded-xl bg-background-dark border border-border-dark text-text-main focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                        placeholder="sk_test_...">
+                    <label class="block text-sm font-medium text-text-main mb-2">Secret Key</label>
+                    {{ form.paystack_secret_key }}
                 </div>
             </div>
         </div>
-        {% endfor %}
-        
+
+        <!-- Flutterwave Configuration -->
+        <div class="bg-surface-dark p-8 rounded-2xl border border-border-dark shadow-sm">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="size-10 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-500 font-bold">F</div>
+                    <div>
+                        <h3 class="text-lg font-bold text-text-main">Flutterwave</h3>
+                        <p class="text-xs text-text-secondary-dark">Global Payment Solutions</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <label class="text-sm text-text-main font-medium">Enable</label>
+                    {{ form.flutterwave_active }}
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-text-main mb-2">Public Key</label>
+                    {{ form.flutterwave_public_key }}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-text-main mb-2">Secret Key</label>
+                    {{ form.flutterwave_secret_key }}
+                </div>
+            </div>
+        </div>
+
         <div class="flex justify-end">
-            <button type="submit" class="px-6 py-3 bg-primary text-slate-900 font-bold rounded-xl hover:bg-primary-hover transition-colors shadow-lg shadow-primary/20">
-                Save Changes
+            <button type="submit" class="px-8 py-3 bg-primary hover:bg-primary-hover text-slate-900 font-bold rounded-xl transition-all shadow-lg shadow-primary/20">
+                Save Settings
             </button>
         </div>
     </form>

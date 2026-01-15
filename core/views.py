@@ -102,6 +102,74 @@ def home(request):
     plans = Plan.objects.filter(is_public=True).order_by('price')
     return render(request, 'core/saas_landing.html', {'plans': plans})
 
+def about_us(request):
+    """Public About Us Page"""
+    return render(request, 'core/about_us.html')
+
+from django.core.mail import send_mail
+from .models import TenantSetting, Notification, AuditLog, ContactMessage
+
+def contact_us(request):
+    """Public Contact Us Page"""
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        subject = request.POST.get('subject')
+        message_text = request.POST.get('message')
+        
+        # Save to DB
+        contact_msg = ContactMessage.objects.create(
+            tenant=request.tenant,
+            name=name,
+            email=email,
+            subject=subject,
+            message=message_text
+        )
+        
+        # Notify Admins/Managers via Dashboard Notification
+        # Find staff users for this tenant
+        staff_users = User.objects.filter(tenant=request.tenant, role__in=['admin', 'manager'])
+        for user in staff_users:
+            Notification.objects.create(
+                recipient=user,
+                title=f"New Inquiry: {subject}",
+                message=f"From: {name} ({email})\n\n{message_text[:100]}...",
+                notification_type=Notification.Type.INFO,
+                link=f"/dashboard/messages/{contact_msg.id}/" # Placeholder link
+            )
+            
+        # Send Email to Hotel Admin Email (from TenantSettings)
+        if request.tenant:
+            settings = TenantSetting.objects.filter(tenant=request.tenant).first()
+            if settings and settings.contact_email:
+                try:
+                    send_mail(
+                        subject=f"New Website Inquiry: {subject}",
+                        message=f"Name: {name}\nEmail: {email}\n\nMessage:\n{message_text}",
+                        from_email=None, # Use default
+                        recipient_list=[settings.contact_email],
+                        fail_silently=True
+                    )
+                except Exception as e:
+                    print(f"Failed to send contact email: {e}")
+        
+        messages.success(request, "Your message has been sent successfully! We will get back to you soon.")
+        return redirect('contact_us')
+        
+    return render(request, 'core/contact_us.html')
+
+def faqs_view(request):
+    """Public FAQs Page"""
+    return render(request, 'core/faqs.html')
+
+def privacy_policy_view(request):
+    """Public Privacy Policy Page"""
+    return render(request, 'core/privacy.html')
+
+def terms_conditions_view(request):
+    """Public Terms & Conditions Page"""
+    return render(request, 'core/terms.html')
+
 @login_required
 def update_theme(request):
     """Deprecated: Use settings_view instead."""
@@ -165,16 +233,20 @@ def settings_view(request):
         form = SiteSettingForm(request.POST, request.FILES, instance=settings)
         if form.is_valid():
             form.save()
+            print(f"DEBUG: Saved Settings for {request.tenant}. Theme: {settings.theme}")
             
             log_audit(
                 request,
                 action=AuditLog.Action.UPDATE,
                 module='Settings',
-                details="Updated site settings."
+                details=f"Updated site settings. Theme: {settings.theme}"
             )
             
             messages.success(request, "Settings updated successfully.")
             return redirect('settings')
+        else:
+            print(f"DEBUG: Form Errors: {form.errors}")
+            messages.error(request, f"Error updating settings: {form.errors}")
     else:
         form = SiteSettingForm(instance=settings)
     

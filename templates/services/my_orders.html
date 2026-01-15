@@ -22,7 +22,8 @@
                         <div class="flex items-center gap-3 mb-1">
                             <span class="text-xl font-bold text-text-main">Order #{{ order.id }}</span>
                             <span class="px-3 py-1 rounded-full text-xs font-bold 
-                                {% if order.status == 'PENDING' %}bg-yellow-500/20 text-yellow-500
+                                {% if order.status == 'AWAITING_PAYMENT' %}bg-orange-500/20 text-orange-500
+                                {% elif order.status == 'PENDING' %}bg-yellow-500/20 text-yellow-500
                                 {% elif order.status == 'IN_PROGRESS' %}bg-blue-500/20 text-blue-500
                                 {% elif order.status == 'DELIVERED' %}bg-green-500/20 text-green-500
                                 {% elif order.status == 'CANCELLED' %}bg-red-500/20 text-red-500

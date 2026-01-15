@@ -25,14 +25,14 @@
             
             <div>
                 <label class="block text-sm font-medium text-text-main mb-2">Select Room Type</label>
-                {% render_field form.room_type class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm cursor-pointer" %}
+                {% render_field form.room_type class="w-full bg-background-dark border border-border-dark rounded-xl px-4 py-3 text-text-main focus:ring-2 focus:ring-primary outline-none transition-all cursor-pointer" %}
                 {{ form.room_type.errors }}
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label class="block text-sm font-medium text-text-main mb-2">Starting Room Number</label>
-                    {% render_field form.starting_number class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm" placeholder="e.g. 101" %}
+                    {% render_field form.starting_number class="w-full bg-background-dark border border-border-dark rounded-xl px-4 py-3 text-text-main focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="e.g. 101" %}
                     {{ form.starting_number.errors }}
                 </div>
                 

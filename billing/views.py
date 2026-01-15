@@ -7,6 +7,10 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from django.db import models
 from .models import Invoice, Payment, PaymentGateway
+from .forms import PaymentGatewayForm
+from tenants.mixins import TenantAdminRequiredMixin
+from django.views.generic import FormView
+from django.urls import reverse_lazy
 from booking.models import Booking
 from core.models import Notification, TenantSetting
 from django.urls import reverse
@@ -17,6 +21,61 @@ import base64
 from fpdf import FPDF
 import os
 import tempfile
+
+class PaymentSettingsView(TenantAdminRequiredMixin, FormView):
+    template_name = 'billing/payment_settings.html'
+    form_class = PaymentGatewayForm
+    success_url = reverse_lazy('payment_settings')
+
+    def get_initial(self):
+        tenant = self.request.tenant
+        initial = {}
+        if tenant:
+            # Load Paystack
+            paystack = PaymentGateway.objects.filter(tenant=tenant, name=PaymentGateway.Provider.PAYSTACK).first()
+            if paystack:
+                initial['paystack_public_key'] = paystack.public_key
+                initial['paystack_secret_key'] = paystack.secret_key
+                initial['paystack_active'] = paystack.is_active
+            
+            # Load Flutterwave
+            flutterwave = PaymentGateway.objects.filter(tenant=tenant, name=PaymentGateway.Provider.FLUTTERWAVE).first()
+            if flutterwave:
+                initial['flutterwave_public_key'] = flutterwave.public_key
+                initial['flutterwave_secret_key'] = flutterwave.secret_key
+                initial['flutterwave_active'] = flutterwave.is_active
+        return initial
+
+    def form_valid(self, form):
+        tenant = self.request.tenant
+        if not tenant:
+            messages.error(self.request, "No tenant context found.")
+            return redirect('dashboard')
+
+        # Save Paystack
+        PaymentGateway.objects.update_or_create(
+            tenant=tenant,
+            name=PaymentGateway.Provider.PAYSTACK,
+            defaults={
+                'public_key': form.cleaned_data['paystack_public_key'],
+                'secret_key': form.cleaned_data['paystack_secret_key'],
+                'is_active': form.cleaned_data['paystack_active']
+            }
+        )
+
+        # Save Flutterwave
+        PaymentGateway.objects.update_or_create(
+            tenant=tenant,
+            name=PaymentGateway.Provider.FLUTTERWAVE,
+            defaults={
+                'public_key': form.cleaned_data['flutterwave_public_key'],
+                'secret_key': form.cleaned_data['flutterwave_secret_key'],
+                'is_active': form.cleaned_data['flutterwave_active']
+            }
+        )
+
+        messages.success(self.request, "Payment settings updated successfully.")
+        return super().form_valid(form)
 
 def is_admin(user):
     return user.is_authenticated and user.is_staff
@@ -78,6 +137,7 @@ def invoice_detail(request, pk):
     if invoice.booking: invoice_user = invoice.booking.user
     elif invoice.event_booking: invoice_user = invoice.event_booking.user
     elif invoice.gym_membership: invoice_user = invoice.gym_membership.user
+    elif invoice.orders.exists(): invoice_user = invoice.orders.first().user
     
     if not request.user.is_staff and invoice_user != request.user:
         messages.error(request, "Access denied.")
@@ -143,13 +203,32 @@ def payment_selection(request, invoice_id):
              messages.info(request, "This membership is already paid.")
              return redirect('gym_membership_list')
 
+    elif invoice.orders.exists():
+        order = invoice.orders.first()
+        context_obj = order
+        context_type = 'service'
+        user = order.user
+        email = user.email
+        phone = getattr(user, 'phone_number', '')
+        name = f"{user.first_name} {user.last_name}"
+        description = f"Room Service Order #{order.id}"
+        
+        if invoice.status == Invoice.Status.PAID:
+             messages.info(request, "This order is already paid.")
+             return redirect('my_orders')
+
     # Security Check
     if request.user.is_authenticated:
         if not request.user.is_staff and user and user != request.user:
              messages.error(request, "Access denied.")
              return redirect('home')
     
+    # Filter gateways by the invoice's tenant to ensure custom payment account
     gateways = PaymentGateway.objects.filter(is_active=True)
+    if invoice.tenant:
+        gateways = gateways.filter(tenant=invoice.tenant)
+    elif hasattr(request, 'tenant') and request.tenant:
+        gateways = gateways.filter(tenant=request.tenant)
     
     # Get Keys
     paystack_key = None
@@ -257,6 +336,31 @@ def verify_payment(request, gateway):
                     notification_type=Notification.Type.SUCCESS,
                     link=redirect_url
                 )
+
+            elif invoice.orders.exists():
+                order = invoice.orders.first()
+                order.status = 'PENDING' # Ready for kitchen
+                order.save()
+                redirect_url = reverse('my_orders')
+
+                # Notify Kitchen/Staff
+                kitchen_staff = User.objects.filter(role__in=[User.Role.KITCHEN, User.Role.MANAGER, User.Role.ADMIN])
+                for staff in kitchen_staff:
+                    Notification.objects.create(
+                        recipient=staff,
+                        title="New Room Service Order",
+                        message=f"Order #{order.id} received from Room {order.room_number}.",
+                        notification_type=Notification.Type.WARNING,
+                        link=reverse('staff_order_list')
+                    )
+                
+                Notification.objects.create(
+                    recipient=order.user,
+                    title="Order Payment Successful",
+                    message=f"Your payment for order #{order.id} was successful. Kitchen is preparing your order.",
+                    notification_type=Notification.Type.SUCCESS,
+                    link=redirect_url
+                )
             
             messages.success(request, "Payment successful!")
         else:
@@ -283,14 +387,29 @@ def download_receipt(request, pk):
     if invoice.booking: invoice_user = invoice.booking.user
     elif invoice.event_booking: invoice_user = invoice.event_booking.user
     elif invoice.gym_membership: invoice_user = invoice.gym_membership.user
+    elif invoice.orders.exists(): invoice_user = invoice.orders.first().user
 
     if not request.user.is_staff and invoice_user != request.user:
          messages.error(request, "You do not have permission to download this receipt.")
          return redirect('home')
 
-    settings = SiteSetting.load()
-    current_theme = settings.theme
-    currency_symbol = settings.currency_symbol if hasattr(settings, 'currency_symbol') and settings.currency_symbol else '$'
+    tenant = invoice.tenant
+    settings = None
+    if tenant:
+        settings = TenantSetting.objects.filter(tenant=tenant).first()
+    
+    # Fallback values if no settings found
+    current_theme = settings.theme if settings else 'theme-default'
+    currency_symbol = settings.currency if settings else 'NGN' # Using currency code as symbol for now or mapping it
+    hotel_name = settings.hotel_name if settings else "Hotel Management System"
+    
+    # Simple currency mapping
+    CURRENCY_SYMBOLS = {
+        'USD': '$', 'EUR': '€', 'GBP': '£', 'NGN': '₦', 
+        'JPY': '¥', 'CAD': '$', 'AUD': '$', 'INR': '₹', 'ZAR': 'R'
+    }
+    if settings:
+        currency_symbol = CURRENCY_SYMBOLS.get(settings.currency, settings.currency)
 
     # Define Theme Colors (R, G, B)
     THEME_COLORS = {
@@ -316,7 +435,7 @@ def download_receipt(request, pk):
     pdf.set_y(10)
     pdf.set_font("Arial", 'B', 16)
     pdf.set_text_color(*primary_color)
-    pdf.cell(0, 8, txt=settings.hotel_name.upper(), ln=1, align="R")
+    pdf.cell(0, 8, txt=hotel_name.upper(), ln=1, align="R")
     
     pdf.set_font("Arial", '', 8)
     pdf.set_text_color(60, 60, 60)
@@ -422,6 +541,8 @@ def download_receipt(request, pk):
         desc = f"Event Booking: {invoice.event_booking.event_name}"
     elif invoice.gym_membership:
         desc = f"Gym Membership: {invoice.gym_membership.plan.name}"
+    elif invoice.orders.exists():
+        desc = f"Room Service Order #{invoice.orders.first().id}"
         
     pdf.cell(w_desc, 8, txt=f"  {desc}", border="B")
     pdf.cell(w_total, 8, txt=f"{currency_symbol}{invoice.amount}  ", border="B", align="R", ln=1)

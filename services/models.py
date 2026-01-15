@@ -23,6 +23,7 @@ class MenuItem(models.Model):
 
 class GuestOrder(models.Model):
     STATUS_CHOICES = [
+        ('AWAITING_PAYMENT', 'Awaiting Payment'),
         ('PENDING', 'Pending'),
         ('IN_PROGRESS', 'In Progress'),
         ('DELIVERED', 'Delivered'),

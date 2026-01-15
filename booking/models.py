@@ -35,7 +35,18 @@ class Booking(models.Model):
         """
         Returns a standardized booking reference ID (e.g., HMS-2026-000123)
         """
-        return f"HMS-{self.created_at.year}-{self.id:06d}"
+        prefix = "HMS"
+        if self.tenant:
+            try:
+                # Import here to avoid circular dependency
+                from core.models import TenantSetting
+                settings = TenantSetting.objects.filter(tenant=self.tenant).first()
+                if settings and settings.booking_id_prefix:
+                    prefix = settings.booking_id_prefix
+            except Exception:
+                pass
+        
+        return f"{prefix}-{self.created_at.year}-{self.id:06d}"
 
     def __str__(self):
         return f"Booking {self.booking_id} - {self.guest_name or self.user.username}"

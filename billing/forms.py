@@ -27,3 +27,12 @@ class PaymentForm(forms.ModelForm):
             else:
                 # Admin/Staff: All Options
                 self.fields['payment_method'].choices = Payment.Method.choices
+
+class PaymentGatewayForm(forms.Form):
+    paystack_public_key = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'w-full rounded-lg bg-background-dark border-border-dark text-text-main p-2.5'}))
+    paystack_secret_key = forms.CharField(required=False, widget=forms.PasswordInput(attrs={'class': 'w-full rounded-lg bg-background-dark border-border-dark text-text-main p-2.5'}))
+    paystack_active = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'rounded border-border-dark bg-background-dark text-primary focus:ring-primary'}))
+    
+    flutterwave_public_key = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'w-full rounded-lg bg-background-dark border-border-dark text-text-main p-2.5'}))
+    flutterwave_secret_key = forms.CharField(required=False, widget=forms.PasswordInput(render_value=True, attrs={'class': 'w-full rounded-lg bg-background-dark border-border-dark text-text-main p-2.5'}))
+    flutterwave_active = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'rounded border-border-dark bg-background-dark text-primary focus:ring-primary'}))
