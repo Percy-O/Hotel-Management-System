@@ -36,7 +36,7 @@
                             </span>
                         </div>
                         <p class="text-text-secondary-dark text-sm flex items-center gap-2">
-                            Order #{{ order.id }} • {{ order.created_at|timesince }} ago • by {{ order.user.get_full_name|default:order.user.username }}
+                            Order #{{ order.order_id|default:order.id }} • {{ order.created_at|timesince }} ago • by {{ order.user.get_full_name|default:order.user.username }}
                             {% if order.user.guest_profile.is_vip %}
                                 <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-yellow-500/20 text-yellow-500 border border-yellow-500/30">VIP</span>
                             {% endif %}

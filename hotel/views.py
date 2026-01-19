@@ -16,8 +16,14 @@ class RoomTypeListView(ListView):
     context_object_name = 'room_types'
 
     def get_queryset(self):
+        # Enforce Tenant Isolation
+        if hasattr(self.request, 'tenant') and self.request.tenant:
+            queryset = RoomType.objects.filter(tenant=self.request.tenant)
+        else:
+            return RoomType.objects.none()
+
         # Only show room types that have at least one room associated with them
-        return RoomType.objects.annotate(
+        return queryset.annotate(
             total_rooms=Count('rooms'),
             available_rooms=Count('rooms', filter=Q(rooms__status=Room.Status.AVAILABLE))
         ).filter(total_rooms__gt=0)
@@ -27,14 +33,21 @@ class RoomTypeDetailView(DetailView):
     template_name = 'hotel/room_type_detail.html'
     context_object_name = 'room_type'
 
+    def get_queryset(self):
+        if hasattr(self.request, 'tenant') and self.request.tenant:
+            return RoomType.objects.filter(tenant=self.request.tenant)
+        return RoomType.objects.none()
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         room_type = self.object
         
         # Calculate available rooms for this type
-        total = Room.objects.filter(room_type=room_type).count()
+        # Ensure rooms belong to the same tenant
+        total = Room.objects.filter(room_type=room_type, tenant=self.request.tenant).count()
         occupied = Room.objects.filter(
             room_type=room_type, 
+            tenant=self.request.tenant,
             status__in=[Room.Status.OCCUPIED, Room.Status.MAINTENANCE, Room.Status.CLEANING]
         ).count()
         context['rooms_available_count'] = total - occupied
@@ -82,7 +95,11 @@ class StaffRoomListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         return has_tenant_permission(self.request.user, tenant, allowed_roles)
     
     def get_queryset(self):
-        queryset = Room.objects.select_related('room_type').prefetch_related('bookings').all()
+        # Enforce Tenant Isolation
+        if hasattr(self.request, 'tenant') and self.request.tenant:
+            queryset = Room.objects.select_related('room_type').prefetch_related('bookings').filter(tenant=self.request.tenant)
+        else:
+            return Room.objects.none()
         
         # If user is a CLEANER, strictly filter to only show CLEANING rooms
         if self.request.user.role == 'CLEANER':
@@ -97,10 +114,17 @@ class StaffRoomListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['total_rooms'] = Room.objects.count()
-        context['available_rooms'] = Room.objects.filter(status=Room.Status.AVAILABLE).count()
-        context['occupied_rooms'] = Room.objects.filter(status=Room.Status.OCCUPIED).count()
-        context['cleaning_rooms'] = Room.objects.filter(status=Room.Status.CLEANING).count()
+        
+        # Scope counts to tenant
+        if hasattr(self.request, 'tenant') and self.request.tenant:
+            rooms_qs = Room.objects.filter(tenant=self.request.tenant)
+        else:
+            rooms_qs = Room.objects.none()
+        
+        context['total_rooms'] = rooms_qs.count()
+        context['available_rooms'] = rooms_qs.filter(status=Room.Status.AVAILABLE).count()
+        context['occupied_rooms'] = rooms_qs.filter(status=Room.Status.OCCUPIED).count()
+        context['cleaning_rooms'] = rooms_qs.filter(status=Room.Status.CLEANING).count()
         
         # Add current booking info to rooms in context
         # This is a bit manual but allows us to access the specific active booking easily in the template
@@ -127,6 +151,11 @@ class StaffRoomTypeListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         allowed_roles = ['ADMIN', 'MANAGER']
         return has_tenant_permission(self.request.user, tenant, allowed_roles)
 
+    def get_queryset(self):
+        if hasattr(self.request, 'tenant') and self.request.tenant:
+            return RoomType.objects.filter(tenant=self.request.tenant)
+        return RoomType.objects.none()
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # Add room counts per type
@@ -140,6 +169,11 @@ class RoomStatusUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     fields = ['status']
     template_name = 'hotel/room_status_update.html'
     success_url = reverse_lazy('staff_room_list')
+
+    def get_queryset(self):
+        if hasattr(self.request, 'tenant') and self.request.tenant:
+            return Room.objects.filter(tenant=self.request.tenant)
+        return Room.objects.none()
 
     def test_func(self):
         tenant = getattr(self.request, 'tenant', None)
@@ -221,6 +255,11 @@ class BulkRoomCreateView(LoginRequiredMixin, UserPassesTestMixin, FormView):
         if not tenant: return False
         allowed_roles = ['ADMIN', 'MANAGER']
         return has_tenant_permission(self.request.user, tenant, allowed_roles)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['tenant'] = getattr(self.request, 'tenant', None)
+        return kwargs
 
     def form_valid(self, form):
         # Enforce Plan Limits
@@ -308,6 +347,11 @@ class RoomCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         tenant = getattr(self.request, 'tenant', None)
         return has_tenant_permission(self.request.user, tenant, ['ADMIN', 'MANAGER'])
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['tenant'] = getattr(self.request, 'tenant', None)
+        return kwargs
+
     def form_valid(self, form):
         # Enforce Plan Limits
         tenant = self.request.tenant
@@ -337,16 +381,30 @@ class RoomTypeDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     success_url = reverse_lazy('staff_room_type_list')
     template_name = 'hotel/room_type_confirm_delete.html'
 
+    def get_queryset(self):
+        if hasattr(self.request, 'tenant') and self.request.tenant:
+            return RoomType.objects.filter(tenant=self.request.tenant)
+        return RoomType.objects.none()
+
     def test_func(self):
-        return self.request.user.is_staff or self.request.user.role == 'ADMIN'
+        tenant = getattr(self.request, 'tenant', None)
+        if not tenant: return False
+        return has_tenant_permission(self.request.user, tenant, ['ADMIN', 'MANAGER'])
 
 class RoomDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Room
     success_url = reverse_lazy('staff_room_list')
     template_name = 'hotel/room_confirm_delete.html'
 
+    def get_queryset(self):
+        if hasattr(self.request, 'tenant') and self.request.tenant:
+            return Room.objects.filter(tenant=self.request.tenant)
+        return Room.objects.none()
+
     def test_func(self):
-        return self.request.user.is_staff or self.request.user.role == 'ADMIN'
+        tenant = getattr(self.request, 'tenant', None)
+        if not tenant: return False
+        return has_tenant_permission(self.request.user, tenant, ['ADMIN', 'MANAGER'])
 
 @login_required
 def bulk_delete_rooms(request):
@@ -357,8 +415,12 @@ def bulk_delete_rooms(request):
     if request.method == 'POST':
         room_ids = request.POST.getlist('selected_rooms')
         if room_ids:
-            deleted_count, _ = Room.objects.filter(id__in=room_ids).delete()
-            messages.success(request, f"Successfully deleted {deleted_count} rooms.")
+            # Enforce Tenant Isolation
+            if hasattr(request, 'tenant') and request.tenant:
+                deleted_count, _ = Room.objects.filter(id__in=room_ids, tenant=request.tenant).delete()
+                messages.success(request, f"Successfully deleted {deleted_count} rooms.")
+            else:
+                messages.error(request, "Tenant context missing.")
         else:
             messages.warning(request, "No rooms selected for deletion.")
             

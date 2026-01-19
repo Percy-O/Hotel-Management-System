@@ -66,9 +66,12 @@ def send_tenant_email(subject, message, recipient_list, tenant=None, html_messag
     sender = settings.DEFAULT_FROM_EMAIL
     
     # Global Default
+    # Transferred to settings.py
+    """
     global_settings = GlobalSetting.objects.first()
     if global_settings and global_settings.default_from_email:
         sender = global_settings.default_from_email
+    """
         
     # Tenant Override
     if tenant and hasattr(tenant, 'plan') and tenant.plan and tenant.plan.allow_custom_email:

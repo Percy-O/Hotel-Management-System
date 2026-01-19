@@ -23,26 +23,50 @@
                 <div class="col-span-full">
                     <label class="block text-sm font-medium text-text-main mb-2">Description</label>
                     {% render_field form.description class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-text-main focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Describe the venue features..." %}
+                    {% if form.description.errors %}
+                        <p class="text-red-500 text-xs mt-1">{{ form.description.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="col-span-full">
+                    <label class="block text-sm font-medium text-text-main mb-2">Amenities</label>
+                    {% render_field form.amenities class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-text-main focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="WiFi, Projector, Sound System, Catering (Comma separated)" %}
+                    <p class="text-xs text-text-secondary-dark mt-1">Separate amenities with commas. Icons will be auto-detected.</p>
+                    {% if form.amenities.errors %}
+                        <p class="text-red-500 text-xs mt-1">{{ form.amenities.errors.0 }}</p>
+                    {% endif %}
                 </div>
                 
                 <div>
                     <label class="block text-sm font-medium text-text-main mb-2">Capacity (Guests)</label>
                     {% render_field form.capacity class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-text-main focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" %}
+                    {% if form.capacity.errors %}
+                        <p class="text-red-500 text-xs mt-1">{{ form.capacity.errors.0 }}</p>
+                    {% endif %}
                 </div>
                 
                 <div>
                     <label class="block text-sm font-medium text-text-main mb-2">Pricing Type</label>
                     {% render_field form.pricing_type class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-text-main focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" %}
+                    {% if form.pricing_type.errors %}
+                        <p class="text-red-500 text-xs mt-1">{{ form.pricing_type.errors.0 }}</p>
+                    {% endif %}
                 </div>
                 
                 <div>
                     <label class="block text-sm font-medium text-text-main mb-2">Price</label>
                     {% render_field form.price class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-text-main focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" %}
+                    {% if form.price.errors %}
+                         <p class="text-red-500 text-xs mt-1">{{ form.price.errors.0 }}</p>
+                    {% endif %}
                 </div>
                 
                 <div class="col-span-full">
                     <label class="block text-sm font-medium text-text-main mb-2">Main Image</label>
                     {% render_field form.image class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2 text-text-secondary-dark file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" %}
+                    {% if form.image.errors %}
+                        <p class="text-red-500 text-xs mt-1">{{ form.image.errors.0 }}</p>
+                    {% endif %}
                 </div>
 
                 <div class="col-span-full">

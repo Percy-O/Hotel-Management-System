@@ -11,8 +11,8 @@ from django.utils import timezone
 from django.http import HttpResponse
 from fpdf import FPDF
 from core.email_utils import send_tenant_email, send_branded_email
-
-# Models
+from tenants.models import Membership # Import Membership
+import datetime
 from hotel.models import RoomType, Room
 from .models import Booking
 from billing.models import Invoice
@@ -61,7 +61,11 @@ def create_booking(request, room_type_id):
     check_out_str = request.GET.get('check_out')
 
     if request.method == 'POST':
-        form = form_class(request.POST)
+        if can_manage:
+            form = form_class(request.POST, tenant=request.tenant)
+        else:
+            form = form_class(request.POST)
+            
         if form.is_valid():
             check_in = form.cleaned_data['check_in_date']
             check_out = form.cleaned_data['check_out_date']
@@ -83,6 +87,10 @@ def create_booking(request, room_type_id):
                 booking = form.save(commit=False)
                 booking.room = room
                 
+                # Assign Tenant
+                if hasattr(request, 'tenant') and request.tenant:
+                    booking.tenant = request.tenant
+                
                 # Handle User Assignment & Auto-creation
                 if can_manage:
                     # Admin booking logic
@@ -102,6 +110,8 @@ def create_booking(request, room_type_id):
                             booking.guest_name = full_name
                             
                         if email and first_name:
+                            email = email.lower().strip()
+                            first_name = first_name.strip()
                             user = User.objects.filter(email=email).first()
                             if not user:
                                 # Create new user
@@ -113,6 +123,15 @@ def create_booking(request, room_type_id):
                                     if hasattr(User, 'Role'):
                                         user.role = User.Role.GUEST
                                     user.save()
+                                    
+                                    # Create Tenant Membership for Guest
+                                    if hasattr(request, 'tenant') and request.tenant:
+                                        Membership.objects.get_or_create(
+                                            user=user,
+                                            tenant=request.tenant,
+                                            defaults={'role': User.Role.GUEST}
+                                        )
+
                                     messages.info(request, f"Guest Account created! Email: {email}, Password: {password}")
                                     
                                     # Send Welcome Email
@@ -142,9 +161,24 @@ def create_booking(request, room_type_id):
                             
                             if user:
                                 booking.user = user
+                                # Ensure membership exists for this tenant
+                                if hasattr(request, 'tenant') and request.tenant:
+                                    Membership.objects.get_or_create(
+                                        user=user,
+                                        tenant=request.tenant,
+                                        defaults={'role': User.Role.GUEST}
+                                    )
 
                 elif request.user.is_authenticated:
                     booking.user = request.user
+                    # Ensure membership exists for this tenant (e.g. if Admin from another hotel books here as guest)
+                    if hasattr(request, 'tenant') and request.tenant:
+                         Membership.objects.get_or_create(
+                            user=request.user,
+                            tenant=request.tenant,
+                            defaults={'role': User.Role.GUEST}
+                         )
+
                     # Auto-fill guest details if not provided
                     if not booking.guest_name:
                         booking.guest_name = f"{request.user.first_name} {request.user.last_name}"
@@ -162,6 +196,8 @@ def create_booking(request, room_type_id):
                         booking.guest_name = full_name
                     
                     if email and first_name:
+                        email = email.lower().strip()
+                        first_name = first_name.strip()
                         user = User.objects.filter(email=email).first()
                         if not user:
                             # Create new user
@@ -206,6 +242,13 @@ def create_booking(request, room_type_id):
                         
                         if user:
                             booking.user = user
+                            # Ensure membership exists for this tenant
+                            if hasattr(request, 'tenant') and request.tenant:
+                                Membership.objects.get_or_create(
+                                    user=user,
+                                    tenant=request.tenant,
+                                    defaults={'role': User.Role.GUEST}
+                                )
                 
                 # Calculate total price
                 # Calculate duration in days, ensuring at least 1 day/night charged if < 24h but overnight? 
@@ -241,14 +284,35 @@ def create_booking(request, room_type_id):
                     if booking.status == Booking.Status.PENDING:
                         staff_users = User.objects.filter(role__in=[User.Role.MANAGER, User.Role.RECEPTIONIST])
                         booking_link = reverse('booking_detail', kwargs={'pk': booking.pk})
-                    for staff in staff_users:
-                        Notification.objects.create(
-                            recipient=staff,
-                            title="New Booking Request",
-                            message=f"New booking from {booking.guest_name} for {room_type.name}.",
-                            notification_type=Notification.Type.INFO,
-                            link= booking_link
-                        )
+                        for staff in staff_users:
+                            Notification.objects.create(
+                                recipient=staff,
+                                title="New Booking Request",
+                                message=f"New booking from {booking.guest_name} for {room_type.name}.",
+                                notification_type=Notification.Type.INFO,
+                                link= booking_link
+                            )
+                        
+                        # Send Email to Guest (Booking Received / Pending Payment)
+                        if booking.guest_email:
+                            try:
+                                protocol = 'https' if request.is_secure() else 'http'
+                                host = request.get_host()
+                                payment_url = f"{protocol}://{host}/billing/payment/{invoice.pk}/" # Redirect to payment
+                                
+                                send_branded_email(
+                                    subject=f"Booking Received - Pending Payment - #{booking.booking_id}",
+                                    template_name='emails/booking_received.html',
+                                    context={
+                                        'booking': booking,
+                                        'payment_url': payment_url,
+                                        'room_type': room_type
+                                    },
+                                    recipient_list=[booking.guest_email],
+                                    tenant=request.tenant
+                                )
+                            except Exception as e:
+                                print(f"Error sending booking received email: {e}")
                 
                 # Log Pending Booking
                 if booking.status == Booking.Status.PENDING:
@@ -371,7 +435,11 @@ def create_booking(request, room_type_id):
                 'first_name': request.user.first_name,
                 'last_name': request.user.last_name,
              })
-        form = form_class(initial=initial_data)
+        
+        if can_manage:
+            form = form_class(initial=initial_data, tenant=request.tenant)
+        else:
+            form = form_class(initial=initial_data)
 
     if can_manage:
         template_name = 'booking/staff_booking_form.html'
@@ -385,7 +453,11 @@ def create_booking(request, room_type_id):
     })
 
 def booking_detail(request, pk):
-    booking = get_object_or_404(Booking, pk=pk)
+    # Enforce Tenant Isolation
+    if hasattr(request, 'tenant') and request.tenant:
+        booking = get_object_or_404(Booking, pk=pk, tenant=request.tenant)
+    else:
+        booking = get_object_or_404(Booking, pk=pk)
     
     # Check permissions
     can_manage = False
@@ -426,17 +498,35 @@ def booking_detail(request, pk):
 
 @login_required
 def my_bookings(request):
-    bookings = Booking.objects.filter(user=request.user).order_by('-created_at')
+    bookings = Booking.objects.filter(user=request.user)
+    
+    # Filter by tenant if present (Strict Isolation)
+    if hasattr(request, 'tenant') and request.tenant:
+        bookings = bookings.filter(tenant=request.tenant)
+        
+    bookings = bookings.order_by('-created_at')
     return render(request, 'booking/my_bookings.html', {'bookings': bookings})
 
 @login_required
 def booking_list(request):
-    # Restrict to staff/admin only
-    if not request.user.is_staff:
-        return redirect('my_bookings')
+    # Restrict to authorized staff only
+    if not request.user.can_manage_bookings:
+        # If they can't manage, maybe they can view?
+        # But usually 'booking_list' is the management view.
+        # Let's use can_manage_bookings to be safe, or can_view_bookings if strictly read-only is supported.
+        # The sidebar uses can_view_bookings.
+        if not getattr(request.user, 'can_view_bookings', False):
+             return redirect('my_bookings')
 
-    bookings = Booking.objects.all().order_by('-created_at')
-    room_types = RoomType.objects.all()
+    # Ensure Tenant Isolation
+    if hasattr(request, 'tenant') and request.tenant:
+        bookings = Booking.objects.filter(tenant=request.tenant)
+        room_types = RoomType.objects.filter(tenant=request.tenant)
+    else:
+        bookings = Booking.objects.none()
+        room_types = RoomType.objects.none()
+
+    bookings = bookings.order_by('-created_at')
     
     # Filters
     status = request.GET.get('status')
@@ -467,8 +557,9 @@ def check_in_booking(request, pk):
     booking = get_object_or_404(Booking, pk=pk)
     
     # Permission check
-    if not request.user.is_staff:
-        messages.error(request, "Only staff can perform check-in operations.")
+    can_manage = request.user.is_staff or getattr(request.user, 'can_manage_bookings', False)
+    if not can_manage:
+        messages.error(request, "Only authorized staff can perform check-in operations.")
         return redirect('booking_detail', pk=pk)
 
     if booking.status != Booking.Status.CONFIRMED:
@@ -506,11 +597,16 @@ def check_in_booking(request, pk):
 
 @login_required
 def check_out_booking(request, pk):
-    booking = get_object_or_404(Booking, pk=pk)
+    # Ensure isolation
+    if hasattr(request, 'tenant') and request.tenant:
+        booking = get_object_or_404(Booking, pk=pk, tenant=request.tenant)
+    else:
+        booking = get_object_or_404(Booking, pk=pk)
     
     # Permission check
-    if not request.user.is_staff:
-        messages.error(request, "Only staff can perform check-out operations.")
+    can_manage = request.user.is_staff or getattr(request.user, 'can_manage_bookings', False)
+    if not can_manage:
+        messages.error(request, "Only authorized staff can perform check-out operations.")
         return redirect('booking_detail', pk=pk)
 
     if booking.status != Booking.Status.CHECKED_IN:
@@ -527,7 +623,8 @@ def check_out_booking(request, pk):
     room.save()
     
     # Notify Cleaners
-    cleaners = User.objects.filter(role='CLEANER')
+    # Filter cleaners belonging to this tenant
+    cleaners = User.objects.filter(memberships__tenant=room.tenant, memberships__role='CLEANER')
     
     # Dashboard Notification
     for cleaner in cleaners:
@@ -553,7 +650,7 @@ def check_out_booking(request, pk):
                 print(f"Failed to send email to {cleaner.email}: {e}")
 
     # Notify Manager as well for oversight
-    managers = User.objects.filter(role='MANAGER')
+    managers = User.objects.filter(memberships__tenant=room.tenant, memberships__role='MANAGER')
     for manager in managers:
          Notification.objects.create(
             recipient=manager,
@@ -615,7 +712,11 @@ def add_booking_selection(request):
         messages.error(request, "Access denied.")
         return redirect('home')
         
-    room_types = RoomType.objects.all()
+    if hasattr(request, 'tenant') and request.tenant:
+        room_types = RoomType.objects.filter(tenant=request.tenant)
+    else:
+        room_types = RoomType.objects.none()
+        
     return render(request, 'booking/add_booking_selection.html', {'room_types': room_types})
 
 @login_required
@@ -642,19 +743,18 @@ def verify_booking(request):
             except IndexError:
                 pass
 
-        # Try finding by ID first
-        if search_query.isdigit():
-            booking = Booking.objects.filter(id=search_query).first()
-        
-        # Try finding by Booking Reference ID (HMS-YYYY-ID)
-        if not booking and search_query.startswith('HMS-'):
-            try:
-                parts = search_query.split('-')
-                if len(parts) == 3:
-                    booking_pk = int(parts[2])
-                    booking = Booking.objects.filter(id=booking_pk).first()
-            except (ValueError, IndexError):
-                pass
+        # Try finding by Booking Reference (Exact Match)
+        if hasattr(request, 'tenant') and request.tenant:
+            booking = Booking.objects.filter(booking_reference__iexact=search_query, tenant=request.tenant).first()
+        else:
+            booking = Booking.objects.filter(booking_reference__iexact=search_query).first()
+            
+        # Fallback: Try finding by ID (Legacy Support)
+        if not booking and search_query.isdigit():
+            if hasattr(request, 'tenant') and request.tenant:
+                booking = Booking.objects.filter(id=search_query, tenant=request.tenant).first()
+            else:
+                booking = Booking.objects.filter(id=search_query).first()
         
         if not booking:
             messages.error(request, f"No booking found with ID: {search_query}")

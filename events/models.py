@@ -11,7 +11,8 @@ class EventHall(models.Model):
         ('PER_EVENT', 'Per Event'),
     ]
     name = models.CharField(max_length=255)
-    description = models.TextField(blank=True)
+    description = models.TextField(blank=True, help_text="Detailed description of the hall")
+    amenities = models.TextField(blank=True, help_text="Comma-separated list of amenities (e.g. WiFi, Projector, Sound System)")
     capacity = models.PositiveIntegerField(help_text="Maximum number of guests")
     pricing_type = models.CharField(max_length=20, choices=PRICING_TYPE_CHOICES, default='PER_HOUR')
     price = models.DecimalField(max_digits=10, decimal_places=2, help_text="Price based on selected pricing type", default=0.00)

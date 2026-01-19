@@ -37,7 +37,7 @@ class BookingForm(forms.ModelForm):
 
 class AdminBookingForm(BookingForm):
     user = forms.ModelChoiceField(
-        queryset=User.objects.filter(is_active=True), 
+        queryset=User.objects.none(), 
         required=False,
         label="Select Guest Account",
         help_text="Leave blank for walk-in guest"
@@ -59,3 +59,12 @@ class AdminBookingForm(BookingForm):
 
     class Meta(BookingForm.Meta):
         fields = ['user', 'guest_name', 'guest_email', 'guest_phone', 'check_in_date', 'check_out_date', 'first_name', 'last_name', 'payment_method']
+
+    def __init__(self, *args, **kwargs):
+        tenant = kwargs.pop('tenant', None)
+        super().__init__(*args, **kwargs)
+        if tenant:
+            # Show users who have a membership with this tenant (Staff, Past Guests)
+            self.fields['user'].queryset = User.objects.filter(memberships__tenant=tenant, is_active=True).distinct()
+        else:
+            self.fields['user'].queryset = User.objects.none()

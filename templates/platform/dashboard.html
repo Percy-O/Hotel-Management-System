@@ -13,7 +13,7 @@
                 <span class="material-symbols-outlined text-2xl">domain</span>
             </div>
         </div>
-        <h3 class="text-3xl font-bold mb-1 relative z-10 text-text-main">{{ total_tenants }}</h3>
+        <h3 class="text-3xl font-bold mb-1 relative z-10 text-black dark:text-white">{{ total_tenants }}</h3>
         <p class="text-text-secondary-dark relative z-10">Total Hotels</p>
     </div>
 
@@ -25,7 +25,7 @@
                 <span class="material-symbols-outlined text-2xl">group</span>
             </div>
         </div>
-        <h3 class="text-3xl font-bold mb-1 relative z-10 text-text-main">{{ total_users }}</h3>
+        <h3 class="text-3xl font-bold mb-1 relative z-10 text-black dark:text-white">{{ total_users }}</h3>
         <p class="text-text-secondary-dark relative z-10">Active Users</p>
     </div>
 
@@ -37,7 +37,7 @@
                 <span class="material-symbols-outlined text-2xl">payments</span>
             </div>
         </div>
-        <h3 class="text-3xl font-bold mb-1 relative z-10 text-text-main">₦{{ total_revenue|intcomma }}</h3>
+        <h3 class="text-3xl font-bold mb-1 relative z-10 text-black dark:text-white">₦{{ total_revenue|intcomma }}</h3>
         <p class="text-text-secondary-dark relative z-10">Total Revenue</p>
     </div>
 
@@ -49,7 +49,7 @@
                 <span class="material-symbols-outlined text-2xl">verified</span>
             </div>
         </div>
-        <h3 class="text-3xl font-bold mb-1 relative z-10 text-text-main">{{ active_tenants }}</h3>
+        <h3 class="text-3xl font-bold mb-1 relative z-10 text-black dark:text-white">{{ active_tenants }}</h3>
         <p class="text-text-secondary-dark relative z-10">Active Subscriptions</p>
     </div>
 </div>
@@ -65,11 +65,11 @@
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="text-xs text-text-secondary-dark uppercase tracking-wider border-b border-border-dark">
-                        <th class="pb-3 pl-2">Hotel Name</th>
-                        <th class="pb-3">Subdomain</th>
-                        <th class="pb-3">Plan</th>
-                        <th class="pb-3">Status</th>
-                        <th class="pb-3">Date</th>
+                        <th class="pb-3 pl-2 text-black dark:text-white">Hotel Name</th>
+                        <th class="pb-3 text-black dark:text-white">Subdomain</th>
+                        <th class="pb-3 text-black dark:text-white">Plan</th>
+                        <th class="pb-3 text-black dark:text-white">Status</th>
+                        <th class="pb-3 text-black dark:text-white">Date</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-border-dark">
@@ -108,11 +108,11 @@
             <div class="grid grid-cols-2 gap-4">
                 <a href="{% url 'create_tenant' %}" class="p-4 bg-white/5 rounded-xl hover:bg-primary/10 hover:border-primary/50 border border-transparent transition-all group flex flex-col items-center justify-center text-center">
                     <span class="material-symbols-outlined text-primary mb-2 text-3xl group-hover:scale-110 transition-transform">add_business</span>
-                    <span class="font-medium text-sm text-text-main">Add Tenant</span>
+                    <span class="font-medium text-sm text-black dark:text-white">Add Tenant</span>
                 </a>
                 <a href="{% url 'platform_plan_add' %}" class="p-4 bg-white/5 rounded-xl hover:bg-purple-500/10 hover:border-purple-500/50 border border-transparent transition-all group flex flex-col items-center justify-center text-center">
                     <span class="material-symbols-outlined text-purple-500 mb-2 text-3xl group-hover:scale-110 transition-transform">post_add</span>
-                    <span class="font-medium text-sm text-text-main">New Plan</span>
+                    <span class="font-medium text-sm text-black dark:text-white">New Plan</span>
                 </a>
             </div>
         </div>
@@ -127,11 +127,11 @@
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="text-xs text-text-secondary-dark uppercase tracking-wider border-b border-border-dark">
-                        <th class="pb-3 pl-2">Hotel</th>
-                        <th class="pb-3">Amount</th>
-                        <th class="pb-3">Method</th>
-                        <th class="pb-3">Ref ID</th>
-                        <th class="pb-3">Date</th>
+                        <th class="pb-3 pl-2 text-black dark:text-white">Hotel</th>
+                        <th class="pb-3 text-black dark:text-white">Amount</th>
+                        <th class="pb-3 text-black dark:text-white">Method</th>
+                        <th class="pb-3 text-black dark:text-white">Ref ID</th>
+                        <th class="pb-3 text-black dark:text-white">Date</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-border-dark">

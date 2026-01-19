@@ -28,6 +28,12 @@ class MenuItemListView(LoginRequiredMixin, MenuManagementMixin, ListView):
     context_object_name = 'menu_items'
     ordering = ['category', 'name']
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.request.tenant:
+            return qs.filter(tenant=self.request.tenant)
+        return qs.none()
+
 class MenuItemCreateView(LoginRequiredMixin, MenuManagementMixin, CreateView):
     model = MenuItem
     fields = ['name', 'description', 'price', 'category', 'image', 'is_available']
@@ -35,6 +41,12 @@ class MenuItemCreateView(LoginRequiredMixin, MenuManagementMixin, CreateView):
     success_url = reverse_lazy('menu_item_list')
 
     def form_valid(self, form):
+        if self.request.tenant:
+            form.instance.tenant = self.request.tenant
+        else:
+            messages.error(self.request, "Operation failed: No valid workspace found.")
+            return self.form_invalid(form)
+            
         messages.success(self.request, "Menu item created successfully.")
         return super().form_valid(form)
 
@@ -44,6 +56,12 @@ class MenuItemUpdateView(LoginRequiredMixin, MenuManagementMixin, UpdateView):
     template_name = 'services/menu_item_form.html'
     success_url = reverse_lazy('menu_item_list')
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.request.tenant:
+            return qs.filter(tenant=self.request.tenant)
+        return qs.none()
+
     def form_valid(self, form):
         messages.success(self.request, "Menu item updated successfully.")
         return super().form_valid(form)
@@ -52,6 +70,12 @@ class MenuItemDeleteView(LoginRequiredMixin, MenuManagementMixin, DeleteView):
     model = MenuItem
     template_name = 'services/menu_item_confirm_delete.html'
     success_url = reverse_lazy('menu_item_list')
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.request.tenant:
+            return qs.filter(tenant=self.request.tenant)
+        return qs.none()
 
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, "Menu item deleted successfully.")
@@ -64,7 +88,23 @@ def menu_list(request):
         status='CHECKED_IN'
     ).first()
 
+    # Base QuerySet: available items
     menu_items = MenuItem.objects.filter(is_available=True)
+    
+    # Filter by Tenant
+    if request.tenant:
+        menu_items = menu_items.filter(tenant=request.tenant)
+    else:
+        # If no tenant context (should not happen for logged in guests in SaaS),
+        # try to infer from active booking
+        if active_booking and active_booking.tenant:
+            menu_items = menu_items.filter(tenant=active_booking.tenant)
+        else:
+            # Fallback: Don't show anything if we can't determine tenant
+            # OR show everything if it's a superuser/platform admin (but this view is for guests)
+            if not request.user.is_superuser:
+                menu_items = MenuItem.objects.none()
+
     # Group by category
     items_by_category = {}
     for cat_code, cat_name in MenuItem.CATEGORY_CHOICES:
@@ -83,23 +123,43 @@ from django.db import transaction
 @login_required
 def place_order(request):
     if request.method == 'POST':
+        # Try to find an active booking, but don't strictly require it for the order itself
         active_booking = Booking.objects.filter(
             user=request.user, 
             status='CHECKED_IN'
         ).first()
 
-        if not active_booking and not request.user.is_staff:
-            messages.error(request, "You must be checked in to place an order.")
-            return redirect('guest_dashboard')
+        # If no active booking, we might want to check if the user is a guest in the tenant context
+        # But for now, we'll allow the order if they are authenticated.
+        # We'll use a provided room number or fallback to "Walk-in / Unknown"
         
-        room_num = active_booking.room.room_number if active_booking else "Staff Order"
+        # Room number logic:
+        # 1. Active booking room
+        # 2. Staff provided (if staff order) - not implemented here yet
+        # 3. User input (if we added a field, but for now fallback)
         
+        room_num = "Unknown"
+        if active_booking:
+            room_num = active_booking.room.room_number
+        elif request.user.is_staff:
+            room_num = "Staff Order"
+        else:
+            # If no booking and not staff, maybe we shouldn't block?
+            # User said "The room services orders is totally different from the room booking"
+            # But they probably still need a room number for delivery if it's room service.
+            # Assuming for now we allow it but mark as "No Room / Pickup" if no booking found.
+            # Or better, we trust the user is a guest.
+            room_num = "N/A" 
+
+        # Note: Ideally we should ask the user for their room number if we can't find it automatically.
+        # But to solve the "blocking" issue, we proceed.
+
         try:
             with transaction.atomic():
                 # Create Order
                 order = GuestOrder.objects.create(
                     user=request.user,
-                    booking=active_booking,
+                    booking=active_booking, # Can be null
                     room_number=room_num,
                     status='AWAITING_PAYMENT',
                     note=request.POST.get('note', '')
@@ -112,7 +172,12 @@ def place_order(request):
                 for key, value in request.POST.items():
                     if key.startswith('quantity_') and int(value) > 0:
                         item_id = key.split('_')[1]
-                        menu_item = get_object_or_404(MenuItem, id=item_id)
+                        # Ensure item belongs to the current tenant if context is available
+                        if request.tenant:
+                            menu_item = get_object_or_404(MenuItem, id=item_id, tenant=request.tenant)
+                        else:
+                            menu_item = get_object_or_404(MenuItem, id=item_id)
+                            
                         OrderItem.objects.create(
                             order=order,
                             menu_item=menu_item,
@@ -121,22 +186,16 @@ def place_order(request):
                         has_items = True
                 
                 if not has_items:
-                    # Transaction will roll back if we raise exception, but here we can just return
-                    # However, since we are in atomic block, explicit rollback or raising exception is better.
-                    # But since we created 'order' above, we should just let the block finish or raise error.
-                    # Actually, if we return, the commit happens. We must raise exception to rollback? 
-                    # Or just don't create the order if no items.
-                    # Let's check items BEFORE creating order?
-                    pass
-
-                if not has_items:
                      raise ValueError("No items selected")
 
                 order.calculate_total()
                 
                 # Create Invoice
+                # Invoice usually requires a booking for billing aggregation, but we can make it standalone if model allows.
+                # Billing model `Invoice` has `booking` as nullable.
                 invoice = Invoice.objects.create(
-                    booking=active_booking, # Can be null if staff order
+                    booking=active_booking, # Can be null
+                    tenant=request.tenant, # Ensure invoice is scoped to tenant
                     amount=order.total_price,
                     status='PENDING',
                     invoice_type=Invoice.Type.SERVICE
@@ -168,7 +227,13 @@ def staff_order_list(request):
          messages.error(request, "Access denied.")
          return redirect('home')
 
-    orders = GuestOrder.objects.exclude(status__in=['DELIVERED', 'CANCELLED', 'AWAITING_PAYMENT']).order_by('created_at')
+    orders = GuestOrder.objects.exclude(status__in=['DELIVERED', 'CANCELLED', 'AWAITING_PAYMENT'])
+    
+    # Filter by Tenant
+    if request.tenant:
+        orders = orders.filter(booking__tenant=request.tenant)
+        
+    orders = orders.order_by('created_at')
     return render(request, 'services/staff_order_list.html', {'orders': orders})
 
 @login_required
@@ -186,7 +251,14 @@ def staff_order_history(request):
     # Show all completed/cancelled orders (Global History)
     all_orders = GuestOrder.objects.filter(
         status__in=['DELIVERED', 'CANCELLED']
-    ).order_by('-created_at')
+    )
+    
+    # Filter by Tenant
+    if request.tenant:
+        my_orders = my_orders.filter(booking__tenant=request.tenant)
+        all_orders = all_orders.filter(booking__tenant=request.tenant)
+        
+    all_orders = all_orders.order_by('-created_at')
     
     return render(request, 'services/staff_order_history.html', {
         'my_orders': my_orders,
@@ -199,7 +271,11 @@ def update_order_status(request, order_id):
          messages.error(request, "Access denied.")
          return redirect('home')
 
-    order = get_object_or_404(GuestOrder, id=order_id)
+    qs = GuestOrder.objects.all()
+    if request.tenant:
+        qs = qs.filter(booking__tenant=request.tenant)
+        
+    order = get_object_or_404(qs, id=order_id)
     if request.method == 'POST':
         # Handle "Assign Me"
         if request.POST.get('assign_me') == 'true':
@@ -251,6 +327,16 @@ def request_housekeeping(request):
         pass
 
     service_types = HousekeepingServiceType.objects.filter(is_active=True)
+    if request.tenant:
+        service_types = service_types.filter(tenant=request.tenant)
+    else:
+        # If no tenant context, infer from booking or return none/defaults
+        if active_booking and active_booking.tenant:
+            service_types = service_types.filter(tenant=active_booking.tenant)
+        else:
+             # Fallback for staff without context or superuser
+             if not request.user.is_superuser:
+                 service_types = service_types.none()
 
     if request.method == 'POST':
         service_type_id = request.POST.get('service_type')
@@ -258,7 +344,7 @@ def request_housekeeping(request):
         
         room_num = active_booking.room.room_number if active_booking else "Staff Request"
 
-        service_type = get_object_or_404(HousekeepingServiceType, id=service_type_id)
+        service_type = get_object_or_404(service_types, id=service_type_id)
 
         hk_request = HousekeepingRequest.objects.create(
             user=request.user,
@@ -271,6 +357,14 @@ def request_housekeeping(request):
 
         # Notify Staff
         staff_users = User.objects.filter(role__in=[User.Role.MANAGER, User.Role.RECEPTIONIST, User.Role.CLEANER])
+        if request.tenant:
+             # Filter staff by tenant membership?
+             # User model doesn't have tenant field directly, but we can assume role checks or use Membership
+             # Or rely on User.tenant field if implemented.
+             # Better: Use Membership
+             from tenants.models import Membership
+             staff_memberships = Membership.objects.filter(tenant=request.tenant, user__role__in=[User.Role.MANAGER, User.Role.RECEPTIONIST, User.Role.CLEANER])
+             staff_users = [m.user for m in staff_memberships]
         
         # Send Email
         for staff in staff_users:
@@ -311,8 +405,15 @@ def staff_housekeeping_list(request):
         messages.error(request, "Access denied.")
         return redirect('home')
     
-    requests = HousekeepingRequest.objects.exclude(status__in=['COMPLETED', 'CANCELLED']).order_by('created_at')
+    requests = HousekeepingRequest.objects.exclude(status__in=['COMPLETED', 'CANCELLED'])
     my_tasks = HousekeepingRequest.objects.filter(assigned_staff=request.user).exclude(status__in=['COMPLETED', 'CANCELLED'])
+
+    # Filter by Tenant
+    if request.tenant:
+        requests = requests.filter(booking__tenant=request.tenant)
+        my_tasks = my_tasks.filter(booking__tenant=request.tenant)
+
+    requests = requests.order_by('created_at')
 
     return render(request, 'services/staff_housekeeping_list.html', {
         'requests': requests,
@@ -326,7 +427,11 @@ def update_housekeeping_status(request, pk):
         messages.error(request, "Access denied.")
         return redirect('home')
 
-    hk_request = get_object_or_404(HousekeepingRequest, pk=pk)
+    qs = HousekeepingRequest.objects.all()
+    if request.tenant:
+        qs = qs.filter(booking__tenant=request.tenant)
+        
+    hk_request = get_object_or_404(qs, pk=pk)
 
     if request.method == 'POST':
         if 'assign_me' in request.POST:
@@ -378,6 +483,12 @@ class HousekeepingServiceTypeListView(LoginRequiredMixin, HousekeepingManagement
     context_object_name = 'service_types'
     ordering = ['name']
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.request.tenant:
+            return qs.filter(tenant=self.request.tenant)
+        return qs.none()
+
 class HousekeepingServiceTypeCreateView(LoginRequiredMixin, HousekeepingManagementMixin, CreateView):
     model = HousekeepingServiceType
     fields = ['name', 'description', 'icon', 'is_active']
@@ -385,6 +496,12 @@ class HousekeepingServiceTypeCreateView(LoginRequiredMixin, HousekeepingManageme
     success_url = reverse_lazy('housekeeping_service_type_list')
 
     def form_valid(self, form):
+        if self.request.tenant:
+            form.instance.tenant = self.request.tenant
+        else:
+            messages.error(self.request, "Operation failed: No valid workspace found.")
+            return self.form_invalid(form)
+            
         messages.success(self.request, "Service type created successfully.")
         return super().form_valid(form)
 
@@ -394,6 +511,12 @@ class HousekeepingServiceTypeUpdateView(LoginRequiredMixin, HousekeepingManageme
     template_name = 'services/housekeeping_service_type_form.html'
     success_url = reverse_lazy('housekeeping_service_type_list')
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.request.tenant:
+            return qs.filter(tenant=self.request.tenant)
+        return qs.none()
+
     def form_valid(self, form):
         messages.success(self.request, "Service type updated successfully.")
         return super().form_valid(form)
@@ -402,6 +525,12 @@ class HousekeepingServiceTypeDeleteView(LoginRequiredMixin, HousekeepingManageme
     model = HousekeepingServiceType
     template_name = 'services/housekeeping_service_type_confirm_delete.html'
     success_url = reverse_lazy('housekeeping_service_type_list')
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.request.tenant:
+            return qs.filter(tenant=self.request.tenant)
+        return qs.none()
 
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, "Service type deleted successfully.")

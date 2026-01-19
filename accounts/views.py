@@ -18,6 +18,7 @@ from services.models import GuestOrder
 from events.models import EventBooking
 from gym.models import GymMembership
 from tenants.models import Tenant, Domain, Plan, Membership
+from core.models import TenantSetting
 from django.utils import timezone
 from datetime import timedelta
 from core.email_utils import send_branded_email
@@ -33,6 +34,21 @@ def login_view(request):
             
             # Subdomain Login Restriction
             if request.tenant and request.tenant.subdomain != 'public':
+                # Check Tenant Status
+                if request.tenant.subscription_status == 'pending_payment' or not request.tenant.is_active:
+                    is_owner = (request.tenant.owner == user)
+                    if is_owner:
+                        # Redirect owner to payment page
+                        # Note: We must redirect to the payment page URL.
+                        # If we are on a subdomain, the tenant_payment URL might be accessible if properly routed.
+                        # Assuming tenant_payment is available on the subdomain or platform.
+                        # Since it's in tenants/urls.py, and typically hms_core/urls.py includes it, it should be fine.
+                        messages.warning(request, "Your hotel account is pending activation. Please complete payment.")
+                        return redirect('tenant_payment', tenant_id=request.tenant.id)
+                    else:
+                        messages.error(request, "This hotel's account is suspended or pending activation. Please contact the owner.")
+                        return render(request, 'accounts/login.html', {'form': form})
+
                 # Check if user is a member or the owner
                 # Superusers can access anywhere
                 if not user.is_superuser:
@@ -59,6 +75,11 @@ def login_view(request):
                 # Check for owned tenants
                 owned_tenant = user.owned_tenants.first()
                 if owned_tenant:
+                    # Check for Pending Payment
+                    if owned_tenant.subscription_status == 'pending_payment':
+                        messages.warning(request, "Your hotel account is pending activation. Please complete payment.")
+                        return redirect('tenant_payment', tenant_id=owned_tenant.id)
+
                     # Construct Redirect URL
                     protocol = 'https' if request.is_secure() else 'http'
                     current_host = request.get_host()
@@ -144,6 +165,20 @@ def register_view(request):
                         tenant=tenant,
                         role='OWNER',
                         is_active=True
+                    )
+                    
+                    # Create Tenant Settings (Hotel Name, Prefix, etc.)
+                    # Calculate Acronym for Prefix
+                    words = hotel_name.split()
+                    acronym = "".join(w[0] for w in words if w and w[0].isalnum()).upper()
+                    if not acronym:
+                         acronym = "".join(c for c in hotel_name if c.isalnum()).upper()[:3]
+                         
+                    TenantSetting.objects.create(
+                        tenant=tenant,
+                        hotel_name=hotel_name,
+                        booking_id_prefix=acronym,
+                        currency='NGN' # Default, can be changed later
                     )
                     
                     # Update User Role to Admin for this tenant context
@@ -312,7 +347,10 @@ def dashboard(request):
     # Cleaner Dashboard
     if user.role == User.Role.CLEANER:
         # Get rooms assigned or just all cleaning rooms
-        cleaning_rooms = Room.objects.filter(status=Room.Status.CLEANING)
+        if request.tenant:
+            cleaning_rooms = Room.objects.filter(tenant=request.tenant, status=Room.Status.CLEANING)
+        else:
+            cleaning_rooms = Room.objects.none()
         return render(request, 'accounts/dashboard_cleaner.html', {'cleaning_rooms': cleaning_rooms})
 
     # Kitchen Staff Dashboard
@@ -324,9 +362,14 @@ def dashboard(request):
         # Focus on Today's Check-ins/outs
         today = timezone.now().date()
         
-        check_ins = Booking.objects.filter(check_in_date__date=today, status=Booking.Status.CONFIRMED)
-        check_outs = Booking.objects.filter(check_out_date__date=today, status=Booking.Status.CHECKED_IN)
-        available_rooms_count = Room.objects.filter(status=Room.Status.AVAILABLE).count()
+        if request.tenant:
+            check_ins = Booking.objects.filter(tenant=request.tenant, check_in_date__date=today, status=Booking.Status.CONFIRMED)
+            check_outs = Booking.objects.filter(tenant=request.tenant, check_out_date__date=today, status=Booking.Status.CHECKED_IN)
+            available_rooms_count = Room.objects.filter(tenant=request.tenant, status=Room.Status.AVAILABLE).count()
+        else:
+            check_ins = Booking.objects.none()
+            check_outs = Booking.objects.none()
+            available_rooms_count = 0
         
         context = {
             'check_ins': check_ins,
@@ -363,12 +406,17 @@ def dashboard(request):
     # Admin & Manager Dashboard (Full Stats)
     
     # Platform Admin Mode (Superuser on localhost)
-    if not request.tenant and user.is_superuser:
-        return redirect('platform_dashboard')
+    if not request.tenant:
+        if user.is_superuser:
+            return redirect('platform_dashboard')
+        else:
+            # Prevent non-superusers from seeing global stats if accessing via main domain
+            messages.error(request, "Please access your dashboard via your hotel's unique URL.")
+            return redirect('home')
 
     # Gather Statistics
-    # Filter by tenant if present
-    tenant_filter = {'tenant': request.tenant} if request.tenant else {}
+    # Filter by tenant if present (which is now guaranteed for non-superusers)
+    tenant_filter = {'tenant': request.tenant}
     
     total_guests = Booking.objects.filter(**tenant_filter).values('guest_email').distinct().count()
     
@@ -386,7 +434,8 @@ def dashboard(request):
         status=Invoice.Status.PAID
     ).aggregate(total=Sum('amount'))['total'] or 0
     
-    total_bookings = Booking.objects.filter(**tenant_filter).count()
+    # Only count PAID bookings as valid bookings for the dashboard
+    total_bookings = Booking.objects.filter(**tenant_filter, invoices__status=Invoice.Status.PAID).distinct().count()
     
     # Room Status
     rooms = Room.objects.filter(**tenant_filter)
@@ -495,39 +544,68 @@ def guest_dashboard(request):
         request.session['visit_purpose'] = welcome_param
     
     # Guest Stats
-    bookings = Booking.objects.filter(user=request.user)
+    # Filter bookings by tenant if present (SaaS isolation)
+    if request.tenant:
+        bookings = Booking.objects.filter(user=request.user, tenant=request.tenant)
+    else:
+        # Fallback (though guests should always be in a tenant context)
+        bookings = Booking.objects.filter(user=request.user)
+        
     total_bookings = bookings.count()
     active_bookings = bookings.filter(status__in=[Booking.Status.CONFIRMED, Booking.Status.CHECKED_IN, Booking.Status.PENDING]).count()
     
     # Calculate Total Spent (Bookings + Room Service Orders)
-    booking_spent = bookings.aggregate(total=Sum('total_price'))['total'] or 0
+    # Only count PAID bookings
+    booking_spent = bookings.filter(invoices__status=Invoice.Status.PAID).aggregate(total=Sum('total_price'))['total'] or 0
     
-    # Sum of all non-cancelled orders
-    order_spent = GuestOrder.objects.filter(
-        user=request.user
-    ).exclude(
-        status='CANCELLED'
-    ).aggregate(total=Sum('total_price'))['total'] or 0
+    # Sum of all PAID orders (Tenant Isolated)
+    order_spent_qs = GuestOrder.objects.filter(
+        user=request.user,
+        invoice__status=Invoice.Status.PAID
+    )
+    if request.tenant:
+        # Assuming GuestOrder/Invoice has tenant or linked via booking->tenant
+        # GuestOrder doesn't strictly have tenant, but Booking does.
+        # Order -> Booking -> Tenant OR Order -> Invoice -> Tenant
+        # Best to rely on Invoice tenant if available, or Booking tenant
+        order_spent_qs = order_spent_qs.filter(invoice__tenant=request.tenant)
+        
+    order_spent = order_spent_qs.aggregate(total=Sum('total_price'))['total'] or 0
     
     total_spent = booking_spent + order_spent
     
     recent_bookings = bookings.order_by('-created_at')[:3]
     
-    # Event Bookings
-    event_bookings = EventBooking.objects.filter(user=request.user).order_by('-created_at')
+    # Event Bookings (Tenant Isolated)
+    event_bookings = EventBooking.objects.filter(user=request.user)
+    if request.tenant:
+        event_bookings = event_bookings.filter(hall__tenant=request.tenant)
+    event_bookings = event_bookings.order_by('-created_at')
     
-    # Gym Memberships
-    gym_memberships = GymMembership.objects.filter(user=request.user).order_by('-end_date')
+    # Gym Memberships (Tenant Isolated)
+    gym_memberships = GymMembership.objects.filter(user=request.user)
+    if request.tenant:
+        gym_memberships = gym_memberships.filter(plan__tenant=request.tenant)
+    gym_memberships = gym_memberships.order_by('-end_date')
     
     # Recent Transactions (Paid Invoices)
     # We want to show a combined list of payments for bookings, events, and gym
     from billing.models import Payment
+    
+    # Base filter for invoice tenant
+    tenant_filter = {}
+    if request.tenant:
+        tenant_filter['invoice__tenant'] = request.tenant
+        
     recent_transactions = Payment.objects.filter(
-        invoice__booking__user=request.user
+        invoice__booking__user=request.user,
+        **tenant_filter
     ) | Payment.objects.filter(
-        invoice__event_booking__user=request.user
+        invoice__event_booking__user=request.user,
+        **tenant_filter
     ) | Payment.objects.filter(
-        invoice__gym_membership__user=request.user
+        invoice__gym_membership__user=request.user,
+        **tenant_filter
     )
     recent_transactions = recent_transactions.distinct().order_by('-payment_date')[:10]
 

@@ -233,6 +233,31 @@ def settings_view(request):
         form = SiteSettingForm(request.POST, request.FILES, instance=settings)
         if form.is_valid():
             form.save()
+            
+            # Handle Custom Domain Logic here too (since we are on the main settings page)
+            custom_domain = request.POST.get('custom_domain')
+            if custom_domain is not None: # Only if field exists in form submission
+                tenant = request.tenant
+                if custom_domain and tenant.plan.allow_custom_domain:
+                    # Basic cleaning
+                    custom_domain = custom_domain.lower().strip().replace('http://', '').replace('https://', '').replace('www.', '')
+                    
+                    # Update or Create
+                    domain_obj = tenant.domains.filter(is_primary=True).first()
+                    if domain_obj:
+                         if domain_obj.domain != custom_domain:
+                             domain_obj.domain = custom_domain
+                             domain_obj.save()
+                    else:
+                        if custom_domain: # Only create if not empty
+                             from tenants.models import Domain
+                             Domain.objects.create(tenant=tenant, domain=custom_domain, is_primary=True)
+                elif not custom_domain:
+                    # If cleared, remove it
+                    domain_obj = tenant.domains.filter(is_primary=True).first()
+                    if domain_obj:
+                        domain_obj.delete()
+
             print(f"DEBUG: Saved Settings for {request.tenant}. Theme: {settings.theme}")
             
             log_audit(
@@ -261,10 +286,17 @@ def settings_view(request):
     # Get all public plans for upgrade comparison
     all_plans = Plan.objects.filter(is_public=True).order_by('price')
 
+    # Calculate Platform Domain
+    host = request.get_host()
+    platform_domain = host
+    if request.tenant and request.tenant.subdomain and host.startswith(f"{request.tenant.subdomain}."):
+        platform_domain = host[len(request.tenant.subdomain)+1:]
+
     return render(request, 'core/settings.html', {
         'form': form, 
         'show_email_settings': show_email_settings,
         'current_plan': current_plan,
         'all_plans': all_plans,
-        'tenant': request.tenant
+        'tenant': request.tenant,
+        'platform_domain': platform_domain
     })

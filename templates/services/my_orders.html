@@ -20,7 +20,7 @@
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 border-b border-border-dark pb-4">
                     <div>
                         <div class="flex items-center gap-3 mb-1">
-                            <span class="text-xl font-bold text-text-main">Order #{{ order.id }}</span>
+                            <span class="text-xl font-bold text-text-main">Order #{{ order.order_id|default:order.id }}</span>
                             <span class="px-3 py-1 rounded-full text-xs font-bold 
                                 {% if order.status == 'AWAITING_PAYMENT' %}bg-orange-500/20 text-orange-500
                                 {% elif order.status == 'PENDING' %}bg-yellow-500/20 text-yellow-500

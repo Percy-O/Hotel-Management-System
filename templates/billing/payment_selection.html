@@ -53,6 +53,15 @@
                     <span class="text-text-secondary-dark">Duration</span>
                     <span class="text-text-main font-medium">{{ context_obj.plan.duration_days }} Days</span>
                 </div>
+                {% elif context_type == 'service' %}
+                <div class="flex justify-between mb-2">
+                    <span class="text-text-secondary-dark">Order ID</span>
+                    <span class="text-text-main font-medium">#{{ context_obj.order_id|default:context_obj.id }}</span>
+                </div>
+                <div class="flex justify-between mb-2">
+                    <span class="text-text-secondary-dark">Items</span>
+                    <span class="text-text-main font-medium">{{ context_obj.items.count }} Item(s)</span>
+                </div>
                 {% endif %}
 
                 <div class="flex justify-between mt-4 pt-4 border-t border-border-dark">

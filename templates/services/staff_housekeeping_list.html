@@ -22,7 +22,10 @@
                             <span class="px-2 py-1 bg-background-dark rounded text-xs font-bold text-text-main border border-border-dark">
                                 Room {{ req.room_number }}
                             </span>
-                            <h4 class="font-medium text-text-main">{{ req.get_request_type_display }}</h4>
+                            <div class="flex flex-col">
+                                <h4 class="font-medium text-text-main">{{ req.get_request_type_display }}</h4>
+                                {% if req.request_id %}<span class="text-[10px] font-mono text-text-secondary-dark">#{{ req.request_id }}</span>{% endif %}
+                            </div>
                         </div>
                         <span class="px-2 py-1 rounded-full text-xs font-medium 
                             {% if req.status == 'PENDING' %}bg-yellow-500/10 text-yellow-500

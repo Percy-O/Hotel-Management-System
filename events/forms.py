@@ -5,19 +5,29 @@ class MultipleFileInput(forms.ClearableFileInput):
     allow_multiple_selected = True
 
 class EventHallForm(forms.ModelForm):
-    # Multiple image upload field (not connected to model directly)
-    gallery_images = forms.FileField(
-        widget=MultipleFileInput(attrs={'multiple': True}),
-        label="Additional Images",
-        required=False
+    # Explicitly define image to ensure it is not required
+    image = forms.ImageField(
+        label="Main Image",
+        required=False,
+        widget=forms.ClearableFileInput()
     )
+    
+    # Make price optional in form so we can default it to 0.00
+    price = forms.DecimalField(max_digits=10, decimal_places=2, required=False, initial=0.00, widget=forms.NumberInput(attrs={'placeholder': '0.00'}))
 
     class Meta:
         model = EventHall
-        fields = ['name', 'description', 'capacity', 'pricing_type', 'price', 'image', 'is_active']
+        fields = ['name', 'description', 'amenities', 'capacity', 'pricing_type', 'price', 'image', 'is_active']
         widgets = {
-            'description': forms.Textarea(attrs={'rows': 3}),
+            'description': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Describe the event hall...'}),
+            'amenities': forms.Textarea(attrs={'rows': 2, 'placeholder': 'WiFi, Projector, Sound System, Catering (Comma separated)'}),
         }
+    
+    def clean_price(self):
+        price = self.cleaned_data.get('price')
+        if price is None:
+            return 0.00
+        return price
 
 class EventBookingForm(forms.ModelForm):
     class Meta:

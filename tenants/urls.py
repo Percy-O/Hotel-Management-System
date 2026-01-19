@@ -22,6 +22,8 @@ urlpatterns = [
     
     # Users
     path('platform/users/', platform_views.PlatformUserListView.as_view(), name='platform_users'),
+    path('platform/users/<int:pk>/edit/', platform_views.PlatformUserUpdateView.as_view(), name='platform_user_edit'),
+    path('platform/users/<int:pk>/delete/', platform_views.PlatformUserDeleteView.as_view(), name='platform_user_delete'),
     
     # Subscriptions / Plans
     path('platform/plans/', platform_views.PlanListView.as_view(), name='platform_subscriptions'),

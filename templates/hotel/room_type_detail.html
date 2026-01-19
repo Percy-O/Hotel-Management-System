@@ -81,26 +81,37 @@
                             <span class="material-symbols-outlined text-primary mr-3">person</span>
                             Max {{ room_type.capacity }} Guests
                         </div>
-                        <div class="flex items-center text-gray-300">
-                            <span class="material-symbols-outlined text-primary mr-3">wifi</span>
-                            High-Speed Wifi
-                        </div>
-                        <div class="flex items-center text-gray-300">
-                            <span class="material-symbols-outlined text-primary mr-3">ac_unit</span>
-                            Air Conditioning
-                        </div>
-                        <div class="flex items-center text-gray-300">
-                            <span class="material-symbols-outlined text-primary mr-3">tv</span>
-                            Smart TV
-                        </div>
-                        <div class="flex items-center text-gray-300">
-                            <span class="material-symbols-outlined text-primary mr-3">coffee_maker</span>
-                            Coffee Maker
-                        </div>
-                        <div class="flex items-center text-gray-300">
-                            <span class="material-symbols-outlined text-primary mr-3">room_service</span>
-                            Room Service
-                        </div>
+                        
+                        <!-- Dynamic Amenities -->
+                        {% if room_type.amenities %}
+                            {% for amenity in room_type.amenities.split %}
+                            <div class="flex items-center text-gray-300">
+                                <span class="material-symbols-outlined text-primary mr-3">check_circle</span>
+                                {{ amenity }}
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="flex items-center text-gray-300">
+                                <span class="material-symbols-outlined text-primary mr-3">wifi</span>
+                                High-Speed Wifi
+                            </div>
+                            <div class="flex items-center text-gray-300">
+                                <span class="material-symbols-outlined text-primary mr-3">ac_unit</span>
+                                Air Conditioning
+                            </div>
+                            <div class="flex items-center text-gray-300">
+                                <span class="material-symbols-outlined text-primary mr-3">tv</span>
+                                Smart TV
+                            </div>
+                            <div class="flex items-center text-gray-300">
+                                <span class="material-symbols-outlined text-primary mr-3">coffee_maker</span>
+                                Coffee Maker
+                            </div>
+                            <div class="flex items-center text-gray-300">
+                                <span class="material-symbols-outlined text-primary mr-3">room_service</span>
+                                Room Service
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
 

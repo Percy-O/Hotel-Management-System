@@ -1,4 +1,4 @@
-{% extends user.is_staff|yesno:"dashboard_base.html,guest_dashboard_base.html" %}
+{% extends user.can_manage_bookings|yesno:"dashboard_base.html,guest_dashboard_base.html" %}
 
 {% block header_title %}Entry Pass{% endblock %}
 {% block header_subtitle %}Scan for entry and verification{% endblock %}
@@ -38,8 +38,8 @@
 
             <div class="grid grid-cols-2 gap-6 mb-8 text-center">
                 <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
-                    <p class="text-[10px] text-gray-400 uppercase font-bold mb-1">Room ID</p>
-                    <p class="text-xl font-black text-primary">{{ booking.room.room_id }}</p>
+                    <p class="text-[10px] text-gray-400 uppercase font-bold mb-1">Room Number</p>
+                    <p class="text-xl font-black text-primary">{{ booking.room.room_number }}</p>
                 </div>
                 <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
                     <p class="text-[10px] text-gray-400 uppercase font-bold mb-1">Type</p>

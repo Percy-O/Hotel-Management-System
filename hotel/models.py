@@ -16,8 +16,8 @@ class RoomType(models.Model):
     tenant = models.ForeignKey('tenants.Tenant', on_delete=models.CASCADE, related_name='room_types', null=True, blank=True)
     hotel = models.ForeignKey(Hotel, on_delete=models.CASCADE, related_name='room_types')
     name = models.CharField(max_length=100) # e.g. Deluxe, Suite
-    description = models.TextField(blank=True)
-    amenities = models.TextField(blank=True, help_text="Comma-separated list of amenities")
+    description = models.TextField(blank=True, help_text="Detailed description of the room type")
+    amenities = models.TextField(blank=True, help_text="Comma-separated list of amenities (e.g. WiFi, Pool, Breakfast)")
     price_per_night = models.DecimalField(max_digits=10, decimal_places=2)
     capacity = models.IntegerField()
     number_of_rooms = models.PositiveIntegerField(default=1, help_text="Total number of rooms for this category")

@@ -88,7 +88,7 @@
                             <tr class="hover:bg-primary/5 transition-colors group">
                                 <td class="px-6 py-4">
                                     <span class="font-mono text-xs font-medium text-text-main bg-background-dark px-2 py-1 rounded border border-border-dark">
-                                        #{{ booking.id }}
+                                        {{ booking.booking_id }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4">
@@ -147,7 +147,7 @@
                             <div>
                                 <div class="flex items-center gap-2 mb-1">
                                     <span class="font-mono text-xs font-medium text-text-main bg-background-dark px-2 py-0.5 rounded border border-border-dark">
-                                        #{{ booking.id }}
+                                        {{ booking.booking_id }}
                                     </span>
                                     {% if booking.status == 'CONFIRMED' %}
                                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-500/10 text-green-500 border border-green-500/20">CONFIRMED</span>

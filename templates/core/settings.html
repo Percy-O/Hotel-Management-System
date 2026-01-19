@@ -404,6 +404,50 @@
             </div>
         </div>
 
+        <!-- Custom Domain Settings -->
+        <div class="bg-surface-dark p-8 rounded-2xl border border-border-dark shadow-sm">
+            <h3 class="text-xl font-bold text-text-main mb-6 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">language</span>
+                Domain Settings
+            </h3>
+            
+            {% if request.tenant.plan.allow_custom_domain %}
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-text-secondary-dark mb-2">Custom Domain</label>
+                        <div class="flex gap-2">
+                            <input type="text" name="custom_domain" value="{{ tenant.domains.first.domain|default:'' }}" placeholder="e.g. myhotel.com" class="flex-1 bg-background-dark border border-border-dark rounded-xl px-4 py-3 text-text-main focus:ring-2 focus:ring-primary outline-none transition-all">
+                        </div>
+                    </div>
+                    
+                    <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
+                        <h4 class="text-sm font-bold text-blue-500 mb-2">DNS Configuration</h4>
+                        <p class="text-xs text-text-secondary-dark mb-2">To connect your domain, add the following CNAME record to your DNS provider:</p>
+                        <div class="bg-black/20 rounded-lg p-3 font-mono text-xs flex justify-between items-center text-text-main">
+                            <span>CNAME &nbsp; @ &nbsp; -> &nbsp; {{ platform_domain|default:'domains.saas.com' }}</span>
+                            <button type="button" class="text-primary hover:text-white" onclick="navigator.clipboard.writeText('{{ platform_domain|default:'domains.saas.com' }}')">
+                                <span class="material-symbols-outlined text-sm">content_copy</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4 flex items-start gap-4">
+                    <div class="p-2 bg-yellow-500/20 rounded-lg text-yellow-600">
+                        <span class="material-symbols-outlined">lock</span>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="font-bold text-yellow-500 mb-1">Custom Domains are Locked</h4>
+                        <p class="text-sm text-yellow-500/80 mb-3">Upgrade to the Premium plan to connect your own domain (e.g., hotel.com).</p>
+                        <button type="button" onclick="document.getElementById('upgrade-modal').classList.remove('hidden')" class="inline-flex items-center gap-2 text-sm font-bold text-yellow-500 hover:underline">
+                            Upgrade Now
+                            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                        </button>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
         <!-- Email Configuration (Premium) -->
         {% if show_email_settings %}
         <div class="bg-surface-dark p-8 rounded-2xl border border-border-dark shadow-sm">

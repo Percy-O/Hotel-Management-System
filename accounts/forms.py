@@ -54,7 +54,15 @@ class HotelSignupForm(RegistrationForm):
         return subdomain
 
 class LoginForm(AuthenticationForm):
-    pass
+    username = forms.CharField(label="Username", widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter your username', 'autofocus': True}))
+    password = forms.CharField(label="Password", widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Enter your password'}))
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if username:
+            return username.lower().strip()
+        return username
+
 
 class UserForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput(), required=False, help_text="Leave empty to keep current password")

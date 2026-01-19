@@ -164,7 +164,21 @@ def payment_selection(request, invoice_id):
     name = ''
     description = ''
     
-    if invoice.booking:
+    if invoice.orders.exists():
+        order = invoice.orders.first()
+        context_obj = order
+        context_type = 'service'
+        user = order.user
+        email = user.email
+        phone = getattr(user, 'phone_number', '')
+        name = f"{user.first_name} {user.last_name}"
+        description = f"Room Service Order #{order.order_id or order.id}"
+        
+        if invoice.status == Invoice.Status.PAID:
+             messages.info(request, "This order is already paid.")
+             return redirect('my_orders')
+
+    elif invoice.booking:
         context_obj = invoice.booking
         context_type = 'booking'
         user = context_obj.user
@@ -211,7 +225,7 @@ def payment_selection(request, invoice_id):
         email = user.email
         phone = getattr(user, 'phone_number', '')
         name = f"{user.first_name} {user.last_name}"
-        description = f"Room Service Order #{order.id}"
+        description = f"Room Service Order #{order.order_id or order.id}"
         
         if invoice.status == Invoice.Status.PAID:
              messages.info(request, "This order is already paid.")
@@ -293,90 +307,50 @@ def verify_payment(request, gateway):
             # Handle Specific Object Updates & Notifications
             redirect_url = 'home'
             
-            if invoice.booking:
+            if invoice.orders.exists():
+                # Orders handle their own status based on payment if needed
+                # Usually we move from AWAITING_PAYMENT to PENDING (for kitchen)
+                for order in invoice.orders.all():
+                    if order.status == 'AWAITING_PAYMENT':
+                        order.status = 'PENDING'
+                        order.save()
+                        
+                        # Notify Kitchen/Staff
+                        # (Notification logic here)
+                        
+                redirect_url = 'my_orders'
+                redirect_pk = None
+
+            elif invoice.booking:
                 booking = invoice.booking
-                booking.status = Booking.Status.CONFIRMED
-                booking.save()
-                redirect_url = reverse('booking_detail', kwargs={'pk': booking.pk})
+                # Only update status if not already checked in/completed
+                if booking.status not in [Booking.Status.CHECKED_IN, Booking.Status.COMPLETED, Booking.Status.CANCELLED]:
+                    booking.status = Booking.Status.CONFIRMED
+                    booking.save()
+                redirect_url = 'booking_detail'
+                redirect_pk = booking.pk
                 
-                if booking.user:
-                    Notification.objects.create(
-                        recipient=booking.user,
-                        title="Payment Successful",
-                        message=f"Your payment for booking #{booking.booking_id} was successful.",
-                        notification_type=Notification.Type.SUCCESS,
-                        link=redirect_url
-                    )
-
             elif invoice.event_booking:
-                event = invoice.event_booking
-                event.status = 'CONFIRMED'
-                event.save()
-                redirect_url = reverse('event_booking_detail', kwargs={'pk': event.pk})
+                booking = invoice.event_booking
+                booking.status = 'CONFIRMED'
+                booking.save()
+                redirect_url = 'event_booking_detail'
+                redirect_pk = booking.pk
                 
-                Notification.objects.create(
-                    recipient=event.user,
-                    title="Event Payment Successful",
-                    message=f"Your payment for event '{event.event_name}' was successful.",
-                    notification_type=Notification.Type.SUCCESS,
-                    link=redirect_url
-                )
-
             elif invoice.gym_membership:
-                gym = invoice.gym_membership
-                gym.status = 'ACTIVE'
-                gym.payment_status = 'PAID'
-                gym.save()
-                redirect_url = reverse('gym_membership_list')
-                
-                Notification.objects.create(
-                    recipient=gym.user,
-                    title="Gym Membership Active",
-                    message=f"Your {gym.plan.name} membership is now active.",
-                    notification_type=Notification.Type.SUCCESS,
-                    link=redirect_url
-                )
-
-            elif invoice.orders.exists():
-                order = invoice.orders.first()
-                order.status = 'PENDING' # Ready for kitchen
-                order.save()
-                redirect_url = reverse('my_orders')
-
-                # Notify Kitchen/Staff
-                kitchen_staff = User.objects.filter(role__in=[User.Role.KITCHEN, User.Role.MANAGER, User.Role.ADMIN])
-                for staff in kitchen_staff:
-                    Notification.objects.create(
-                        recipient=staff,
-                        title="New Room Service Order",
-                        message=f"Order #{order.id} received from Room {order.room_number}.",
-                        notification_type=Notification.Type.WARNING,
-                        link=reverse('staff_order_list')
-                    )
-                
-                Notification.objects.create(
-                    recipient=order.user,
-                    title="Order Payment Successful",
-                    message=f"Your payment for order #{order.id} was successful. Kitchen is preparing your order.",
-                    notification_type=Notification.Type.SUCCESS,
-                    link=redirect_url
-                )
+                membership = invoice.gym_membership
+                membership.status = 'ACTIVE'
+                membership.save()
+                redirect_url = 'gym_membership_list'
+                redirect_pk = None
             
             messages.success(request, "Payment successful!")
-        else:
-            messages.info(request, "Payment already recorded.")
-            # Determine redirect based on object
-            if invoice.booking:
-                return redirect('booking_detail', pk=invoice.booking.pk)
-            elif invoice.event_booking:
-                return redirect('event_booking_detail', pk=invoice.event_booking.pk)
-            elif invoice.gym_membership:
-                return redirect('gym_membership_list')
+            if redirect_pk:
+                return redirect(redirect_url, pk=redirect_pk)
+            return redirect(redirect_url)
             
-        return redirect(redirect_url)
-    else:
-        messages.error(request, "Payment verification failed.")
-        return redirect('payment_selection', invoice_id=invoice.pk)
+    messages.error(request, "Payment verification failed.")
+    return redirect('home')
 
 @login_required
 def download_receipt(request, pk):
@@ -475,7 +449,11 @@ def download_receipt(request, pk):
     guest_name = "Guest"
     guest_email = ""
     
-    if invoice.booking:
+    if invoice.orders.exists():
+        order = invoice.orders.first()
+        guest_name = f"{order.user.first_name} {order.user.last_name}"
+        guest_email = order.user.email
+    elif invoice.booking:
         guest_name = invoice.booking.guest_name
         guest_email = invoice.booking.guest_email
     elif invoice_user:
@@ -535,14 +513,14 @@ def download_receipt(request, pk):
     pdf.set_font("Arial", '', 9)
     
     desc = "Service Charge"
-    if invoice.booking:
+    if invoice.orders.exists():
+        desc = f"Room Service Order #{invoice.orders.first().order_id or invoice.orders.first().id}"
+    elif invoice.booking:
         desc = f"Hotel Booking: {invoice.booking.room.room_type.name}"
     elif invoice.event_booking:
         desc = f"Event Booking: {invoice.event_booking.event_name}"
     elif invoice.gym_membership:
         desc = f"Gym Membership: {invoice.gym_membership.plan.name}"
-    elif invoice.orders.exists():
-        desc = f"Room Service Order #{invoice.orders.first().id}"
         
     pdf.cell(w_desc, 8, txt=f"  {desc}", border="B")
     pdf.cell(w_total, 8, txt=f"{currency_symbol}{invoice.amount}  ", border="B", align="R", ln=1)

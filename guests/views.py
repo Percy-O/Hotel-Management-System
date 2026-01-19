@@ -8,11 +8,19 @@ from .models import GuestProfile
 
 from accounts.models import User
 
-@staff_member_required
+@login_required
 def guest_list(request):
+    # Ensure tenant isolation
+    if hasattr(request, 'tenant') and request.tenant:
+        # Filter bookings by tenant
+        bookings_qs = Booking.objects.filter(tenant=request.tenant)
+    else:
+        # Fallback for non-tenant context (shouldn't happen in production for staff)
+        bookings_qs = Booking.objects.all()
+
     # Aggregate guests by email
     # We use guest_email as the unique identifier for a "guest profile"
-    guests = Booking.objects.values('guest_email', 'guest_name', 'guest_phone').annotate(
+    guests = bookings_qs.values('guest_email', 'guest_name', 'guest_phone').annotate(
         total_bookings=Count('id'),
         total_spent=Sum('total_price'),
         last_stay=Max('check_out_date')
@@ -24,7 +32,19 @@ def guest_list(request):
         email = guest['guest_email']
         if email:
             # Lazy creation/fetching of profile
-            profile, created = GuestProfile.objects.get_or_create(email=email)
+            # Ensure profile is linked to tenant
+            profile_qs = GuestProfile.objects.filter(email=email)
+            if hasattr(request, 'tenant') and request.tenant:
+                profile_qs = profile_qs.filter(tenant=request.tenant)
+            
+            profile = profile_qs.first()
+            
+            if not profile:
+                # Create if not exists for this tenant
+                profile = GuestProfile(email=email)
+                if hasattr(request, 'tenant') and request.tenant:
+                    profile.tenant = request.tenant
+                profile.save()
             
             # Link User if exists and not linked
             if not profile.user:
@@ -34,7 +54,7 @@ def guest_list(request):
                     profile.save()
 
             # Update basic info if created or missing
-            if created or not profile.first_name:
+            if not profile.first_name:
                 name_parts = guest['guest_name'].split()
                 if name_parts:
                     profile.first_name = name_parts[0]
@@ -46,8 +66,13 @@ def guest_list(request):
             # ValuesQuerySet returns dicts, so we can modify them
             guest['profile'] = profile
             guest_list_with_profiles.append(guest)
-
-    vip_count = GuestProfile.objects.filter(is_vip=True).count()
+            
+    # Count stats scoped to tenant
+    vip_qs = GuestProfile.objects.filter(is_vip=True)
+    if hasattr(request, 'tenant') and request.tenant:
+        vip_qs = vip_qs.filter(tenant=request.tenant)
+    vip_count = vip_qs.count()
+    
     returning_count = sum(1 for g in guests if g['total_bookings'] > 1)
 
     return render(request, 'guests/guest_list.html', {

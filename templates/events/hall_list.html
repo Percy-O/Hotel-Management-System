@@ -43,7 +43,11 @@
                 </div>
                 <div class="flex items-center gap-1">
                     <span class="material-symbols-outlined text-base">payments</span>
-                    {{ site_settings.currency_symbol }}{{ hall.price_per_hour }}/hr
+                    {{ site_settings.currency_symbol }}{{ hall.price }}
+                    {% if hall.pricing_type == 'PER_HOUR' %}/hr
+                    {% elif hall.pricing_type == 'PER_DAY' %}/day
+                    {% elif hall.pricing_type == 'PER_EVENT' %}/event
+                    {% endif %}
                 </div>
             </div>
             

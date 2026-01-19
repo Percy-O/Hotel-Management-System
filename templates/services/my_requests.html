@@ -40,7 +40,10 @@
                     </span>
                 </div>
 
-                <h3 class="text-text-main font-semibold text-lg mb-1">{{ req.get_request_type_display }}</h3>
+                <h3 class="text-text-main font-semibold text-lg mb-1">
+                    {% if req.request_id %}<span class="text-sm font-mono text-text-secondary-dark mr-2">#{{ req.request_id }}</span>{% endif %}
+                    {{ req.get_request_type_display }}
+                </h3>
                 <p class="text-text-secondary-dark text-sm mb-4 line-clamp-2">
                     {% if req.note %}
                         {{ req.note }}

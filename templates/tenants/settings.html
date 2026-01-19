@@ -75,12 +75,24 @@
                     </h3>
                     
                     {% if request.tenant.plan.allow_custom_domain %}
-                        <div class="space-y-2">
-                            <label class="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">Custom Domain</label>
-                            <div class="flex gap-2">
-                                <input type="text" name="custom_domain" value="{{ form.custom_domain.value|default:'' }}" placeholder="e.g. myhotel.com" class="flex-1 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark mb-2">Custom Domain</label>
+                                <div class="flex gap-2">
+                                    <input type="text" name="custom_domain" value="{{ form.custom_domain.value|default:'' }}" placeholder="e.g. myhotel.com" class="flex-1 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none">
+                                </div>
                             </div>
-                            <p class="text-xs text-text-secondary-light dark:text-text-secondary-dark">Enter your custom domain to point to your hotel workspace.</p>
+                            
+                            <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
+                                <h4 class="text-sm font-bold text-blue-500 mb-2">DNS Configuration</h4>
+                                <p class="text-xs text-text-secondary-light dark:text-text-secondary-dark mb-2">To connect your domain, add the following CNAME record to your DNS provider:</p>
+                                <div class="bg-black/20 rounded-lg p-3 font-mono text-xs flex justify-between items-center">
+                                    <span>CNAME &nbsp; @ &nbsp; -> &nbsp; {{ platform_domain|default:'domains.saas.com' }}</span>
+                                    <button type="button" class="text-primary hover:text-white" onclick="navigator.clipboard.writeText('{{ platform_domain|default:'domains.saas.com' }}')">
+                                        <span class="material-symbols-outlined text-sm">content_copy</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     {% else %}
                         <div class="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4 flex items-start gap-4">

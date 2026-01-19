@@ -6,19 +6,19 @@
 <div class="max-w-md mx-auto mt-20">
     <div class="glass-card rounded-2xl p-8 text-center">
         <div class="size-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6 text-red-500">
-            <span class="material-symbols-outlined text-4xl">warning</span>
+            <span class="material-symbols-outlined text-4xl">person_remove</span>
         </div>
         
-        <h2 class="text-2xl font-bold mb-2">Delete Tenant?</h2>
+        <h2 class="text-2xl font-bold mb-2">Delete User?</h2>
         <p class="text-text-secondary-light dark:text-text-secondary-dark mb-8">
-            Are you sure you want to delete <strong>{{ object.name }}</strong>? <br>
-            This action cannot be undone and will delete all associated data (rooms, bookings, etc).
+            Are you sure you want to delete <strong>{{ object.username }}</strong>? <br>
+            This action cannot be undone and may affect associated bookings or tenants.
         </p>
 
         <form method="post">
             {% csrf_token %}
             <div class="flex items-center gap-4 justify-center">
-                <a href="{% url 'platform_tenants' %}" class="px-6 py-3 rounded-xl bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 transition-colors font-medium">Cancel</a>
+                <a href="{% url 'platform_users' %}" class="px-6 py-3 rounded-xl bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 transition-colors font-medium">Cancel</a>
                 <button type="submit" class="px-6 py-3 rounded-xl bg-red-500 hover:bg-red-600 text-white shadow-lg hover:shadow-red-500/25 transition-all font-bold">
                     Yes, Delete
                 </button>

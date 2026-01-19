@@ -6,7 +6,7 @@
 <div class="max-w-3xl mx-auto">
     <div class="glass-card rounded-2xl p-8">
         <div class="flex items-center gap-4 mb-8">
-            <a href="{% url 'platform_tenant_list' %}" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
+            <a href="{% url 'platform_tenants' %}" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
                 <span class="material-symbols-outlined">arrow_back</span>
             </a>
             <h2 class="text-2xl font-bold">Tenant Details</h2>
@@ -71,7 +71,7 @@
             </div>
 
             <div class="pt-6 flex items-center justify-end gap-4">
-                <a href="{% url 'platform_tenant_list' %}" class="px-6 py-3 rounded-xl text-text-secondary-light dark:text-text-secondary-dark hover:bg-gray-100 dark:hover:bg-white/5 transition-colors font-medium">Cancel</a>
+                <a href="{% url 'platform_tenants' %}" class="px-6 py-3 rounded-xl text-text-secondary-light dark:text-text-secondary-dark hover:bg-gray-100 dark:hover:bg-white/5 transition-colors font-medium">Cancel</a>
                 <button type="submit" class="px-8 py-3 bg-primary hover:bg-primary-hover text-white rounded-xl shadow-lg hover:shadow-primary/25 transition-all font-bold">
                     Save Changes
                 </button>

@@ -22,6 +22,16 @@ class TenantSettingsForm(forms.ModelForm):
         model = Tenant
         fields = ['name', 'logo', 'primary_color', 'secondary_color', 'font_family', 'auto_renew']
 
+    def clean_custom_domain(self):
+        domain = self.cleaned_data.get('custom_domain')
+        if domain:
+            domain = domain.lower().strip()
+            domain = domain.replace('http://', '').replace('https://', '').replace('www.', '')
+            # Basic validation
+            if '.' not in domain:
+                 raise forms.ValidationError("Please enter a valid domain name (e.g., myhotel.com)")
+        return domain
+
 
 class PlanForm(forms.ModelForm):
     class Meta:

@@ -162,7 +162,7 @@ class TenantUpdateView(SuperUserRequiredMixin, UpdateView):
     model = Tenant
     fields = ['name', 'subdomain', 'plan', 'is_active', 'logo']
     template_name = 'platform/tenant_form.html'
-    success_url = reverse_lazy('platform_tenant_list')
+    success_url = reverse_lazy('platform_tenants')
 
     def form_valid(self, form):
         messages.success(self.request, "Tenant updated successfully.")
@@ -171,7 +171,7 @@ class TenantUpdateView(SuperUserRequiredMixin, UpdateView):
 class TenantDeleteView(SuperUserRequiredMixin, DeleteView):
     model = Tenant
     template_name = 'platform/tenant_confirm_delete.html'
-    success_url = reverse_lazy('platform_tenant_list')
+    success_url = reverse_lazy('platform_tenants')
 
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, "Tenant deleted successfully.")
@@ -199,6 +199,25 @@ class PlatformUserListView(SuperUserRequiredMixin, ListView):
             ).distinct()
             
         return queryset
+
+class PlatformUserUpdateView(SuperUserRequiredMixin, UpdateView):
+    model = User
+    fields = ['username', 'email', 'first_name', 'last_name', 'is_active', 'is_staff', 'is_superuser']
+    template_name = 'platform/user_form.html'
+    success_url = reverse_lazy('platform_users')
+
+    def form_valid(self, form):
+        messages.success(self.request, "User updated successfully.")
+        return super().form_valid(form)
+
+class PlatformUserDeleteView(SuperUserRequiredMixin, DeleteView):
+    model = User
+    template_name = 'platform/user_confirm_delete.html'
+    success_url = reverse_lazy('platform_users')
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, "User deleted successfully.")
+        return super().delete(request, *args, **kwargs)
 
 # --- Plan Management ---
 class PlanListView(SuperUserRequiredMixin, ListView):

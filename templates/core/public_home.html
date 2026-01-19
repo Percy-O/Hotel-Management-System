@@ -90,47 +90,188 @@
     </style>
 
     <!-- Rooms Section -->
-    <div id="rooms" class="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-16">
-            <h2 class="text-3xl font-bold text-text-main mb-4">Our Accommodations</h2>
-            <p class="text-text-secondary-dark">Choose from our selection of premium rooms and suites.</p>
-        </div>
+    <div id="rooms" class="py-32 relative overflow-hidden bg-surface-dark/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center mb-16">
+                <span class="text-primary font-bold tracking-[0.2em] uppercase text-sm mb-4 block">Premium Stays</span>
+                <h2 class="text-3xl md:text-5xl font-extrabold text-white mb-6">Our Accommodations</h2>
+                <p class="text-gray-400 max-w-2xl mx-auto text-lg">Indulge in comfort and style with our carefully curated selection of rooms and suites.</p>
+            </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {% for room in room_types %}
-            <div class="bg-surface-dark/60 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 group">
-                <div class="relative h-64 overflow-hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {% for room in room_types %}
+                <!-- Immersive Room Card -->
+                <div class="group relative h-[500px] rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl transition-all duration-500 hover:shadow-primary/20 hover:-translate-y-2 w-full mx-auto max-w-md bg-surface-dark">
+                
+                <!-- Background Image -->
+                <div class="absolute inset-0">
                     {% if room.image %}
-                    <img src="{{ room.image.url }}" alt="{{ room.name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                    <img src="{{ room.image.url }}" alt="{{ room.name }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
                     {% else %}
-                    <div class="w-full h-full bg-gray-800 flex items-center justify-center text-gray-600">
-                        <span class="material-symbols-outlined text-6xl">bed</span>
+                    <div class="w-full h-full bg-slate-900 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-6xl text-white/20">bed</span>
                     </div>
                     {% endif %}
-                    <div class="absolute top-4 right-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-white text-sm font-semibold">
-                        {{ room.capacity }} Guests
-                    </div>
+                    <!-- Gradient Overlay -->
+                    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent opacity-90 group-hover:opacity-80 transition-opacity duration-500"></div>
                 </div>
-                <div class="p-6">
-                    <h3 class="text-xl font-bold text-text-main mb-2">{{ room.name }}</h3>
-                    <p class="text-text-secondary-dark text-sm line-clamp-2 mb-4">{{ room.description }}</p>
-                    <div class="flex items-center justify-between mt-4">
-                        <div class="text-2xl font-bold text-primary">
-                            {{ tenant.currency_symbol|default:"$" }}{{ room.price_per_night }} <span class="text-sm text-text-secondary-dark font-normal">/ night</span>
+
+                <!-- Top Badge -->
+                <div class="absolute top-6 left-6 z-20">
+                     <span class="px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs font-bold rounded-full uppercase tracking-wider shadow-lg">
+                        {{ room.capacity }} Guests
+                    </span>
+                </div>
+
+                <!-- Content -->
+                <div class="absolute bottom-0 left-0 w-full p-8 z-20 transform translate-y-12 group-hover:translate-y-0 transition-transform duration-500">
+                    <!-- Title & Price -->
+                    <div class="mb-4">
+                        <h3 class="text-2xl font-bold text-white mb-2 leading-tight">{{ room.name }}</h3>
+                        <div class="flex items-center gap-4 text-sm">
+                            <span class="flex items-center gap-1.5 text-primary font-bold">
+                                <span class="material-symbols-outlined text-lg">payments</span>
+                                {{ tenant.currency_symbol|default:"$" }}{{ room.price_per_night }}
+                            </span>
+                            <span class="w-1 h-1 bg-white/30 rounded-full"></span>
+                            <span class="flex items-center gap-1.5 text-gray-300">
+                                <span class="material-symbols-outlined text-lg">night_shelter</span>
+                                /night
+                            </span>
                         </div>
-                        <a href="{% url 'room_detail' room.id %}" class="text-white bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg transition-colors">
-                            Details
-                        </a>
                     </div>
+
+                    <!-- Description (Hidden initially, reveals on hover) -->
+                    <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 mb-6">
+                        <p class="text-gray-400 text-sm line-clamp-2">{{ room.description }}</p>
+                        
+                        <!-- Features Preview -->
+                        <div class="flex flex-wrap gap-2 mt-3">
+                            <span class="text-[10px] px-2 py-1 rounded bg-white/10 text-gray-300 border border-white/10 flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[10px]">wifi</span> Free Wifi
+                            </span>
+                            <span class="text-[10px] px-2 py-1 rounded bg-white/10 text-gray-300 border border-white/10 flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[10px]">ac_unit</span> AC
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Action Button -->
+                    <a href="{% url 'room_detail' room.id %}" class="flex items-center justify-center w-full py-3.5 bg-primary text-slate-900 font-bold rounded-xl hover:bg-white hover:text-slate-900 transition-colors shadow-lg shadow-primary/20">
+                        View Details
+                    </a>
                 </div>
             </div>
             {% empty %}
-            <div class="col-span-full text-center py-12">
-                <p class="text-text-secondary-dark text-lg">No rooms available at the moment.</p>
+            <div class="col-span-full text-center py-20">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/5 mb-4">
+                    <span class="material-symbols-outlined text-3xl text-gray-400">bedroom_parent</span>
+                </div>
+                <p class="text-gray-400 text-lg">No accommodations available at the moment.</p>
             </div>
             {% endfor %}
         </div>
     </div>
+</div>
+
+    <!-- Event Halls Section -->
+    {% if event_halls %}
+    <div id="events" class="py-32 relative overflow-hidden bg-[#050505] border-t border-white/5">
+        <!-- Ambient Background -->
+        <div class="absolute inset-0">
+            <div class="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] mix-blend-screen animate-pulse"></div>
+            <div class="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[120px] mix-blend-screen animate-pulse" style="animation-delay: 2s;"></div>
+            <!-- Grid Pattern -->
+            <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] opacity-20"></div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <!-- Header -->
+            <div class="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6 text-center md:text-left">
+                <div class="max-w-2xl">
+                    <span class="text-primary font-bold tracking-[0.2em] uppercase text-sm mb-4 block">World-Class Venues</span>
+                    <h2 class="text-4xl md:text-6xl font-extrabold text-white leading-tight">
+                        Host Your <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-400">Perfect Event</span>
+                    </h2>
+                </div>
+                <p class="text-gray-400 max-w-sm text-lg leading-relaxed mx-auto md:mx-0">
+                    From intimate gatherings to grand galas, discover spaces designed to make memories last forever.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {% for hall in event_halls %}
+                <!-- Immersive Card -->
+                <div class="group relative h-[500px] rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl transition-all duration-500 hover:shadow-primary/20 hover:-translate-y-2 w-full mx-auto max-w-md bg-surface-dark">
+                    
+                    <!-- Background Image -->
+                    <div class="absolute inset-0">
+                        {% if hall.image %}
+                        <img src="{{ hall.image.url }}" alt="{{ hall.name }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                        {% else %}
+                        <div class="w-full h-full bg-slate-900 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-6xl text-white/20">theater_comedy</span>
+                        </div>
+                        {% endif %}
+                        <!-- Gradient Overlay -->
+                        <div class="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent opacity-90 group-hover:opacity-80 transition-opacity duration-500"></div>
+                    </div>
+
+                    <!-- Top Badge -->
+                    <div class="absolute top-6 left-6 z-20">
+                         <span class="px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs font-bold rounded-full uppercase tracking-wider shadow-lg">
+                            {{ hall.get_pricing_type_display }}
+                        </span>
+                    </div>
+
+                    <!-- Content -->
+                    <div class="absolute bottom-0 left-0 w-full p-8 z-20 transform translate-y-12 group-hover:translate-y-0 transition-transform duration-500">
+                        <!-- Title & Price -->
+                        <div class="mb-4">
+                            <h3 class="text-2xl font-bold text-white mb-2 leading-tight">{{ hall.name }}</h3>
+                            <div class="flex items-center gap-4 text-sm">
+                                <span class="flex items-center gap-1.5 text-primary font-bold">
+                                    <span class="material-symbols-outlined text-lg">payments</span>
+                                    {% if hall.price > 0 %}
+                                        {{ site_settings.get_currency_display|default:'₦' }}{{ hall.price }}
+                                    {% else %}
+                                        Free
+                                    {% endif %}
+                                </span>
+                                <span class="w-1 h-1 bg-white/30 rounded-full"></span>
+                                <span class="flex items-center gap-1.5 text-gray-300">
+                                    <span class="material-symbols-outlined text-lg">groups</span>
+                                    {{ hall.capacity }} Guests
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Description (Hidden initially, reveals on hover) -->
+                        <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 mb-6">
+                            <p class="text-gray-400 text-sm line-clamp-2">{{ hall.description }}</p>
+                            
+                             {% if hall.amenities %}
+                            <div class="flex flex-wrap gap-2 mt-3">
+                                {% for amenity in hall.amenities.split|slice:":3" %}
+                                <span class="text-[10px] px-2 py-1 rounded bg-white/10 text-gray-300 border border-white/10">
+                                    {{ amenity }}
+                                </span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Action Button -->
+                        <a href="{% url 'event_hall_detail' hall.id %}" class="flex items-center justify-center w-full py-3.5 bg-primary text-slate-900 font-bold rounded-xl hover:bg-white hover:text-slate-900 transition-colors shadow-lg shadow-primary/20">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- About & Contact Section -->
     <div id="about" class="bg-surface-dark/40 py-20 border-t border-border-dark">

@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/5.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -153,15 +153,14 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Email Settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-
-# Default Fallbacks (if DB is empty)
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_USE_SSL = False
-EMAIL_HOST_USER = ''
-EMAIL_HOST_PASSWORD = ''
-DEFAULT_FROM_EMAIL = 'webmaster@localhost'
+EMAIL_HOST = 'mail.techohr.com.ng'
+EMAIL_PORT = 465
+EMAIL_USE_TLS = False
+EMAIL_USE_SSL = True
+EMAIL_HOST_USER = 'ihotel@techohr.com.ng'
+EMAIL_HOST_PASSWORD = '@Holawahlay1'  # Make sure to set this in your environment
+DEFAULT_FROM_EMAIL = 'ihotel@techohr.com.ng'
+SERVER_EMAIL = 'ihotel@techohr.com.ng'
 
 # Site URL for Emails
 SITE_URL = 'http://127.0.0.1:8000'

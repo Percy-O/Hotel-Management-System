@@ -20,7 +20,7 @@ class EventHallListView(LoginRequiredMixin, ListView):
             return EventHall.objects.all()
         return EventHall.objects.filter(is_active=True)
 
-class EventHallDetailView(LoginRequiredMixin, DetailView):
+class EventHallDetailView(DetailView):
     model = EventHall
     template_name = 'events/hall_detail.html'
     context_object_name = 'hall'
@@ -32,9 +32,23 @@ class EventHallCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     success_url = reverse_lazy('event_hall_list')
 
     def test_func(self):
+        # Explicit check for Tenant Owner
+        if self.request.tenant and self.request.tenant.owner == self.request.user:
+            return True
         return self.request.user.can_manage_events
 
+    def post(self, request, *args, **kwargs):
+        print(f"DEBUG: EventHallCreateView POST. POST keys: {request.POST.keys()}, FILES keys: {request.FILES.keys()}")
+        return super().post(request, *args, **kwargs)
+
     def form_valid(self, form):
+        # Attach Tenant
+        if not self.request.tenant:
+            messages.error(self.request, "Cannot create hall without a valid workspace context.")
+            return self.form_invalid(form)
+            
+        form.instance.tenant = self.request.tenant
+        
         response = super().form_valid(form)
         # Handle multiple images
         images = self.request.FILES.getlist('gallery_images')
@@ -43,6 +57,11 @@ class EventHallCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
             
         messages.success(self.request, "Event Hall created successfully.")
         return response
+    
+    def form_invalid(self, form):
+        messages.error(self.request, "Error creating Event Hall. Please check the form below.")
+        print(f"DEBUG: Event Hall Form Errors: {form.errors}") # For console debugging
+        return super().form_invalid(form)
 
 class EventHallUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = EventHall
@@ -51,6 +70,9 @@ class EventHallUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     success_url = reverse_lazy('event_hall_list')
 
     def test_func(self):
+        # Explicit check for Tenant Owner
+        if self.request.tenant and self.request.tenant.owner == self.request.user:
+            return True
         return self.request.user.can_manage_events
 
     def form_valid(self, form):
@@ -63,12 +85,19 @@ class EventHallUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         messages.success(self.request, "Event Hall updated successfully.")
         return response
 
+    def form_invalid(self, form):
+        messages.error(self.request, "Error updating Event Hall. Please check the form below.")
+        return super().form_invalid(form)
+
 class EventHallDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = EventHall
     template_name = 'events/hall_confirm_delete.html'
     success_url = reverse_lazy('event_hall_list')
 
     def test_func(self):
+        # Explicit check for Tenant Owner
+        if self.request.tenant and self.request.tenant.owner == self.request.user:
+            return True
         return self.request.user.can_manage_events
 
 # --- Booking Management ---

@@ -26,6 +26,18 @@ class TenantSettingsView(TenantAdminRequiredMixin, UpdateView):
             initial['custom_domain'] = primary_domain.domain
         return initial
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Calculate Platform Domain
+        host = self.request.get_host()
+        platform_domain = host
+        if self.object.subdomain and host.startswith(f"{self.object.subdomain}."):
+            platform_domain = host[len(self.object.subdomain)+1:]
+            
+        context['platform_domain'] = platform_domain
+        return context
+
     def form_valid(self, form):
         response = super().form_valid(form)
         
@@ -33,30 +45,33 @@ class TenantSettingsView(TenantAdminRequiredMixin, UpdateView):
         custom_domain = form.cleaned_data.get('custom_domain')
         tenant = self.object
         
+        # Check if plan allows it (only if they are trying to set one)
+        if custom_domain and not tenant.plan.allow_custom_domain:
+             messages.error(self.request, "Upgrade to Premium to use a custom domain.")
+             return redirect('tenant_settings')
+
         if custom_domain:
-            # Check Plan Permission
-            if not tenant.plan.allow_custom_domain:
-                messages.error(self.request, "Upgrade to Premium to use a custom domain.")
-                return redirect('tenant_settings')
-            
             # Check if domain exists (and not owned by this tenant)
             if Domain.objects.filter(domain=custom_domain).exclude(tenant=tenant).exists():
-                messages.error(self.request, "This domain is already in use.")
+                messages.error(self.request, "This domain is already in use by another workspace.")
                 return redirect('tenant_settings')
 
             # Update or Create Domain
-            # Logic: If primary domain exists, update it. Else create.
-            # However, we usually keep subdomain.localhost as secondary.
-            
-            # Simple approach: Find existing primary domain
             domain_obj = tenant.domains.filter(is_primary=True).first()
             if domain_obj:
-                domain_obj.domain = custom_domain
-                domain_obj.save()
+                if domain_obj.domain != custom_domain:
+                    domain_obj.domain = custom_domain
+                    domain_obj.save()
+                    messages.success(self.request, f"Custom domain updated to {custom_domain}")
             else:
                 Domain.objects.create(tenant=tenant, domain=custom_domain, is_primary=True)
-                
-            messages.success(self.request, f"Custom domain updated to {custom_domain}")
+                messages.success(self.request, f"Custom domain linked: {custom_domain}")
+        else:
+            # If empty, check if we need to remove existing one
+            domain_obj = tenant.domains.filter(is_primary=True).first()
+            if domain_obj:
+                domain_obj.delete()
+                messages.info(self.request, "Custom domain removed.")
             
         messages.success(self.request, "Hotel settings updated successfully.")
         return response

@@ -1,0 +1,89 @@
+{% extends 'layouts/platform_base.html' %}
+
+{% block header_title %}{{ object|yesno:"Edit User,Edit User" }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-3xl mx-auto">
+    <div class="glass-card rounded-2xl p-8">
+        <div class="flex items-center gap-4 mb-8">
+            <a href="{% url 'platform_users' %}" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
+                <span class="material-symbols-outlined">arrow_back</span>
+            </a>
+            <h2 class="text-2xl font-bold">User Details</h2>
+        </div>
+
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Username -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">Username</label>
+                    <input type="text" name="username" value="{{ form.username.value|default:'' }}" class="w-full bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all">
+                    {% if form.username.errors %}
+                    <p class="text-xs text-red-500">{{ form.username.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Email -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">Email Address</label>
+                    <input type="email" name="email" value="{{ form.email.value|default:'' }}" class="w-full bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all">
+                    {% if form.email.errors %}
+                    <p class="text-xs text-red-500">{{ form.email.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- First Name -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">First Name</label>
+                    <input type="text" name="first_name" value="{{ form.first_name.value|default:'' }}" class="w-full bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all">
+                </div>
+
+                <!-- Last Name -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">Last Name</label>
+                    <input type="text" name="last_name" value="{{ form.last_name.value|default:'' }}" class="w-full bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all">
+                </div>
+            </div>
+
+            <!-- Permissions -->
+            <div class="pt-4 border-t border-border-light dark:border-border-dark">
+                <h3 class="text-lg font-bold mb-4">Permissions & Status</h3>
+                <div class="space-y-4">
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" name="is_active" {% if form.is_active.value %}checked{% endif %} class="size-5 rounded text-primary focus:ring-primary border-gray-300 dark:border-gray-600 bg-surface-light dark:bg-surface-dark">
+                        <div>
+                            <span class="block text-sm font-medium">Active Account</span>
+                            <span class="block text-xs text-text-secondary-light dark:text-text-secondary-dark">User can log in to the system</span>
+                        </div>
+                    </label>
+
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" name="is_staff" {% if form.is_staff.value %}checked{% endif %} class="size-5 rounded text-primary focus:ring-primary border-gray-300 dark:border-gray-600 bg-surface-light dark:bg-surface-dark">
+                        <div>
+                            <span class="block text-sm font-medium">Staff Status</span>
+                            <span class="block text-xs text-text-secondary-light dark:text-text-secondary-dark">User can access admin interface</span>
+                        </div>
+                    </label>
+
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" name="is_superuser" {% if form.is_superuser.value %}checked{% endif %} class="size-5 rounded text-primary focus:ring-primary border-gray-300 dark:border-gray-600 bg-surface-light dark:bg-surface-dark">
+                        <div>
+                            <span class="block text-sm font-medium text-red-500">Superuser Status</span>
+                            <span class="block text-xs text-text-secondary-light dark:text-text-secondary-dark">Grant full access to the platform (Dangerous)</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="pt-6 flex items-center justify-end gap-4">
+                <a href="{% url 'platform_users' %}" class="px-6 py-3 rounded-xl text-text-secondary-light dark:text-text-secondary-dark hover:bg-gray-100 dark:hover:bg-white/5 transition-colors font-medium">Cancel</a>
+                <button type="submit" class="px-8 py-3 bg-primary hover:bg-primary-hover text-white rounded-xl shadow-lg hover:shadow-primary/25 transition-all font-bold">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
