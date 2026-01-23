@@ -3,6 +3,25 @@
 
 {% block title %}Register - {{ request.tenant.name|default:"IHotel" }}{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Custom Scrollbar for Suggestions */
+    .scrollbar-thin::-webkit-scrollbar {
+        width: 6px;
+    }
+    .scrollbar-thin::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .scrollbar-thin::-webkit-scrollbar-thumb {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+    }
+    .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+</style>
+{% endblock %}
+
 {% block navbar %}
     {% if not request.tenant or request.tenant.subdomain == 'public' %}
         {% include 'includes/saas_navbar.html' %}
@@ -24,229 +43,307 @@
 {% if not request.tenant or request.tenant.subdomain == 'public' %}
     <!-- Public/SaaS Registration View -->
     
-    <div class="min-h-screen flex items-center justify-center bg-[#020617] py-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-        <div class="max-w-md w-full bg-[#0f172a] p-8 rounded-2xl border border-white/10 shadow-2xl relative z-10">
-            <div class="text-center mb-8">
-                 <div class="size-12 rounded-lg bg-blue-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-600/20">
-                    <span class="material-symbols-outlined text-white text-2xl">domain</span>
-                </div>
-                <h2 class="text-3xl font-bold text-white tracking-tight" id="step-title">
-                    Start Your Trial
-                </h2>
-                <p class="mt-2 text-sm text-gray-400" id="step-subtitle">
-                    Create your hotel workspace in seconds
-                </p>
-            </div>
+    <div class="min-h-screen flex items-center justify-center bg-[#020617] p-4 md:p-8 relative overflow-hidden">
+        <div class="max-w-6xl w-full bg-[#0f172a] rounded-2xl border border-white/10 shadow-2xl relative z-10 flex flex-col md:flex-row overflow-hidden min-h-[600px]">
             
-            <!-- Progress Steps -->
-            <div class="flex items-center justify-center mb-10">
-                <div class="flex items-center w-full max-w-sm relative">
-                    <div class="w-full absolute top-1/2 left-0 h-0.5 bg-white/10 -z-10"></div>
-                    
-                    <!-- Step 1 Indicator -->
-                    <div class="flex-1 flex justify-center">
-                        <div class="size-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-blue-600/20 step-indicator transition-all duration-300" data-step="1">1</div>
-                    </div>
-                    
-                    <!-- Step 2 Indicator -->
-                    <div class="flex-1 flex justify-center">
-                        <div class="size-10 rounded-full bg-[#0f172a] text-gray-400 font-bold text-sm border-2 border-white/10 flex items-center justify-center step-indicator transition-all duration-300" data-step="2">2</div>
-                    </div>
-                    
-                    <!-- Step 3 Indicator -->
-                    <div class="flex-1 flex justify-center">
-                        <div class="size-10 rounded-full bg-[#0f172a] text-gray-400 font-bold text-sm border-2 border-white/10 flex items-center justify-center step-indicator transition-all duration-300" data-step="3">3</div>
-                    </div>
-                </div>
-            </div>
-            
-            {% if selected_plan %}
-            <!-- Selected Plan Summary -->
-            <div class="bg-gradient-to-r from-blue-900/40 to-blue-800/20 rounded-xl border border-blue-500/20 p-5 mb-8 backdrop-blur-md relative overflow-hidden group">
-                <div class="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
+            <!-- Sidebar (Steps & Plan) -->
+            <div class="w-full md:w-1/3 bg-blue-950/30 border-r border-white/5 p-8 flex flex-col relative overflow-hidden">
+                <!-- Background Decoration -->
+                <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-blue-600/10 to-transparent pointer-events-none"></div>
                 
-                <div class="flex items-center justify-between mb-1 relative z-10">
-                    <span class="text-blue-300 text-xs font-semibold uppercase tracking-wider">Selected Plan</span>
-                    <a href="/#pricing" class="text-white text-xs font-bold hover:text-blue-300 transition-colors flex items-center gap-1 bg-white/10 px-2 py-1 rounded-lg hover:bg-white/20">
-                        Change <span class="material-symbols-outlined text-[10px]">edit</span>
-                    </a>
+                <!-- Header -->
+                <div class="relative z-10 mb-10">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="size-10 rounded-lg bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/20">
+                            <span class="material-symbols-outlined text-white text-xl">domain</span>
+                        </div>
+                        <h2 class="text-xl font-bold text-white tracking-tight">IHotel</h2>
+                    </div>
+                    
+                    <h1 class="text-2xl font-bold text-white mb-2" id="sidebar-title">Create Account</h1>
+                    <p class="text-sm text-gray-400" id="sidebar-subtitle">Get started with your hotel workspace</p>
                 </div>
-                <div class="flex items-center justify-between relative z-10">
-                    <span class="text-white font-bold text-xl">{{ selected_plan.name }}</span>
-                    <span class="text-white font-bold text-xl">
-                        {% if selected_plan.price == 0 %}
-                            Free
-                        {% else %}
-                            {{ selected_plan.currency }} {{ selected_plan.price|floatformat:0 }}<span class="text-sm text-gray-400 font-normal">/mo</span>
-                        {% endif %}
-                    </span>
+
+                <!-- Vertical Stepper -->
+                <div class="relative z-10 flex-1 space-y-6">
+                    <!-- Step 1 -->
+                    <div class="flex gap-4 group step-item" data-step="1">
+                        <div class="flex flex-col items-center">
+                            <div class="size-8 rounded-full border-2 border-white/10 bg-[#0f172a] text-gray-400 flex items-center justify-center text-xs font-bold transition-all duration-300 step-circle">1</div>
+                            <div class="w-0.5 h-full bg-white/5 my-2 step-line"></div>
+                        </div>
+                        <div class="pb-6">
+                            <h3 class="text-sm font-bold text-gray-400 transition-colors duration-300 step-label">Account Details</h3>
+                            <p class="text-xs text-gray-500 mt-0.5">Your admin credentials</p>
+                        </div>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="flex gap-4 group step-item" data-step="2">
+                        <div class="flex flex-col items-center">
+                            <div class="size-8 rounded-full border-2 border-white/10 bg-[#0f172a] text-gray-400 flex items-center justify-center text-xs font-bold transition-all duration-300 step-circle">2</div>
+                            <div class="w-0.5 h-full bg-white/5 my-2 step-line"></div>
+                        </div>
+                        <div class="pb-6">
+                            <h3 class="text-sm font-bold text-gray-400 transition-colors duration-300 step-label">Hotel Info</h3>
+                            <p class="text-xs text-gray-500 mt-0.5">Property & Domain</p>
+                        </div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="flex gap-4 group step-item" data-step="3">
+                        <div class="flex flex-col items-center">
+                            <div class="size-8 rounded-full border-2 border-white/10 bg-[#0f172a] text-gray-400 flex items-center justify-center text-xs font-bold transition-all duration-300 step-circle">3</div>
+                            <div class="w-0.5 h-full bg-white/5 my-2 step-line"></div>
+                        </div>
+                        <div class="pb-6">
+                            <h3 class="text-sm font-bold text-gray-400 transition-colors duration-300 step-label">Location</h3>
+                            <p class="text-xs text-gray-500 mt-0.5">Address & Region</p>
+                        </div>
+                    </div>
+
+                    <!-- Step 4 -->
+                    <div class="flex gap-4 group step-item" data-step="4">
+                        <div class="flex flex-col items-center">
+                            <div class="size-8 rounded-full border-2 border-white/10 bg-[#0f172a] text-gray-400 flex items-center justify-center text-xs font-bold transition-all duration-300 step-circle">4</div>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-gray-400 transition-colors duration-300 step-label">Review</h3>
+                            <p class="text-xs text-gray-500 mt-0.5">Confirm & Launch</p>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            
-            <form class="space-y-6" method="POST" id="registration-form">
-                {% csrf_token %}
-                <input type="hidden" name="plan" value="{{ selected_plan.name }}">
-                
-                {% if form.non_field_errors %}
-                <div class="bg-red-500/10 border border-red-500/50 rounded-lg p-4 mb-6 animate-pulse">
-                    {% for error in form.non_field_errors %}
-                    <p class="text-red-400 text-sm flex items-center gap-2">
-                        <span class="material-symbols-outlined text-sm">error</span>
-                        {{ error }}
-                    </p>
-                    {% endfor %}
+
+                <!-- Selected Plan (Bottom) -->
+                {% if selected_plan %}
+                <div class="relative z-10 mt-8 pt-6 border-t border-white/10">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-semibold text-blue-300 uppercase tracking-wider">Selected Plan</span>
+                        <a href="/#pricing" class="text-xs text-gray-400 hover:text-white transition-colors">Change</a>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-white font-bold">{{ selected_plan.name }}</span>
+                        <span class="text-white font-bold">
+                            {% if selected_plan.price == 0 %}Free{% else %}{{ selected_plan.currency }}{{ selected_plan.price|floatformat:0 }}<span class="text-xs font-normal text-gray-400">/mo</span>{% endif %}
+                        </span>
+                    </div>
                 </div>
                 {% endif %}
-                
-                <!-- Step 1: User Account -->
-                <div class="step-content animate-fade-in" data-step="1">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <div>
-                            <label class="block text-xs font-semibold text-blue-300 uppercase tracking-wider mb-2">Username</label>
-                            {% render_field form.username class="appearance-none rounded-xl relative block w-full px-4 py-3 border border-white/10 bg-white/5 placeholder-gray-500 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:bg-white/10" placeholder="Choose a unique username" %}
-                            {% if form.username.errors %}<p class="text-red-400 text-xs mt-1">{{ form.username.errors.0 }}</p>{% endif %}
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-semibold text-blue-300 uppercase tracking-wider mb-2">Email Address</label>
-                            {% render_field form.email class="appearance-none rounded-xl relative block w-full px-4 py-3 border border-white/10 bg-white/5 placeholder-gray-500 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:bg-white/10" placeholder="name@example.com" %}
-                            {% if form.email.errors %}<p class="text-red-400 text-xs mt-1">{{ form.email.errors.0 }}</p>{% endif %}
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-semibold text-blue-300 uppercase tracking-wider mb-2">Password</label>
-                            {% render_field form.password class="appearance-none rounded-xl relative block w-full px-4 py-3 border border-white/10 bg-white/5 placeholder-gray-500 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:bg-white/10" placeholder="••••••••" %}
-                            {% if form.password.errors %}<p class="text-red-400 text-xs mt-1">{{ form.password.errors.0 }}</p>{% endif %}
-                        </div>
-                        
-                        <div>
-                            <label class="block text-xs font-semibold text-blue-300 uppercase tracking-wider mb-2">Confirm Password</label>
-                            {% render_field form.password_confirm class="appearance-none rounded-xl relative block w-full px-4 py-3 border border-white/10 bg-white/5 placeholder-gray-500 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:bg-white/10" placeholder="••••••••" %}
-                            {% if form.password_confirm.errors %}<p class="text-red-400 text-xs mt-1">{{ form.password_confirm.errors.0 }}</p>{% endif %}
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Step 2: Hotel Details -->
-                <div class="step-content hidden animate-fade-in" data-step="2">
-                    <div class="space-y-6">
-                        <div class="text-center mb-6">
-                            <div class="size-20 rounded-full bg-blue-600/10 text-blue-400 flex items-center justify-center mx-auto mb-4 border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
-                                <span class="material-symbols-outlined text-4xl">domain_add</span>
-                            </div>
-                            <h3 class="text-xl font-bold text-white">Setup Your Hotel</h3>
-                            <p class="text-gray-400 text-sm">Give your property a digital home.</p>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-semibold text-blue-300 uppercase tracking-wider mb-2">Hotel Name</label>
-                            {% render_field form.hotel_name class="appearance-none rounded-xl relative block w-full px-4 py-3 border border-white/10 bg-white/5 placeholder-gray-500 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:bg-white/10" placeholder="e.g. My Luxury Hotel" %}
-                            {% if form.hotel_name.errors %}<p class="text-red-400 text-xs mt-1">{{ form.hotel_name.errors.0 }}</p>{% endif %}
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-semibold text-blue-300 uppercase tracking-wider mb-2">Workspace URL</label>
-                            <div class="flex rounded-xl shadow-sm">
-                                {% render_field form.subdomain class="flex-1 appearance-none rounded-l-xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:bg-white/10" placeholder="myluxuryhotel" %}
-                                <span class="inline-flex items-center px-4 rounded-r-xl border border-l-0 border-white/10 bg-white/10 text-gray-400 text-sm font-mono" id="host-domain-suffix">
-                                    .{{ request.get_host }}
-                                </span>
-                            </div>
-                            <p class="mt-2 text-xs text-gray-500 flex items-center gap-1">
-                                <span class="material-symbols-outlined text-[14px]">info</span>
-                                You can verify/change this later.
-                            </p>
-                            {% if form.subdomain.errors %}<p class="text-red-400 text-xs mt-1">{{ form.subdomain.errors.0 }}</p>{% endif %}
-                        </div>
-                        
-                        <div>
-                            <label class="block text-xs font-semibold text-blue-300 uppercase tracking-wider mb-2">Billing Cycle</label>
-                            <div class="grid grid-cols-2 gap-4">
-                                {% for radio in form.billing_cycle %}
-                                <label class="relative flex items-center justify-center p-4 rounded-xl border border-white/10 bg-white/5 cursor-pointer hover:bg-white/10 transition-all group">
-                                    {{ radio.tag }}
-                                    <span class="ml-2 text-sm font-medium text-white">{{ radio.choice_label }}</span>
-                                    <div class="absolute inset-0 border-2 border-transparent rounded-xl peer-checked:border-blue-500 pointer-events-none"></div>
-                                </label>
-                                {% endfor %}
-                            </div>
-                            {% if form.billing_cycle.errors %}<p class="text-red-400 text-xs mt-1">{{ form.billing_cycle.errors.0 }}</p>{% endif %}
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Step 3: Review & Finish -->
-                <div class="step-content hidden animate-fade-in" data-step="3">
-                     <div class="space-y-6">
-                        <div class="text-center mb-8">
-                            <div class="size-20 rounded-full bg-green-500/10 text-green-400 flex items-center justify-center mx-auto mb-4 border border-green-500/20 shadow-[0_0_15px_rgba(34,197,94,0.2)]">
-                                <span class="material-symbols-outlined text-4xl">rocket_launch</span>
-                            </div>
-                            <h3 class="text-xl font-bold text-white">Ready to Launch!</h3>
-                            <p class="text-gray-400 text-sm">Review your details and start your journey.</p>
-                        </div>
-
-                        <div class="bg-white/5 rounded-2xl p-6 border border-white/10 space-y-4 backdrop-blur-sm">
-                            <div class="flex justify-between border-b border-white/5 pb-4">
-                                <span class="text-gray-400 text-sm">Selected Plan</span>
-                                <span class="text-white font-bold">{{ selected_plan.name|default:"Free Trial" }}</span>
-                            </div>
-                            <div class="flex justify-between border-b border-white/5 pb-4">
-                                <span class="text-gray-400 text-sm">Hotel Name</span>
-                                <span class="text-white font-medium" id="review-hotel-name">--</span>
-                            </div>
-                            <div class="flex justify-between border-b border-white/5 pb-4">
-                                <span class="text-gray-400 text-sm">Workspace URL</span>
-                                <span class="text-blue-400 font-mono font-bold" id="review-subdomain">https://{{ request.get_host }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-400 text-sm">Billing Cycle</span>
-                                <span class="text-white font-medium capitalize" id="review-billing">--</span>
-                            </div>
-                        </div>
-
-                        <div class="bg-blue-600/10 border border-blue-600/20 rounded-xl p-4 flex gap-3">
-                            <span class="material-symbols-outlined text-blue-400 shrink-0">verified_user</span>
-                            <p class="text-xs text-blue-200 leading-relaxed">
-                                By creating an account, you agree to our Terms of Service and Privacy Policy. Your data is secure and encrypted.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Navigation Buttons -->
-                <div class="flex gap-4 mt-8 pt-4 border-t border-white/5">
-                    <button type="button" id="prev-btn" class="hidden flex-1 py-3.5 px-4 border border-white/10 text-sm font-bold rounded-xl text-white hover:bg-white/5 transition-all flex items-center justify-center gap-2 group">
-                        <span class="material-symbols-outlined text-lg group-hover:-translate-x-1 transition-transform">arrow_back</span>
-                        Back
-                    </button>
-                    <button type="button" id="next-btn" class="flex-1 py-3.5 px-4 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-blue-600/25 flex items-center justify-center gap-2 group">
-                        Next Step
-                        <span class="material-symbols-outlined text-lg group-hover:translate-x-1 transition-transform">arrow_forward</span>
-                    </button>
-                    <button type="submit" id="submit-btn" class="hidden flex-1 py-3.5 px-4 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-green-600/25 flex items-center justify-center gap-2 hover:scale-[1.02]">
-                        Launch Workspace
-                        <span class="material-symbols-outlined text-lg">rocket</span>
-                    </button>
-                </div>
-                
-                <div class="text-center mt-6">
-                    <p class="text-sm text-gray-400">
-                        Already have an account? 
-                        <a href="{% url 'login' %}" class="font-medium text-blue-500 hover:text-blue-400">
-                            Sign in
-                        </a>
-                    </p>
-                </div>
-            </form>
-            
-            {% else %}
-            <!-- Fallback if no plan selected (Direct access to /register) -->
-            <div class="text-center p-6 bg-blue-900/20 rounded-xl border border-blue-500/20">
-                <p class="text-blue-400 font-medium">To create a new hotel workspace, please use the "Get Started" button on the pricing page.</p>
-                <a href="/#pricing" class="inline-block mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-500 transition-colors">View Plans</a>
             </div>
-            {% endif %}
+            
+            <!-- Right Content (Form) -->
+            <div class="w-full md:w-2/3 p-8 md:p-12 flex flex-col relative">
+                
+                <div class="flex-1 flex flex-col justify-center max-w-lg mx-auto w-full">
+                    
+                    <form class="space-y-6" method="POST" id="registration-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="plan" value="{{ selected_plan.name }}">
+                        
+                        {% if form.non_field_errors %}
+                        <div class="bg-red-500/10 border border-red-500/50 rounded-xl p-4 mb-6 animate-pulse">
+                            {% for error in form.non_field_errors %}
+                            <p class="text-red-400 text-sm flex items-center gap-2">
+                                <span class="material-symbols-outlined text-sm">error</span>
+                                {{ error }}
+                            </p>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Step 1: User Account -->
+                        <div class="step-content animate-fade-in" data-step="1">
+                            <div class="mb-8">
+                                <h3 class="text-2xl font-bold text-white mb-2">Create your account</h3>
+                                <p class="text-gray-400">Set up your administrator credentials to manage your hotel.</p>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 gap-5">
+                                <div>
+                                    <label class="block text-xs font-semibold text-blue-300 uppercase tracking-wider mb-2">Username</label>
+                                    {% render_field form.username class="appearance-none rounded-xl relative block w-full px-4 py-3.5 border border-white/10 bg-white/5 placeholder-gray-500 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:bg-white/10" placeholder="Choose a unique username" %}
+                                    {% if form.username.errors %}<p class="text-red-400 text-xs mt-1">{{ form.username.errors.0 }}</p>{% endif %}
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-semibold text-blue-300 uppercase tracking-wider mb-2">Email Address</label>
+                                    {% render_field form.email class="appearance-none rounded-xl relative block w-full px-4 py-3.5 border border-white/10 bg-white/5 placeholder-gray-500 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:bg-white/10" placeholder="name@example.com" %}
+                                    {% if form.email.errors %}<p class="text-red-400 text-xs mt-1">{{ form.email.errors.0 }}</p>{% endif %}
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div>
+                                        <label class="block text-xs font-semibold text-blue-300 uppercase tracking-wider mb-2">Password</label>
+                                        {% render_field form.password class="appearance-none rounded-xl relative block w-full px-4 py-3.5 border border-white/10 bg-white/5 placeholder-gray-500 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:bg-white/10" placeholder="••••••••" %}
+                                        {% if form.password.errors %}<p class="text-red-400 text-xs mt-1">{{ form.password.errors.0 }}</p>{% endif %}
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-xs font-semibold text-blue-300 uppercase tracking-wider mb-2">Confirm Password</label>
+                                        {% render_field form.password_confirm class="appearance-none rounded-xl relative block w-full px-4 py-3.5 border border-white/10 bg-white/5 placeholder-gray-500 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:bg-white/10" placeholder="••••••••" %}
+                                        {% if form.password_confirm.errors %}<p class="text-red-400 text-xs mt-1">{{ form.password_confirm.errors.0 }}</p>{% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Hotel Details -->
+                        <div class="step-content hidden animate-fade-in" data-step="2">
+                            <div class="mb-8">
+                                <h3 class="text-2xl font-bold text-white mb-2">Property Details</h3>
+                                <p class="text-gray-400">Tell us about your hotel to customize your workspace.</p>
+                            </div>
+
+                            <div class="space-y-6">
+                                <div>
+                                    <label class="block text-xs font-semibold text-blue-300 uppercase tracking-wider mb-2">Hotel Name</label>
+                                    {% render_field form.hotel_name class="appearance-none rounded-xl relative block w-full px-4 py-3.5 border border-white/10 bg-white/5 placeholder-gray-500 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:bg-white/10" placeholder="e.g. My Luxury Hotel" %}
+                                    {% if form.hotel_name.errors %}<p class="text-red-400 text-xs mt-1">{{ form.hotel_name.errors.0 }}</p>{% endif %}
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-semibold text-blue-300 uppercase tracking-wider mb-2">Workspace URL</label>
+                                    <div class="flex rounded-xl shadow-sm">
+                                        {% render_field form.subdomain class="flex-1 appearance-none rounded-l-xl border border-white/10 bg-white/5 px-4 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:bg-white/10" placeholder="myluxuryhotel" %}
+                                        <span class="inline-flex items-center px-4 rounded-r-xl border border-l-0 border-white/10 bg-white/10 text-gray-400 text-sm font-mono" id="host-domain-suffix">
+                                            .{{ request.get_host }}
+                                        </span>
+                                    </div>
+                                    {% if form.subdomain.errors %}<p class="text-red-400 text-xs mt-1">{{ form.subdomain.errors.0 }}</p>{% endif %}
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-semibold text-blue-300 uppercase tracking-wider mb-2">Billing Cycle</label>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        {% for radio in form.billing_cycle %}
+                                        <label class="relative flex items-center justify-center p-4 rounded-xl border border-white/10 bg-white/5 cursor-pointer hover:bg-white/10 transition-all group">
+                                            {{ radio.tag }}
+                                            <span class="ml-2 text-sm font-medium text-white">{{ radio.choice_label }}</span>
+                                            <div class="absolute inset-0 border-2 border-transparent rounded-xl peer-checked:border-blue-500 pointer-events-none"></div>
+                                        </label>
+                                        {% endfor %}
+                                    </div>
+                                    {% if form.billing_cycle.errors %}<p class="text-red-400 text-xs mt-1">{{ form.billing_cycle.errors.0 }}</p>{% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Location Details -->
+                        <div class="step-content hidden animate-fade-in" data-step="3">
+                            <div class="mb-8">
+                                <h3 class="text-2xl font-bold text-white mb-2">Location</h3>
+                                <p class="text-gray-400">Where is your property located?</p>
+                            </div>
+
+                            <div class="space-y-5">
+                                <div>
+                                    <label class="block text-xs font-semibold text-blue-300 uppercase tracking-wider mb-2">Country</label>
+                                    <div class="relative">
+                                        <input id="id_country" name="country" class="appearance-none rounded-xl relative block w-full px-4 py-3.5 border border-white/10 bg-white/5 placeholder-gray-500 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:bg-white/10" placeholder="Search Country..." autocomplete="off" required>
+                                        <div id="country-suggestions" class="absolute z-50 w-full mt-1 bg-[#0f172a] border border-white/10 rounded-xl shadow-xl max-h-60 overflow-y-auto hidden scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent"></div>
+                                        <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                            <span class="material-symbols-outlined text-sm">expand_more</span>
+                                        </div>
+                                    </div>
+                                    {% if form.country.errors %}<p class="text-red-400 text-xs mt-1">{{ form.country.errors.0 }}</p>{% endif %}
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div>
+                                        <label class="block text-xs font-semibold text-blue-300 uppercase tracking-wider mb-2">State/Province</label>
+                                        <div class="relative">
+                                            <input id="id_state" name="state" class="appearance-none rounded-xl relative block w-full px-4 py-3.5 border border-white/10 bg-white/5 placeholder-gray-500 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed" placeholder="Search State..." disabled autocomplete="off" required>
+                                            <div id="state-suggestions" class="absolute z-50 w-full mt-1 bg-[#0f172a] border border-white/10 rounded-xl shadow-xl max-h-60 overflow-y-auto hidden scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent"></div>
+                                            <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                                <span class="material-symbols-outlined text-sm">expand_more</span>
+                                            </div>
+                                        </div>
+                                        {% if form.state.errors %}<p class="text-red-400 text-xs mt-1">{{ form.state.errors.0 }}</p>{% endif %}
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-xs font-semibold text-blue-300 uppercase tracking-wider mb-2">City</label>
+                                        <div class="relative">
+                                            <input id="id_city" name="city" class="appearance-none rounded-xl relative block w-full px-4 py-3.5 border border-white/10 bg-white/5 placeholder-gray-500 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:bg-white/10" placeholder="Select or type city" disabled autocomplete="off" required>
+                                            <div id="city-suggestions" class="absolute z-50 w-full mt-1 bg-[#0f172a] border border-white/10 rounded-xl shadow-xl max-h-60 overflow-y-auto hidden scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent"></div>
+                                        </div>
+                                        {% if form.city.errors %}<p class="text-red-400 text-xs mt-1">{{ form.city.errors.0 }}</p>{% endif %}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-semibold text-blue-300 uppercase tracking-wider mb-2">Address</label>
+                                    {% render_field form.address class="appearance-none rounded-xl relative block w-full px-4 py-3.5 border border-white/10 bg-white/5 placeholder-gray-500 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:bg-white/10" placeholder="Street Address" %}
+                                    {% if form.address.errors %}<p class="text-red-400 text-xs mt-1">{{ form.address.errors.0 }}</p>{% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 4: Review & Finish -->
+                        <div class="step-content hidden animate-fade-in" data-step="4">
+                             <div class="mb-8">
+                                <h3 class="text-2xl font-bold text-white mb-2">Ready to Launch</h3>
+                                <p class="text-gray-400">Review your details and start your journey.</p>
+                            </div>
+
+                            <div class="bg-white/5 rounded-2xl p-6 border border-white/10 space-y-4 backdrop-blur-sm">
+                                <div class="flex justify-between border-b border-white/5 pb-4">
+                                    <span class="text-gray-400 text-sm">Selected Plan</span>
+                                    <span class="text-white font-bold">{{ selected_plan.name|default:"Free Trial" }}</span>
+                                </div>
+                                <div class="flex justify-between border-b border-white/5 pb-4">
+                                    <span class="text-gray-400 text-sm">Hotel Name</span>
+                                    <span class="text-white font-medium" id="review-hotel-name">--</span>
+                                </div>
+                                <div class="flex justify-between border-b border-white/5 pb-4">
+                                    <span class="text-gray-400 text-sm">Workspace URL</span>
+                                    <span class="text-blue-400 font-mono font-bold" id="review-subdomain">https://{{ request.get_host }}</span>
+                                </div>
+                                <div class="flex justify-between border-b border-white/5 pb-4">
+                                    <span class="text-gray-400 text-sm">Location</span>
+                                    <span class="text-white font-medium text-right" id="review-location">--</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400 text-sm">Billing Cycle</span>
+                                    <span class="text-white font-medium capitalize" id="review-billing">--</span>
+                                </div>
+                            </div>
+
+                            <div class="bg-blue-600/10 border border-blue-600/20 rounded-xl p-4 flex gap-3 mt-6">
+                                <span class="material-symbols-outlined text-blue-400 shrink-0">verified_user</span>
+                                <p class="text-xs text-blue-200 leading-relaxed">
+                                    By creating an account, you agree to our Terms of Service and Privacy Policy. Your data is secure and encrypted.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Navigation Buttons -->
+                        <div class="flex gap-4 pt-4 mt-auto">
+                            <button type="button" id="prev-btn" class="hidden flex-1 py-3.5 px-4 border border-white/10 text-sm font-bold rounded-xl text-white hover:bg-white/5 transition-all flex items-center justify-center gap-2 group">
+                                <span class="material-symbols-outlined text-lg group-hover:-translate-x-1 transition-transform">arrow_back</span>
+                                Back
+                            </button>
+                            <button type="button" id="next-btn" class="flex-1 py-3.5 px-4 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-blue-600/25 flex items-center justify-center gap-2 group">
+                                Next Step
+                                <span class="material-symbols-outlined text-lg group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                            </button>
+                            <button type="submit" id="submit-btn" class="hidden flex-1 py-3.5 px-4 bg-green-600 hover:bg-green-500 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-green-600/25 flex items-center justify-center gap-2 hover:scale-[1.02]">
+                                Launch Workspace
+                                <span class="material-symbols-outlined text-lg">rocket</span>
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div class="text-center mt-6">
+                        <p class="text-sm text-gray-400">
+                            Already have an account? 
+                            <a href="{% url 'login' %}" class="font-medium text-blue-500 hover:text-blue-400">
+                                Sign in
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -429,7 +526,7 @@
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         let currentStep = 1;
-        const totalSteps = 3;
+        const totalSteps = 4;
         
         const prevBtn = document.getElementById('prev-btn');
         const nextBtn = document.getElementById('next-btn');
@@ -482,13 +579,15 @@
         const saasTitles = {
             1: "Create Account",
             2: "Property Details",
-            3: "Final Review"
+            3: "Location Details",
+            4: "Final Review"
         };
         
         const saasSubtitles = {
             1: "Set up your admin credentials",
             2: "Tell us about your hotel",
-            3: "Ready to launch your workspace?"
+            3: "Where is your hotel located?",
+            4: "Ready to launch your workspace?"
         };
         
         const tenantTitles = {
@@ -513,61 +612,61 @@
                 if(parseInt(el.dataset.step) === currentStep) el.classList.remove('hidden');
             });
             
-            // Update Indicators
-            document.querySelectorAll('.step-indicator').forEach(el => {
+            // Update Vertical Stepper
+            document.querySelectorAll('.step-item').forEach(el => {
                 const step = parseInt(el.dataset.step);
+                const circle = el.querySelector('.step-circle');
+                const label = el.querySelector('.step-label');
+                const line = el.querySelector('.step-line');
                 
-                // Reset to base state (inactive)
-                if (isSaaS) {
-                    el.classList.remove('bg-blue-600', 'text-white', 'shadow-lg', 'shadow-blue-600/20', 'bg-green-500', 'border-green-500');
-                    el.classList.add('bg-[#0f172a]', 'text-gray-400', 'border-2', 'border-white/10');
-                    el.innerHTML = step;
-                } else {
-                    el.classList.remove('bg-primary', 'text-slate-900', 'shadow-lg', 'bg-green-500', 'text-white', 'border-green-500');
-                    el.classList.add('bg-surface-light', 'text-text-secondary-dark', 'border-2', 'border-border-dark');
-                    el.innerHTML = step;
+                // Reset State
+                circle.classList.remove('bg-blue-600', 'text-white', 'border-blue-600', 'bg-green-500', 'border-green-500');
+                circle.classList.add('bg-[#0f172a]', 'text-gray-400', 'border-white/10');
+                circle.innerHTML = step;
+                
+                label.classList.remove('text-white', 'text-blue-400');
+                label.classList.add('text-gray-400');
+                
+                if (line) {
+                    line.classList.remove('bg-blue-600', 'bg-green-500');
+                    line.classList.add('bg-white/5');
                 }
-                
+
                 if (step === currentStep) {
                     // Active State
-                    if (isSaaS) {
-                        el.classList.remove('bg-[#0f172a]', 'text-gray-400', 'border-2', 'border-white/10');
-                        el.classList.add('bg-blue-600', 'text-white', 'shadow-lg', 'shadow-blue-600/20');
-                    } else {
-                        el.classList.remove('bg-surface-light', 'text-text-secondary-dark', 'border-2', 'border-border-dark');
-                        el.classList.add('bg-primary', 'text-slate-900', 'shadow-lg');
-                    }
+                    circle.classList.remove('bg-[#0f172a]', 'text-gray-400', 'border-white/10');
+                    circle.classList.add('bg-blue-600', 'text-white', 'border-blue-600');
+                    
+                    label.classList.remove('text-gray-400');
+                    label.classList.add('text-white');
+                    
                 } else if (step < currentStep) {
                     // Completed State
-                    if (isSaaS) {
-                        el.classList.remove('bg-[#0f172a]', 'text-gray-400', 'border-2', 'border-white/10');
-                        el.classList.add('bg-green-500', 'text-white', 'border-green-500');
-                    } else {
-                        el.classList.remove('bg-surface-light', 'text-text-secondary-dark', 'border-2', 'border-border-dark');
-                        el.classList.add('bg-green-500', 'text-white', 'border-green-500');
+                    circle.classList.remove('bg-[#0f172a]', 'text-gray-400', 'border-white/10');
+                    circle.classList.add('bg-green-500', 'text-white', 'border-green-500');
+                    circle.innerHTML = '<span class="material-symbols-outlined text-sm font-bold">check</span>';
+                    
+                    label.classList.remove('text-gray-400');
+                    label.classList.add('text-white');
+                    
+                    if (line) {
+                        line.classList.remove('bg-white/5');
+                        line.classList.add('bg-green-500');
                     }
-                    el.innerHTML = '<span class="material-symbols-outlined text-sm">check</span>';
                 }
             });
-            
-            // Update Text
-            if (stepTitle) stepTitle.textContent = titles[currentStep];
-            if (stepSubtitle) stepSubtitle.textContent = subtitles[currentStep];
             
             // Update Buttons
             if (prevBtn) prevBtn.classList.toggle('hidden', currentStep === 1);
             
             if (nextBtn) {
-                 // Dynamic Button Text
-                 if (isSaaS) {
-                     if (currentStep === 1) nextBtn.innerHTML = 'Next: Hotel Details <span class="material-symbols-outlined text-lg group-hover:translate-x-1 transition-transform">arrow_forward</span>';
-                     else if (currentStep === 2) nextBtn.innerHTML = 'Next: Review <span class="material-symbols-outlined text-lg group-hover:translate-x-1 transition-transform">arrow_forward</span>';
-                 } else {
-                     nextBtn.textContent = "Next Step";
-                 }
+                 // Simple Button Text for new layout
+                 nextBtn.innerHTML = 'Next Step <span class="material-symbols-outlined text-lg group-hover:translate-x-1 transition-transform">arrow_forward</span>';
             }
             
-            if (currentStep === totalSteps) {
+            // Handle Submit Button visibility
+            const finalStep = isSaaS ? 4 : 3;
+            if (currentStep === finalStep) {
                 if (nextBtn) nextBtn.classList.add('hidden');
                 if (submitBtn) submitBtn.classList.remove('hidden');
                 
@@ -576,6 +675,9 @@
                     const hotelName = document.querySelector('[name="hotel_name"]')?.value || "Not set";
                     let subdomain = document.querySelector('[name="subdomain"]')?.value;
                     const billing = document.querySelector('input[name="billing_cycle"]:checked')?.nextElementSibling?.innerText || "Monthly";
+                    const country = document.querySelector('[name="country"]')?.value || "";
+                    const state = document.querySelector('[name="state"]')?.value || "";
+                    const city = document.querySelector('[name="city"]')?.value || "";
 
                     if (!subdomain && hotelName) {
                         subdomain = hotelName.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -584,10 +686,12 @@
                     const reviewNameEl = document.getElementById('review-hotel-name');
                     const reviewSubdomainEl = document.getElementById('review-subdomain');
                     const reviewBillingEl = document.getElementById('review-billing');
+                    const reviewLocationEl = document.getElementById('review-location');
                     
                     if (reviewNameEl) reviewNameEl.textContent = hotelName;
                     if (reviewSubdomainEl) reviewSubdomainEl.textContent = subdomain ? `${subdomain}.ihotel.com` : '--';
                     if (reviewBillingEl) reviewBillingEl.textContent = billing;
+                    if (reviewLocationEl) reviewLocationEl.textContent = `${city}, ${state}, ${country}`.replace(/^, |, $/g, '').replace(/, , /g, ', ');
                 }
                 
             } else {
@@ -598,7 +702,8 @@
     
         if (nextBtn) {
             nextBtn.addEventListener('click', () => {
-                if (currentStep < totalSteps) {
+                const finalStep = isSaaS ? 4 : 3;
+                if (currentStep < finalStep) {
                     // Validate current step
                     const currentContent = document.querySelector(`.step-content[data-step="${currentStep}"]`);
                     const inputs = currentContent.querySelectorAll('input, select, textarea');
@@ -638,6 +743,150 @@
             });
         }
         
+        
+        // Location Logic
+        const countryInput = document.getElementById('id_country');
+        const countrySuggestions = document.getElementById('country-suggestions');
+        const stateInput = document.getElementById('id_state');
+        const stateSuggestions = document.getElementById('state-suggestions');
+        const cityInput = document.getElementById('id_city');
+        const citySuggestions = document.getElementById('city-suggestions');
+        
+        let countries = [];
+        let states = [];
+        let cities = [];
+
+        if (countryInput && stateInput && cityInput) {
+            
+            // Helper function for filtering and showing suggestions
+            function setupAutocomplete(input, suggestionBox, dataArray, onSelect) {
+                const showSuggestions = (query = '') => {
+                    suggestionBox.innerHTML = '';
+                    const matches = query 
+                        ? dataArray.filter(item => item.name ? item.name.toLowerCase().includes(query.toLowerCase()) : item.toLowerCase().includes(query.toLowerCase()))
+                        : dataArray;
+                    
+                    if (matches.length > 0) {
+                        suggestionBox.classList.remove('hidden');
+                        matches.forEach(item => {
+                            const val = item.name || item;
+                            const div = document.createElement('div');
+                            div.className = 'px-4 py-2 cursor-pointer hover:bg-white/10 text-white transition-colors text-sm';
+                            div.textContent = val;
+                            div.addEventListener('click', function() {
+                                input.value = val;
+                                suggestionBox.classList.add('hidden');
+                                if (onSelect) onSelect(val);
+                            });
+                            suggestionBox.appendChild(div);
+                        });
+                    } else {
+                        suggestionBox.classList.add('hidden');
+                    }
+                };
+
+                input.addEventListener('input', function() {
+                    showSuggestions(this.value);
+                });
+
+                input.addEventListener('focus', function() {
+                    showSuggestions(this.value);
+                });
+
+                // Hide on outside click
+                document.addEventListener('click', function(e) {
+                    if (!input.contains(e.target) && !suggestionBox.contains(e.target)) {
+                        suggestionBox.classList.add('hidden');
+                    }
+                });
+            }
+
+            // Fetch Countries on Load
+            fetch('https://countriesnow.space/api/v0.1/countries/positions')
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.error) {
+                        countries = data.data.sort((a, b) => a.name.localeCompare(b.name));
+                        // Setup Country Autocomplete
+                        setupAutocomplete(countryInput, countrySuggestions, countries, (selectedCountry) => {
+                            // Reset State and City
+                            stateInput.value = '';
+                            stateInput.disabled = true;
+                            stateSuggestions.innerHTML = '';
+                            states = [];
+                            
+                            cityInput.value = '';
+                            cityInput.disabled = true;
+                            citySuggestions.innerHTML = '';
+                            cities = [];
+
+                            if (selectedCountry) {
+                                stateInput.disabled = false;
+                                stateInput.placeholder = "Loading states...";
+                                // Fetch States
+                                fetch('https://countriesnow.space/api/v0.1/countries/states', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ country: selectedCountry })
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    stateInput.placeholder = "Search State...";
+                                    if (!data.error) {
+                                        if (data.data.states.length > 0) {
+                                            states = data.data.states;
+                                            setupAutocomplete(stateInput, stateSuggestions, states, (selectedState) => {
+                                                 // Reset City
+                                                cityInput.value = '';
+                                                cityInput.disabled = true;
+                                                citySuggestions.innerHTML = '';
+                                                cities = [];
+
+                                                if (selectedState) {
+                                                    cityInput.disabled = false;
+                                                    cityInput.placeholder = "Loading cities...";
+                                                    // Fetch Cities
+                                                    fetch('https://countriesnow.space/api/v0.1/countries/state/cities', {
+                                                        method: 'POST',
+                                                        headers: { 'Content-Type': 'application/json' },
+                                                        body: JSON.stringify({ country: selectedCountry, state: selectedState })
+                                                    })
+                                                    .then(response => response.json())
+                                                    .then(data => {
+                                                        cityInput.placeholder = "Select or type city";
+                                                        if (!data.error) {
+                                                            cities = data.data;
+                                                            setupAutocomplete(cityInput, citySuggestions, cities);
+                                                        }
+                                                    })
+                                                    .catch(error => {
+                                                        console.error('Error fetching cities:', error);
+                                                        cityInput.placeholder = "Type city manually";
+                                                        cityInput.disabled = false;
+                                                    });
+                                                }
+                                            });
+                                        } else {
+                                            // No states found
+                                            stateInput.placeholder = "Type state manually";
+                                            // Enable city manual entry
+                                            cityInput.disabled = false;
+                                            setupAutocomplete(stateInput, stateSuggestions, []); // Manual entry
+                                        }
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error fetching states:', error);
+                                    stateInput.placeholder = "Type state manually";
+                                    stateInput.disabled = false;
+                                });
+                            }
+                        });
+                    }
+                })
+                .catch(error => console.error('Error fetching countries:', error));
+        }
+
         updateUI();
     });
     </script>

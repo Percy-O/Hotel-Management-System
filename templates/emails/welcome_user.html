@@ -16,6 +16,12 @@
             <span class="info-label">Role</span>
             <span class="info-value">{{ role }}</span>
         </div>
+        {% if password %}
+        <div class="info-row">
+            <span class="info-label">Password</span>
+            <span class="info-value">{{ password }}</span>
+        </div>
+        {% endif %}
     </div>
 
     <p>Please click the button below to login and set up your profile.</p>

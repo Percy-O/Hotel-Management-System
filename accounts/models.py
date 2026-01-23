@@ -9,6 +9,7 @@ class User(AbstractUser):
         STAFF = "STAFF", "Staff"
         CLEANER = "CLEANER", "Cleaner"
         KITCHEN = "KITCHEN", "Kitchen Staff"
+        BAR = "BAR", "Bar Staff"
         EVENT_MANAGER = "EVENT_MANAGER", "Event Manager"
         GYM_MANAGER = "GYM_MANAGER", "Gym Manager"
         GUEST = "GUEST", "Guest"

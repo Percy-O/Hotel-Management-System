@@ -1,0 +1,164 @@
+<!-- Daily Stats -->
+{% if selected_period == 'all' or selected_period == 'daily' %}
+<div class="bg-surface-dark rounded-xl border border-border-dark overflow-hidden">
+    <div class="p-6 border-b border-border-dark">
+        <h3 class="text-lg font-bold text-text-main">Daily Statistics (Last 30 Days)</h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+            <thead class="bg-background-dark text-text-secondary-dark uppercase text-xs">
+                <tr>
+                    <th class="px-6 py-3 font-medium">Date</th>
+                    <th class="px-6 py-3 font-medium text-right">Sales</th>
+                    <th class="px-6 py-3 font-medium text-right">Bookings</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-border-dark">
+                {% for row in daily_stats %}
+                <tr class="hover:bg-white/5 transition-colors">
+                    <td class="px-6 py-4 text-text-main">{{ row.period|date:"M d, Y" }}</td>
+                    <td class="px-6 py-4 text-text-main text-right">{{ site_settings.currency_symbol }}{{ row.sales|floatformat:2 }}</td>
+                    <td class="px-6 py-4 text-text-main text-right">{{ row.guests }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="px-6 py-8 text-center text-text-secondary-dark">No data available</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- Weekly Stats -->
+{% if selected_period == 'all' or selected_period == 'weekly' %}
+<div class="bg-surface-dark rounded-xl border border-border-dark overflow-hidden">
+    <div class="p-6 border-b border-border-dark">
+        <h3 class="text-lg font-bold text-text-main">Weekly Statistics (Last 12 Weeks)</h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+            <thead class="bg-background-dark text-text-secondary-dark uppercase text-xs">
+                <tr>
+                    <th class="px-6 py-3 font-medium">Week</th>
+                    <th class="px-6 py-3 font-medium text-right">Sales</th>
+                    <th class="px-6 py-3 font-medium text-right">Bookings</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-border-dark">
+                {% for row in weekly_stats %}
+                <tr class="hover:bg-white/5 transition-colors">
+                    <td class="px-6 py-4 text-text-main">Week of {{ row.period|date:"M d, Y" }}</td>
+                    <td class="px-6 py-4 text-text-main text-right">{{ site_settings.currency_symbol }}{{ row.sales|floatformat:2 }}</td>
+                    <td class="px-6 py-4 text-text-main text-right">{{ row.guests }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="px-6 py-8 text-center text-text-secondary-dark">No data available</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- Monthly Stats -->
+{% if selected_period == 'all' or selected_period == 'monthly' %}
+<div class="bg-surface-dark rounded-xl border border-border-dark overflow-hidden">
+    <div class="p-6 border-b border-border-dark">
+        <h3 class="text-lg font-bold text-text-main">Monthly Statistics</h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+            <thead class="bg-background-dark text-text-secondary-dark uppercase text-xs">
+                <tr>
+                    <th class="px-6 py-3 font-medium">Month</th>
+                    <th class="px-6 py-3 font-medium text-right">Sales</th>
+                    <th class="px-6 py-3 font-medium text-right">Bookings</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-border-dark">
+                {% for row in monthly_stats %}
+                <tr class="hover:bg-white/5 transition-colors">
+                    <td class="px-6 py-4 text-text-main">{{ row.period|date:"F Y" }}</td>
+                    <td class="px-6 py-4 text-text-main text-right">{{ site_settings.currency_symbol }}{{ row.sales|floatformat:2 }}</td>
+                    <td class="px-6 py-4 text-text-main text-right">{{ row.guests }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="px-6 py-8 text-center text-text-secondary-dark">No data available</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- Quarterly Stats -->
+{% if selected_period == 'all' or selected_period == 'quarterly' %}
+<div class="bg-surface-dark rounded-xl border border-border-dark overflow-hidden">
+    <div class="p-6 border-b border-border-dark">
+        <h3 class="text-lg font-bold text-text-main">Quarterly Statistics</h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+            <thead class="bg-background-dark text-text-secondary-dark uppercase text-xs">
+                <tr>
+                    <th class="px-6 py-3 font-medium">Quarter</th>
+                    <th class="px-6 py-3 font-medium text-right">Sales</th>
+                    <th class="px-6 py-3 font-medium text-right">Bookings</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-border-dark">
+                {% for row in quarterly_stats %}
+                <tr class="hover:bg-white/5 transition-colors">
+                    <td class="px-6 py-4 text-text-main">Q{{ row.period.month|add:"-1"|divisibleby:"3"|yesno:"1,2,3,4" }} {{ row.period|date:"Y" }}</td>
+                    <td class="px-6 py-4 text-text-main text-right">{{ site_settings.currency_symbol }}{{ row.sales|floatformat:2 }}</td>
+                    <td class="px-6 py-4 text-text-main text-right">{{ row.guests }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="px-6 py-8 text-center text-text-secondary-dark">No data available</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- Yearly Stats -->
+{% if selected_period == 'all' or selected_period == 'yearly' %}
+<div class="bg-surface-dark rounded-xl border border-border-dark overflow-hidden">
+    <div class="p-6 border-b border-border-dark">
+        <h3 class="text-lg font-bold text-text-main">Yearly Statistics</h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+            <thead class="bg-background-dark text-text-secondary-dark uppercase text-xs">
+                <tr>
+                    <th class="px-6 py-3 font-medium">Year</th>
+                    <th class="px-6 py-3 font-medium text-right">Sales</th>
+                    <th class="px-6 py-3 font-medium text-right">Bookings</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-border-dark">
+                {% for row in yearly_stats %}
+                <tr class="hover:bg-white/5 transition-colors">
+                    <td class="px-6 py-4 text-text-main">{{ row.period|date:"Y" }}</td>
+                    <td class="px-6 py-4 text-text-main text-right">{{ site_settings.currency_symbol }}{{ row.sales|floatformat:2 }}</td>
+                    <td class="px-6 py-4 text-text-main text-right">{{ row.guests }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="px-6 py-8 text-center text-text-secondary-dark">No data available</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}

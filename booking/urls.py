@@ -13,4 +13,5 @@ urlpatterns = [
     path('booking/<int:pk>/barcode/', views.download_barcode, name='download_barcode'),
     path('booking/<int:pk>/pass/', views.view_barcode_pass, name='view_barcode_pass'),
     path('my-bookings/', views.my_bookings, name='my_bookings'),
+    path('booking/<int:pk>/extend/', views.extend_booking, name='extend_booking'),
 ]

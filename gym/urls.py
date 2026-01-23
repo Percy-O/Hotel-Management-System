@@ -2,6 +2,14 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    # Public Views
+    path('public/plans/', views.PublicGymPlanListView.as_view(), name='public_gym_plan_list'),
+    path('public/join/', views.PublicGymSignupView.as_view(), name='public_gym_signup'),
+    
+    # Member Actions
+    path('check-in/', views.gym_check_in, name='gym_check_in'),
+    path('check-out/', views.gym_check_out, name='gym_check_out'),
+
     # Plan Management
     path('plans/', views.GymPlanListView.as_view(), name='gym_plan_list'),
     path('plans/create/', views.GymPlanCreateView.as_view(), name='gym_plan_create'),

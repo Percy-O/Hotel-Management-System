@@ -139,6 +139,12 @@ def register_view(request):
                     subdomain = form.cleaned_data.get('subdomain')
                     billing_cycle = form.cleaned_data.get('billing_cycle', 'monthly')
                     
+                    # Location Data
+                    address = form.cleaned_data.get('address')
+                    city = form.cleaned_data.get('city')
+                    state = form.cleaned_data.get('state')
+                    country = form.cleaned_data.get('country')
+                    
                     if not subdomain:
                         subdomain = slugify(hotel_name)
                     else:
@@ -152,7 +158,12 @@ def register_view(request):
                         owner=user,
                         plan=selected_plan, # Can be None if not selected
                         # schema_name=subdomain, # Field does not exist in Tenant model
-                        billing_cycle=billing_cycle
+                        billing_cycle=billing_cycle,
+                        # Location
+                        address=address,
+                        city=city,
+                        state=state,
+                        country=country
                     )
                     
                     # Create Domain
@@ -355,6 +366,10 @@ def dashboard(request):
 
     # Kitchen Staff Dashboard
     if user.role == User.Role.KITCHEN:
+        return redirect('staff_order_list')
+
+    # Bar Staff Dashboard
+    if user.role == User.Role.BAR:
         return redirect('staff_order_list')
 
     # Receptionist Dashboard
@@ -681,82 +696,16 @@ class UserCreateView(TenantAdminRequiredMixin, CreateView):
         kwargs['user'] = self.request.user
         return kwargs
 
-    def get_initial(self):
-        initial = super().get_initial()
-        # Pre-fill role from Membership
-        if self.request.tenant and self.object:
-            from tenants.models import Membership
-            membership = Membership.objects.filter(user=self.object, tenant=self.request.tenant).first()
-            if membership:
-                initial['role'] = membership.role
-        return initial
-
     def form_valid(self, form):
-        response = super().form_valid(form)
-        user = self.object
-        
-        # Update Membership role
-        if self.request.tenant:
+        # Enforce Plan Limits
+        tenant = self.request.tenant
+        if tenant and tenant.plan:
             from tenants.models import Membership
-            Membership.objects.update_or_create(
-                user=user,
-                tenant=self.request.tenant,
-                defaults={'role': form.cleaned_data.get('role', 'GUEST')}
-            )
-            messages.success(self.request, "User updated successfully.")
-        return response
+            current_users = Membership.objects.filter(tenant=tenant).count()
+            if current_users >= tenant.plan.max_users:
+                messages.error(self.request, f"Plan limit reached. You can only have {tenant.plan.max_users} users. Upgrade your plan to add more.")
+                return redirect(self.success_url)
 
-    def get_initial(self):
-        initial = super().get_initial()
-        # Pre-fill role from Membership
-        if self.request.tenant and self.object:
-            from tenants.models import Membership
-            membership = Membership.objects.filter(user=self.object, tenant=self.request.tenant).first()
-            if membership:
-                initial['role'] = membership.role
-        return initial
-
-    def form_valid(self, form):
-        response = super().form_valid(form)
-        user = self.object
-        
-        # Update Membership role
-        if self.request.tenant:
-            from tenants.models import Membership
-            Membership.objects.update_or_create(
-                user=user,
-                tenant=self.request.tenant,
-                defaults={'role': form.cleaned_data.get('role', 'GUEST')}
-            )
-            messages.success(self.request, "User updated successfully.")
-        return response
-
-    def get_initial(self):
-        initial = super().get_initial()
-        # Pre-fill role from Membership
-        if self.request.tenant and self.object:
-            from tenants.models import Membership
-            membership = Membership.objects.filter(user=self.object, tenant=self.request.tenant).first()
-            if membership:
-                initial['role'] = membership.role
-        return initial
-
-    def form_valid(self, form):
-        response = super().form_valid(form)
-        user = self.object
-        
-        # Update Membership role
-        if self.request.tenant:
-            from tenants.models import Membership
-            Membership.objects.update_or_create(
-                user=user,
-                tenant=self.request.tenant,
-                defaults={'role': form.cleaned_data.get('role', 'GUEST')}
-            )
-            messages.success(self.request, "User updated successfully.")
-        return response
-
-    def form_valid(self, form):
         response = super().form_valid(form)
         user = self.object
         
@@ -769,7 +718,32 @@ class UserCreateView(TenantAdminRequiredMixin, CreateView):
                 role=form.cleaned_data.get('role', 'GUEST'),
                 is_active=True
             )
-            messages.success(self.request, f"User {user.username} created successfully.")
+            
+            # Send Welcome Email with Credentials
+            try:
+                from core.email_utils import send_branded_email
+                protocol = 'https' if self.request.is_secure() else 'http'
+                host = self.request.get_host()
+                login_url = f"{protocol}://{host}/login/"
+                password = form.cleaned_data.get('password')
+                
+                send_branded_email(
+                    subject=f"Welcome to {self.request.tenant.name} - Account Details",
+                    template_name='emails/welcome_user.html',
+                    context={
+                        'user': user,
+                        'role': user.get_role_display(),
+                        'login_url': login_url,
+                        'password': password
+                    },
+                    recipient_list=[user.email],
+                    tenant=self.request.tenant
+                )
+            except Exception as e:
+                # Log error but don't fail the request
+                print(f"Failed to send welcome email: {e}")
+                
+            messages.success(self.request, f"User {user.username} created successfully. An email with login details has been sent.")
         return response
 
 class UserDeleteView(TenantAdminRequiredMixin, DeleteView):

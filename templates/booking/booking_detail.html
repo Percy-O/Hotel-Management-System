@@ -21,6 +21,12 @@
         
         <!-- Quick Actions (Mobile Only) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:hidden">
+            {% if booking.status == 'CHECKED_IN' or booking.status == 'CONFIRMED' %}
+            <a href="{% url 'extend_booking' booking.pk %}" class="flex items-center justify-center gap-2 px-4 py-3 bg-surface-dark border border-border-dark rounded-xl text-sm font-medium text-text-main hover:bg-primary/5 transition-colors shadow-sm">
+                <span class="material-symbols-outlined text-[20px] text-primary">update</span>
+                Extend Stay
+            </a>
+            {% endif %}
             <a href="{% url 'view_barcode_pass' booking.pk %}" class="flex items-center justify-center gap-2 px-4 py-3 bg-surface-dark border border-border-dark rounded-xl text-sm font-medium text-text-main hover:bg-primary/5 transition-colors shadow-sm">
                 <span class="material-symbols-outlined text-[20px] text-primary">qr_code</span>
                 View Entry Pass

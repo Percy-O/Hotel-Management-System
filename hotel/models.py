@@ -66,3 +66,21 @@ class Room(models.Model):
     @property
     def room_id(self):
         return f"RM-{self.room_number}"
+
+    def is_available(self, check_in, check_out):
+        """
+        Check if the room is available for the given date range.
+        Returns True if available, False otherwise.
+        """
+        from booking.models import Booking
+        # Check against existing bookings for this room
+        # Overlap logic: 
+        # (StartA < EndB) and (EndA > StartB)
+        
+        overlapping_bookings = self.bookings.filter(
+            status__in=[Booking.Status.CONFIRMED, Booking.Status.CHECKED_IN, Booking.Status.PENDING],
+            check_in_date__lt=check_out,
+            check_out_date__gt=check_in
+        ).exists()
+        
+        return not overlapping_bookings

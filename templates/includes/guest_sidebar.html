@@ -20,24 +20,32 @@
                 {% url 'guest_dashboard' as u %}
                 {% include "includes/components/sidebar_item.html" with url=u icon="dashboard" label="Overview" active_name="guest_dashboard" %}
 
-                {% if request.session.visit_purpose == 'event' %}
-                    <!-- Event Specific Menu -->
-                    {% url 'event_booking_list' as u %}
-                    {% include "includes/components/sidebar_item.html" with url=u icon="celebration" label="My Events" active_name="event_booking_list" %}
-                    
-                    {% url 'event_hall_list' as u %}
-                    {% include "includes/components/sidebar_item.html" with url=u icon="search" label="Browse Halls" active_name="event_hall_list" %}
+                {% with has_events=user.event_bookings.exists has_gym=user.gym_memberships.exists has_rooms=user.bookings.exists %}
+                
+                {% if has_events or has_rooms %}
+                    <!-- Event Menu (Show if user has event bookings or room bookings) -->
+                    {% if has_events or site_settings.enable_events %}
+                        {% url 'event_booking_list' as u %}
+                        {% include "includes/components/sidebar_item.html" with url=u icon="celebration" label="My Events" active_name="event_booking_list" %}
+                        
+                        {% url 'public_event_hall_list' as u %}
+                        {% include "includes/components/sidebar_item.html" with url=u icon="search" label="Browse Halls" active_name="public_event_hall_list" %}
+                    {% endif %}
+                {% endif %}
 
-                {% elif request.session.visit_purpose == 'gym' %}
-                    <!-- Gym Specific Menu -->
-                    {% url 'gym_membership_list' as u %}
-                    {% include "includes/components/sidebar_item.html" with url=u icon="fitness_center" label="My Membership" active_name="gym_membership_list" %}
-                    
-                    {% url 'gym_plan_list' as u %}
-                    {% include "includes/components/sidebar_item.html" with url=u icon="list_alt" label="Gym Plans" active_name="gym_plan_list" %}
+                {% if has_gym or has_rooms %}
+                    <!-- Gym Menu (Show if user has gym membership or room bookings) -->
+                    {% if has_gym or site_settings.enable_gym %}
+                        {% url 'gym_membership_list' as u %}
+                        {% include "includes/components/sidebar_item.html" with url=u icon="fitness_center" label="My Membership" active_name="gym_membership_list" %}
+                        
+                        {% url 'public_gym_plan_list' as u %}
+                        {% include "includes/components/sidebar_item.html" with url=u icon="list_alt" label="Gym Plans" active_name="public_gym_plan_list" %}
+                    {% endif %}
+                {% endif %}
 
-                {% else %}
-                    <!-- Standard Hotel Menu -->
+                {% if has_rooms %}
+                    <!-- Standard Hotel Menu (Only if user has room bookings) -->
                     
                     <!-- My Bookings -->
                     {% url 'my_bookings' as u %}
@@ -52,7 +60,13 @@
                     <!-- Housekeeping -->
                     {% url 'my_requests' as u_hk %}
                     {% include "includes/components/sidebar_item.html" with url=u_hk icon="cleaning_services" label="Housekeeping" active_name="my_requests" %}
+                {% else %}
+                    <!-- Upsell for Room Booking if no rooms -->
+                    {% url 'room_list' as u %}
+                    {% include "includes/components/sidebar_item.html" with url=u icon="bed" label="Book a Stay" active_name="room_list" %}
                 {% endif %}
+                
+                {% endwith %}
 
                 <!-- My Invoices (Global) -->
                 {% url 'my_invoices' as u %}

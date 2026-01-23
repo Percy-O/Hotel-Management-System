@@ -89,7 +89,7 @@
                 {% endif %}
 
                 <!-- Events Menu -->
-                {% if site_settings.enable_events or request.tenant.plan.module_events %}
+                {% if request.tenant.plan.module_events and site_settings.enable_events %}
                     {% if user.can_manage_events %}
                     <div class="space-y-1">
                         {% include "includes/components/sidebar_submenu_header.html" with id="events-menu" icon="celebration" label="Events" %}
@@ -105,7 +105,7 @@
                 {% endif %}
 
                 <!-- Gym Menu -->
-                {% if site_settings.enable_gym or request.tenant.plan.module_gym %}
+                {% if request.tenant.plan.module_gym and site_settings.enable_gym %}
                     {% if user.can_manage_gym %}
                     <div class="space-y-1">
                         {% include "includes/components/sidebar_submenu_header.html" with id="gym-menu" icon="fitness_center" label="Gym & Fitness" %}
@@ -174,6 +174,12 @@
                     </div>
                 </div>
                 {% endif %}
+
+                <!-- Analytics (Admin/Manager) -->
+                {% if user.role == 'ADMIN' or user.role == 'MANAGER' %}
+                {% url 'hotel_statistics' as u %}
+                {% include "includes/components/sidebar_item.html" with url=u icon="monitoring" label="Analytics" active_name="hotel_statistics" %}
+                {% endif %}
                 
                 <!-- Notifications -->
                 {% url 'notification_list' as u %}
@@ -183,6 +189,9 @@
                 {% if user.can_manage_settings %}
                     {% url 'settings' as u %}
                     {% include "includes/components/sidebar_item.html" with url=u icon="settings" label="Settings" active_name="settings" %}
+                    
+                    {% url 'facility_list' as u %}
+                    {% include "includes/components/sidebar_item.html" with url=u icon="pool" label="Hotel Facilities" active_name="facility_list" %}
                 {% endif %}
 
                 <!-- Public Site -->
@@ -239,6 +248,8 @@
                 toggleMenu('billing-menu');
             } else if (currentPath.includes('/users/')) {
                 toggleMenu('users-menu');
+            } else if (currentPath.includes('/events/')) {
+                toggleMenu('events-menu');
             } else if (currentPath.includes('/staff/housekeeping/') || currentPath.includes('/manage/housekeeping/')) {
                 toggleMenu('housekeeping-menu');
             }

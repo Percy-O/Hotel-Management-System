@@ -13,6 +13,67 @@ from .utils import log_audit
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 
+from django.urls import reverse_lazy
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from .models import TenantSetting, Notification, AuditLog, ContactMessage, HotelFacility
+from .forms import SiteSettingForm, HotelFacilityForm
+
+class HotelFacilityListView(LoginRequiredMixin, ListView):
+    model = HotelFacility
+    template_name = 'core/facility_list.html'
+    context_object_name = 'facilities'
+
+    def get_queryset(self):
+        if not self.request.tenant:
+            return HotelFacility.objects.none()
+        return HotelFacility.objects.filter(tenant=self.request.tenant)
+
+class HotelFacilityCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    model = HotelFacility
+    form_class = HotelFacilityForm
+    template_name = 'core/facility_form.html'
+    success_url = reverse_lazy('facility_list')
+
+    def test_func(self):
+        return self.request.user.can_manage_settings
+
+    def form_valid(self, form):
+        form.instance.tenant = self.request.tenant
+        messages.success(self.request, "Facility created successfully.")
+        return super().form_valid(form)
+
+class HotelFacilityUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = HotelFacility
+    form_class = HotelFacilityForm
+    template_name = 'core/facility_form.html'
+    success_url = reverse_lazy('facility_list')
+
+    def test_func(self):
+        return self.request.user.can_manage_settings
+    
+    def get_queryset(self):
+        return HotelFacility.objects.filter(tenant=self.request.tenant)
+
+    def form_valid(self, form):
+        messages.success(self.request, "Facility updated successfully.")
+        return super().form_valid(form)
+
+class HotelFacilityDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = HotelFacility
+    template_name = 'core/facility_confirm_delete.html'
+    success_url = reverse_lazy('facility_list')
+
+    def test_func(self):
+        return self.request.user.can_manage_settings
+
+    def get_queryset(self):
+        return HotelFacility.objects.filter(tenant=self.request.tenant)
+    
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, "Facility deleted successfully.")
+        return super().delete(request, *args, **kwargs)
+
 @csrf_exempt
 @login_required
 def mark_notification_read(request, notification_id):
@@ -88,6 +149,10 @@ def home(request):
         # Hotel Info
         from hotel.models import Hotel
         hotel_info = Hotel.objects.filter(tenant=tenant).first()
+
+        # Facilities
+        from .models import HotelFacility
+        facilities = HotelFacility.objects.filter(tenant=tenant, is_active=True).order_by('order', 'name')
         
         context = {
             'tenant': tenant,
@@ -95,6 +160,7 @@ def home(request):
             'hotel': hotel_info,
             'menu_items': menu_items,
             'event_halls': event_halls,
+            'facilities': facilities,
         }
         return render(request, 'core/public_home.html', context)
     
@@ -135,19 +201,21 @@ def contact_us(request):
                 title=f"New Inquiry: {subject}",
                 message=f"From: {name} ({email})\n\n{message_text[:100]}...",
                 notification_type=Notification.Type.INFO,
-                link=f"/dashboard/messages/{contact_msg.id}/" # Placeholder link
+                link=f"/dashboard/messages/{contact_msg.id}/"
             )
             
         # Send Email to Hotel Admin Email (from TenantSettings)
         if request.tenant:
             settings = TenantSetting.objects.filter(tenant=request.tenant).first()
-            if settings and settings.contact_email:
+            recipient_email = settings.contact_email if settings and settings.contact_email else request.tenant.email
+            
+            if recipient_email:
                 try:
                     send_mail(
                         subject=f"New Website Inquiry: {subject}",
                         message=f"Name: {name}\nEmail: {email}\n\nMessage:\n{message_text}",
                         from_email=None, # Use default
-                        recipient_list=[settings.contact_email],
+                        recipient_list=[recipient_email],
                         fail_silently=True
                     )
                 except Exception as e:
@@ -216,6 +284,35 @@ def test_email_config(request):
         messages.error(request, f"Error sending test email: {str(e)}")
         
     return redirect('settings')
+
+@login_required
+def contact_message_list(request):
+    """View list of contact messages for the tenant"""
+    # Assuming 'can_manage_settings' is the permission or checking if user is admin/manager
+    if not (request.user.is_staff or request.user.role in ['admin', 'manager']):
+        messages.error(request, "Permission denied.")
+        return redirect('dashboard')
+    
+    if not request.tenant:
+        messages.error(request, "No tenant context.")
+        return redirect('dashboard')
+    
+    messages_list = ContactMessage.objects.filter(tenant=request.tenant).order_by('-created_at')
+    return render(request, 'core/contact_message_list.html', {'messages': messages_list})
+
+@login_required
+def contact_message_detail(request, message_id):
+    """View details of a specific contact message"""
+    if not (request.user.is_staff or request.user.role in ['admin', 'manager']):
+        messages.error(request, "Permission denied.")
+        return redirect('dashboard')
+        
+    msg = get_object_or_404(ContactMessage, id=message_id, tenant=request.tenant)
+    if not msg.is_read:
+        msg.is_read = True
+        msg.save()
+        
+    return render(request, 'core/contact_message_detail.html', {'message': msg})
 
 @login_required
 def settings_view(request):

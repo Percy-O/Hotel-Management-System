@@ -15,4 +15,12 @@ urlpatterns = [
     path('settings/test-email/', views.test_email_config, name='test_email_config'),
     path('api/notifications/unread/', views.get_unread_notifications, name='get_unread_notifications'),
     path('api/notifications/<int:notification_id>/read/', views.mark_notification_read, name='mark_notification_read'),
+    path('dashboard/messages/', views.contact_message_list, name='contact_message_list'),
+    path('dashboard/messages/<int:message_id>/', views.contact_message_detail, name='contact_message_detail'),
+    
+    # Facilities Management
+    path('dashboard/facilities/', views.HotelFacilityListView.as_view(), name='facility_list'),
+    path('dashboard/facilities/create/', views.HotelFacilityCreateView.as_view(), name='facility_create'),
+    path('dashboard/facilities/<int:pk>/edit/', views.HotelFacilityUpdateView.as_view(), name='facility_update'),
+    path('dashboard/facilities/<int:pk>/delete/', views.HotelFacilityDeleteView.as_view(), name='facility_delete'),
 ]

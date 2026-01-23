@@ -22,6 +22,58 @@ class RoomTypeListView(ListView):
         else:
             return RoomType.objects.none()
 
+        # Handle Filters
+        
+        # 1. Guests (Capacity)
+        guests = self.request.GET.get('guests')
+        if guests:
+            try:
+                guest_count = int(guests)
+                queryset = queryset.filter(capacity__gte=guest_count)
+            except ValueError:
+                pass
+
+        # 2. Category (Name Search)
+        category = self.request.GET.get('category')
+        if category and category.lower() != 'all':
+            # Map 'suites' to 'suite', 'villas' to 'villa' for better matching
+            term = category.lower().rstrip('s')
+            queryset = queryset.filter(name__icontains=term)
+
+        # 3. Date Availability
+        check_in = self.request.GET.get('check_in')
+        check_out = self.request.GET.get('check_out')
+        
+        if check_in and check_out:
+            try:
+                # Find bookings that overlap with the requested dates
+                # Overlap logic: (StartA < EndB) and (EndA > StartB)
+                overlapping_bookings = Booking.objects.filter(
+                    tenant=self.request.tenant,
+                    status__in=[Booking.Status.CONFIRMED, Booking.Status.CHECKED_IN, Booking.Status.PENDING],
+                    check_in_date__lt=check_out,
+                    check_out_date__gt=check_in
+                )
+                
+                # Get IDs of rooms that are booked
+                booked_room_ids = overlapping_bookings.values_list('room_id', flat=True)
+                
+                # Find rooms that are NOT booked and belong to this tenant
+                available_rooms = Room.objects.filter(
+                    tenant=self.request.tenant
+                ).exclude(
+                    id__in=booked_room_ids
+                )
+                
+                # Get RoomTypes that have at least one available room
+                available_room_type_ids = available_rooms.values_list('room_type_id', flat=True).distinct()
+                
+                queryset = queryset.filter(id__in=available_room_type_ids)
+                
+            except Exception as e:
+                # In case of date parsing errors, ignore filter
+                pass
+
         # Only show room types that have at least one room associated with them
         return queryset.annotate(
             total_rooms=Count('rooms'),
@@ -132,11 +184,18 @@ class StaffRoomListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         for room in context['rooms']:
             if room.status == Room.Status.OCCUPIED:
                 # Find the active booking
+                # Priority 1: Explicitly CHECKED_IN (even if time passed, they are still there)
                 room.current_booking = room.bookings.filter(
-                    status__in=[Booking.Status.CHECKED_IN, Booking.Status.CONFIRMED],
-                    check_in_date__lte=now,
-                    check_out_date__gte=now
+                    status=Booking.Status.CHECKED_IN
                 ).first()
+                
+                # Priority 2: CONFIRMED and within time range (e.g. just checked in physically but status not updated)
+                if not room.current_booking:
+                    room.current_booking = room.bookings.filter(
+                        status=Booking.Status.CONFIRMED,
+                        check_in_date__lte=now,
+                        check_out_date__gte=now
+                    ).first()
         
         return context
 

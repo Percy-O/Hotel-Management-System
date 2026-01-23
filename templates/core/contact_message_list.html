@@ -1,0 +1,59 @@
+{% extends 'dashboard_base.html' %}
+
+{% block header_title %}Contact Messages{% endblock %}
+{% block header_subtitle %}View inquiries from your website{% endblock %}
+
+{% block dashboard_content %}
+<div class="bg-surface-dark rounded-2xl border border-border-dark overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+            <thead>
+                <tr class="bg-background-dark border-b border-border-dark text-text-secondary-dark uppercase tracking-wider text-xs font-semibold">
+                    <th class="px-6 py-4">Status</th>
+                    <th class="px-6 py-4">From</th>
+                    <th class="px-6 py-4">Subject</th>
+                    <th class="px-6 py-4">Date</th>
+                    <th class="px-6 py-4 text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-border-dark">
+                {% for message in messages %}
+                <tr class="hover:bg-background-dark/50 transition-colors {% if not message.is_read %}bg-primary/5{% endif %}">
+                    <td class="px-6 py-4">
+                        {% if not message.is_read %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                            New
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-500/10 text-gray-400">
+                            Read
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 font-medium text-text-main">
+                        {{ message.name }}<br>
+                        <span class="text-xs text-text-secondary-dark font-normal">{{ message.email }}</span>
+                    </td>
+                    <td class="px-6 py-4 text-text-main">
+                        {{ message.subject }}
+                    </td>
+                    <td class="px-6 py-4 text-text-secondary-dark">
+                        {{ message.created_at|date:"M d, Y H:i" }}
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <a href="{% url 'contact_message_detail' message.pk %}" class="btn btn-ghost btn-sm text-primary hover:bg-primary/10">View</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-6 py-12 text-center text-text-secondary-dark">
+                        <span class="material-symbols-outlined text-4xl mb-2 block">inbox</span>
+                        No messages found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

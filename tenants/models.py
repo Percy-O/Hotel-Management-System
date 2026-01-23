@@ -45,6 +45,14 @@ class Tenant(models.Model):
     auto_renew = models.BooleanField(default=True)
     payment_auth_code = models.CharField(max_length=255, blank=True, null=True, help_text="Token for recurring payments")
     billing_cycle = models.CharField(max_length=10, choices=[('monthly', 'Monthly'), ('yearly', 'Yearly')], default='monthly')
+
+    # Location
+    address = models.CharField(max_length=255, blank=True)
+    city = models.CharField(max_length=100, blank=True)
+    state = models.CharField(max_length=100, blank=True)
+    country = models.CharField(max_length=100, blank=True)
+    phone_number = models.CharField(max_length=50, blank=True)
+    email = models.EmailField(blank=True)
     
     def save(self, *args, **kwargs):
         if not self.slug:

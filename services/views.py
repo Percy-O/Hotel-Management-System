@@ -19,6 +19,11 @@ from django.urls import reverse_lazy, reverse
 
 class MenuManagementMixin(UserPassesTestMixin):
     def test_func(self):
+        # Check Module Limit
+        if self.request.tenant and self.request.tenant.plan:
+             if not self.request.tenant.plan.module_restaurant:
+                 return False
+                 
         user = self.request.user
         return user.can_manage_menu
 
@@ -222,8 +227,8 @@ def my_orders(request):
 
 @login_required
 def staff_order_list(request):
-    # Staff/Kitchen/Admin/Manager
-    if not (request.user.is_staff or request.user.role in [User.Role.MANAGER, User.Role.ADMIN, User.Role.KITCHEN]):
+    # Staff/Kitchen/Bar/Admin/Manager
+    if not (request.user.is_staff or request.user.role in [User.Role.MANAGER, User.Role.ADMIN, User.Role.KITCHEN, User.Role.BAR]):
          messages.error(request, "Access denied.")
          return redirect('home')
 
@@ -232,13 +237,19 @@ def staff_order_list(request):
     # Filter by Tenant
     if request.tenant:
         orders = orders.filter(booking__tenant=request.tenant)
+
+    # Filter by Role
+    if request.user.role == User.Role.KITCHEN:
+        orders = orders.filter(items__menu_item__category='FOOD').distinct()
+    elif request.user.role == User.Role.BAR:
+        orders = orders.filter(items__menu_item__category='DRINK').distinct()
         
     orders = orders.order_by('created_at')
     return render(request, 'services/staff_order_list.html', {'orders': orders})
 
 @login_required
 def staff_order_history(request):
-    if not (request.user.is_staff or request.user.role in [User.Role.MANAGER, User.Role.ADMIN, User.Role.KITCHEN]):
+    if not (request.user.is_staff or request.user.role in [User.Role.MANAGER, User.Role.ADMIN, User.Role.KITCHEN, User.Role.BAR]):
          messages.error(request, "Access denied.")
          return redirect('home')
          
@@ -257,6 +268,12 @@ def staff_order_history(request):
     if request.tenant:
         my_orders = my_orders.filter(booking__tenant=request.tenant)
         all_orders = all_orders.filter(booking__tenant=request.tenant)
+
+    # Filter by Role for Global History
+    if request.user.role == User.Role.KITCHEN:
+        all_orders = all_orders.filter(items__menu_item__category='FOOD').distinct()
+    elif request.user.role == User.Role.BAR:
+        all_orders = all_orders.filter(items__menu_item__category='DRINK').distinct()
         
     all_orders = all_orders.order_by('-created_at')
     
@@ -267,7 +284,7 @@ def staff_order_history(request):
 
 @login_required
 def update_order_status(request, order_id):
-    if not (request.user.is_staff or request.user.role in [User.Role.MANAGER, User.Role.ADMIN, User.Role.KITCHEN]):
+    if not (request.user.is_staff or request.user.role in [User.Role.MANAGER, User.Role.ADMIN, User.Role.KITCHEN, User.Role.BAR]):
          messages.error(request, "Access denied.")
          return redirect('home')
 
@@ -315,6 +332,12 @@ def update_order_status(request, order_id):
 
 @login_required
 def request_housekeeping(request):
+    # Check Module Limit
+    if request.tenant and request.tenant.plan:
+         if not request.tenant.plan.module_housekeeping:
+             messages.error(request, "Housekeeping module is not enabled for this workspace.")
+             return redirect('guest_dashboard')
+             
     active_booking = Booking.objects.filter(
         user=request.user, 
         status='CHECKED_IN'

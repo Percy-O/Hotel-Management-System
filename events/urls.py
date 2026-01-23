@@ -2,6 +2,10 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    # Public Views
+    path('public/venues/', views.PublicEventHallListView.as_view(), name='public_event_hall_list'),
+    path('public/book/', views.PublicEventBookingCreateView.as_view(), name='public_event_booking_create'),
+
     # Hall Management
     path('halls/', views.EventHallListView.as_view(), name='event_hall_list'),
     path('halls/create/', views.EventHallCreateView.as_view(), name='event_hall_create'),
@@ -12,6 +16,8 @@ urlpatterns = [
     # Booking Management
     path('bookings/', views.EventBookingListView.as_view(), name='event_booking_list'),
     path('bookings/create/', views.EventBookingCreateView.as_view(), name='event_booking_create'),
+    path('bookings/staff/create/', views.StaffEventBookingView.as_view(), name='staff_event_booking_create'),
+    path('bookings/verify/', views.EventVerificationView.as_view(), name='event_booking_verify'),
     path('bookings/<int:pk>/', views.EventBookingDetailView.as_view(), name='event_booking_detail'),
     path('bookings/<int:pk>/status/<str:status>/', views.update_booking_status, name='update_booking_status'),
 ]

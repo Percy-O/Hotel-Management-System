@@ -1,0 +1,273 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ request.tenant.name|default:"Luxury Hotel" }}{% endblock %}</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1" rel="stylesheet" />
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        serif: ['"Cormorant Garamond"', 'serif'],
+                        sans: ['"Montserrat"', 'sans-serif'],
+                    },
+                    colors: {
+                        gold: {
+                            50: '#F9F7F0',
+                            100: '#F0ECD6',
+                            200: 'var(--color-accent)', // Mapped for lighter accents
+                            300: '#D4C685',
+                            400: 'var(--color-accent)', // Mapped for text
+                            500: 'var(--color-accent)', // Base Accent
+                            600: 'var(--color-accent)', // Mapped for hover
+                            700: '#6E6029',
+                            800: '#4A401C',
+                            900: '#25200E',
+                        },
+                        dark: {
+                            900: 'var(--color-background)', // Main Background
+                            800: 'var(--color-surface)', // Card/Surface
+                        },
+                        // Custom semantic colors
+                        primary: 'var(--color-primary)',
+                        secondary: 'var(--color-secondary)',
+                        button: 'var(--color-button)',
+                        'button-text': 'var(--color-button-text)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        [x-cloak] { display: none !important; }
+        
+        :root {
+            --color-primary: {{ site_settings.custom_primary_color|default:'#13ec6d' }};
+            --color-secondary: {{ site_settings.custom_secondary_color|default:'#1e293b' }};
+            --color-accent: {{ site_settings.custom_accent_color|default:'#B8A045' }};
+            --color-background: {{ site_settings.custom_background_color|default:'#0F172A' }};
+            --color-surface: {{ site_settings.custom_surface_color|default:'#1E293B' }};
+            --color-text: {{ site_settings.custom_text_color|default:'#ffffff' }};
+            --color-button: {{ site_settings.custom_button_color|default:'#B8A045' }};
+            --color-button-text: {{ site_settings.custom_button_text_color|default:'#ffffff' }};
+        }
+        
+        /* Smooth Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0F172A;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-dark-900 text-[var(--color-text)] font-sans antialiased selection:bg-gold-500 selection:text-white">
+
+    <!-- Navigation -->
+    <nav x-data="{ scrolled: false, mobileOpen: false }" 
+         @scroll.window="scrolled = (window.pageYOffset > 20)"
+         :class="{ 'bg-dark-900 border-b border-white/10': scrolled, 'bg-transparent': !scrolled }"
+         class="fixed top-0 w-full z-50 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center">
+                    <a href="/" class="flex items-center gap-2">
+                        {% if request.tenant.logo %}
+                            <img src="{{ request.tenant.logo.url }}" alt="{{ request.tenant.name }}" class="h-10 w-auto object-contain">
+                        {% else %}
+                            <span class="font-serif text-2xl font-bold text-white tracking-wider">{{ request.tenant.name|default:"COASTAL WHISPER" }}</span>
+                        {% endif %}
+                    </a>
+                </div>
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="{% url 'home' %}" class="text-sm font-medium hover:text-gold-400 transition-colors uppercase tracking-widest">Home</a>
+                    <a href="{% url 'about_us' %}" class="text-sm font-medium hover:text-gold-400 transition-colors uppercase tracking-widest">About</a>
+                    <a href="{% url 'room_list' %}" class="text-sm font-medium hover:text-gold-400 transition-colors uppercase tracking-widest">Rooms</a>
+                    
+                    {% if site_settings.enable_events %}
+                    <a href="{% url 'public_event_hall_list' %}" class="text-sm font-medium hover:text-gold-400 transition-colors uppercase tracking-widest">Events</a>
+                    {% endif %}
+                    
+                    {% if site_settings.enable_gym %}
+                    <a href="{% url 'public_gym_plan_list' %}" class="text-sm font-medium hover:text-gold-400 transition-colors uppercase tracking-widest">Wellness</a>
+                    {% endif %}
+
+                    <a href="{% url 'contact_us' %}" class="text-sm font-medium hover:text-gold-400 transition-colors uppercase tracking-widest">Contact</a>
+                    
+                    <a href="{% url 'room_list' %}" class="px-6 py-2 bg-button text-button-text hover:opacity-90 text-sm font-bold uppercase tracking-widest transition-all duration-300">
+                        Book Now
+                    </a>
+                    
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'dashboard' %}" class="text-white hover:text-gold-400 transition-colors">
+                            <span class="material-symbols-outlined">account_circle</span>
+                        </a>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="text-white hover:text-gold-400 transition-colors">
+                            <span class="material-symbols-outlined">person</span>
+                        </a>
+                    {% endif %}
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden flex items-center">
+                    <button @click="mobileOpen = !mobileOpen" class="text-white hover:text-gold-400 focus:outline-none">
+                        <span class="material-symbols-outlined text-3xl">menu</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div x-show="mobileOpen" 
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 -translate-y-2"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 translate-y-0"
+             x-transition:leave-end="opacity-0 -translate-y-2"
+             @click.away="mobileOpen = false"
+             class="md:hidden bg-dark-900 border-b border-white/10">
+            <div class="px-4 pt-2 pb-6 space-y-2">
+                <a href="{% url 'home' %}" class="block px-3 py-3 rounded-md text-base font-medium text-white hover:bg-white/5 hover:text-gold-400 uppercase tracking-widest">Home</a>
+                <a href="{% url 'about_us' %}" class="block px-3 py-3 rounded-md text-base font-medium text-white hover:bg-white/5 hover:text-gold-400 uppercase tracking-widest">About</a>
+                <a href="{% url 'room_list' %}" class="block px-3 py-3 rounded-md text-base font-medium text-white hover:bg-white/5 hover:text-gold-400 uppercase tracking-widest">Rooms</a>
+                
+                {% if site_settings.enable_events %}
+                <a href="{% url 'public_event_hall_list' %}" class="block px-3 py-3 rounded-md text-base font-medium text-white hover:bg-white/5 hover:text-gold-400 uppercase tracking-widest">Events</a>
+                {% endif %}
+                
+                {% if site_settings.enable_gym %}
+                <a href="{% url 'public_gym_plan_list' %}" class="block px-3 py-3 rounded-md text-base font-medium text-white hover:bg-white/5 hover:text-gold-400 uppercase tracking-widest">Wellness</a>
+                {% endif %}
+
+                <a href="{% url 'contact_us' %}" class="block px-3 py-3 rounded-md text-base font-medium text-white hover:bg-white/5 hover:text-gold-400 uppercase tracking-widest">Contact</a>
+                <a href="{% url 'room_list' %}" class="block px-3 py-3 mt-4 text-center bg-button text-button-text font-bold uppercase tracking-widest rounded-none">Book Your Stay</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-[#050911] border-t border-white/5 pt-20 pb-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+                <!-- Brand -->
+                <div class="col-span-1 md:col-span-1">
+                    <a href="/" class="block mb-6">
+                        <span class="font-serif text-3xl font-bold text-white tracking-wider">{{ request.tenant.name|default:"COASTAL WHISPER" }}</span>
+                    </a>
+                    <p class="text-gray-400 text-sm leading-relaxed mb-6">
+                        {{ site_settings.hotel_description|default:"Experience the epitome of luxury and comfort. Where every detail is curated for your perfect stay." }}
+                    </p>
+                    <div class="flex space-x-4">
+                        {% if site_settings.facebook_url %}
+                        <a href="{{ site_settings.facebook_url }}" target="_blank" class="text-gray-400 hover:text-gold-400 transition-colors"><i class="fab fa-facebook-f"></i></a>
+                        {% endif %}
+                        {% if site_settings.instagram_url %}
+                        <a href="{{ site_settings.instagram_url }}" target="_blank" class="text-gray-400 hover:text-gold-400 transition-colors"><i class="fab fa-instagram"></i></a>
+                        {% endif %}
+                        {% if site_settings.twitter_url %}
+                        <a href="{{ site_settings.twitter_url }}" target="_blank" class="text-gray-400 hover:text-gold-400 transition-colors"><i class="fab fa-twitter"></i></a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Links -->
+                <div>
+                    <h4 class="text-white font-serif text-lg mb-6">Discover</h4>
+                    <ul class="space-y-3">
+                        <li><a href="{% url 'home' %}" class="text-gray-400 hover:text-gold-400 text-sm transition-colors">Home</a></li>
+                        <li><a href="{% url 'about_us' %}" class="text-gray-400 hover:text-gold-400 text-sm transition-colors">About Us</a></li>
+                        <li><a href="{% url 'room_list' %}" class="text-gray-400 hover:text-gold-400 text-sm transition-colors">Rooms & Suites</a></li>
+                        
+                        {% if site_settings.enable_events %}
+                        <li><a href="{% url 'public_event_hall_list' %}" class="text-gray-400 hover:text-gold-400 text-sm transition-colors">Events & Weddings</a></li>
+                        {% endif %}
+                        
+                        {% if site_settings.enable_gym %}
+                        <li><a href="{% url 'public_gym_plan_list' %}" class="text-gray-400 hover:text-gold-400 text-sm transition-colors">Wellness & Gym</a></li>
+                        {% endif %}
+
+                        <li><a href="{% url 'contact_us' %}" class="text-gray-400 hover:text-gold-400 text-sm transition-colors">Contact</a></li>
+                    </ul>
+                </div>
+
+                <!-- Contact -->
+                <div>
+                    <h4 class="text-white font-serif text-lg mb-6">Contact Us</h4>
+                    <ul class="space-y-3">
+                        <li class="flex items-start gap-3 text-gray-400 text-sm">
+                            <span class="material-symbols-outlined text-gold-500 text-lg">location_on</span>
+                            <span>{{ site_settings.address|default:request.tenant.address|default:"123 Luxury Ave, Paradise City" }}</span>
+                        </li>
+                        <li class="flex items-center gap-3 text-gray-400 text-sm">
+                            <span class="material-symbols-outlined text-gold-500 text-lg">call</span>
+                            <span>{{ site_settings.contact_phone|default:request.tenant.phone_number|default:"+1 (555) 123-4567" }}</span>
+                        </li>
+                        <li class="flex items-center gap-3 text-gray-400 text-sm">
+                            <span class="material-symbols-outlined text-gold-500 text-lg">mail</span>
+                            <span>{{ site_settings.contact_email|default:request.tenant.email|default:"concierge@hotel.com" }}</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Newsletter -->
+                <div>
+                    <h4 class="text-white font-serif text-lg mb-6">Newsletter</h4>
+                    <p class="text-gray-400 text-sm mb-4">Subscribe to receive exclusive offers.</p>
+                    <form class="flex flex-col gap-3">
+                        <input type="email" placeholder="Your Email Address" class="bg-white/5 border border-white/10 text-white px-4 py-3 focus:outline-none focus:border-gold-500 w-full text-sm placeholder-gray-500">
+                        <button type="submit" class="bg-button text-button-text hover:opacity-90 px-4 py-3 text-sm font-bold uppercase tracking-widest transition-colors">
+                            Subscribe
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                <p class="text-gray-500 text-xs">
+                    &copy; {% now "Y" %} {{ request.tenant.name|default:"Luxury Hotel" }}. All Rights Reserved.
+                </p>
+                <div class="flex gap-6">
+                    <a href="{% url 'privacy_policy' %}" class="text-gray-500 hover:text-white text-xs">Privacy Policy</a>
+                    <a href="{% url 'terms_conditions' %}" class="text-gray-500 hover:text-white text-xs">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

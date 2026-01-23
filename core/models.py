@@ -71,8 +71,15 @@ class TenantSetting(models.Model):
     
     # Custom Theme Fields
     custom_primary_color = models.CharField(max_length=7, default='#13ec6d', help_text="Hex code for primary color", blank=True)
+    custom_secondary_color = models.CharField(max_length=7, default='#1e293b', help_text="Hex code for secondary color", blank=True)
+    custom_accent_color = models.CharField(max_length=7, default='#f59e0b', help_text="Hex code for accent color (Gold/Yellow)", blank=True)
+    
     custom_background_color = models.CharField(max_length=7, default='#0f172a', help_text="Hex code for background color", blank=True)
     custom_surface_color = models.CharField(max_length=7, default='#1e293b', help_text="Hex code for surface/card color", blank=True)
+    custom_text_color = models.CharField(max_length=7, default='#ffffff', help_text="Hex code for main text color", blank=True)
+    
+    custom_button_color = models.CharField(max_length=7, default='#f59e0b', help_text="Hex code for button background color", blank=True)
+    custom_button_text_color = models.CharField(max_length=7, default='#ffffff', help_text="Hex code for button text color", blank=True)
     
     # Hotel Identity
     hotel_name = models.CharField(max_length=255, default="My Hotel", blank=True)
@@ -111,6 +118,38 @@ class TenantSetting(models.Model):
     faq_content = models.TextField(blank=True, default="No FAQs available yet.", help_text="HTML content for FAQs page")
     privacy_policy = models.TextField(blank=True, default="Privacy Policy content goes here.", help_text="HTML content for Privacy Policy page")
     terms_conditions = models.TextField(blank=True, default="Terms and Conditions content goes here.", help_text="HTML content for Terms & Conditions page")
+    about_us_content = models.TextField(blank=True, default="""<h2 class="text-3xl font-bold text-text-main">Our Story</h2>
+<p class="text-text-secondary-dark leading-relaxed">
+    Founded with a vision to redefine hospitality, our hotel stands as a beacon of elegance and service. 
+    Every corner of our hotel is designed with your comfort in mind, blending contemporary aesthetics with timeless charm.
+</p>
+<p class="text-text-secondary-dark leading-relaxed">
+    Whether you are here for business or leisure, our dedicated team is committed to ensuring your stay is nothing short of perfection.
+</p>""", help_text="HTML content for About Us page (Our Story section)")
+    
+    why_choose_us_content = models.TextField(blank=True, default="""<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <div class="text-center space-y-4">
+        <div class="size-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto text-primary">
+            <span class="material-symbols-outlined text-3xl">diamond</span>
+        </div>
+        <h3 class="text-xl font-bold text-text-main">Premium Comfort</h3>
+        <p class="text-text-secondary-dark text-sm">Experience the pinnacle of luxury with our carefully curated amenities and spaces.</p>
+    </div>
+    <div class="text-center space-y-4">
+        <div class="size-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto text-primary">
+            <span class="material-symbols-outlined text-3xl">restaurant</span>
+        </div>
+        <h3 class="text-xl font-bold text-text-main">Exquisite Dining</h3>
+        <p class="text-text-secondary-dark text-sm">Savor culinary masterpieces prepared by our world-class chefs.</p>
+    </div>
+    <div class="text-center space-y-4">
+        <div class="size-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto text-primary">
+            <span class="material-symbols-outlined text-3xl">spa</span>
+        </div>
+        <h3 class="text-xl font-bold text-text-main">Relaxation</h3>
+        <p class="text-text-secondary-dark text-sm">Unwind and rejuvenate in our state-of-the-art wellness centers.</p>
+    </div>
+</div>""", help_text="HTML content for Why Choose Us section")
 
     # Housekeeping Information
     housekeeping_info = models.TextField(blank=True, default="Standard housekeeping is available from 9:00 AM to 5:00 PM daily. Please request special services at least 2 hours in advance.", help_text="Information about cleaning schedules and policies.")
@@ -165,6 +204,66 @@ class ContactMessage(models.Model):
 
     def __str__(self):
         return f"Message from {self.name} - {self.subject}"
+
+class HotelFacility(models.Model):
+    tenant = models.ForeignKey('tenants.Tenant', on_delete=models.CASCADE, related_name='facilities')
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True, help_text="Short description of the facility")
+    icon = models.CharField(max_length=50, blank=True, help_text="Material Symbol name (e.g. wifi, pool, spa)")
+    is_active = models.BooleanField(default=True)
+    order = models.PositiveIntegerField(default=0, help_text="Display order")
+
+    class Meta:
+        ordering = ['order', 'name']
+        verbose_name_plural = "Hotel Facilities"
+
+    def save(self, *args, **kwargs):
+        # Auto-assign icon if empty
+        if not self.icon and self.name:
+            name_lower = self.name.lower()
+            if 'wifi' in name_lower or 'internet' in name_lower:
+                self.icon = 'wifi'
+            elif 'pool' in name_lower or 'swim' in name_lower:
+                self.icon = 'pool'
+            elif 'gym' in name_lower or 'fitness' in name_lower or 'workout' in name_lower:
+                self.icon = 'fitness_center'
+            elif 'spa' in name_lower or 'massage' in name_lower or 'sauna' in name_lower:
+                self.icon = 'spa'
+            elif 'restaurant' in name_lower or 'dining' in name_lower or 'food' in name_lower:
+                self.icon = 'restaurant'
+            elif 'bar' in name_lower or 'drink' in name_lower or 'cocktail' in name_lower:
+                self.icon = 'local_bar'
+            elif 'parking' in name_lower or 'car' in name_lower:
+                self.icon = 'local_parking'
+            elif 'laundry' in name_lower or 'cleaning' in name_lower:
+                self.icon = 'local_laundry_service'
+            elif 'room service' in name_lower:
+                self.icon = 'room_service'
+            elif 'ac' in name_lower or 'air condition' in name_lower:
+                self.icon = 'ac_unit'
+            elif 'tv' in name_lower or 'television' in name_lower:
+                self.icon = 'tv'
+            elif 'conference' in name_lower or 'meeting' in name_lower:
+                self.icon = 'meeting_room'
+            elif 'concierge' in name_lower:
+                self.icon = 'concierge'
+            elif 'airport' in name_lower or 'shuttle' in name_lower:
+                self.icon = 'airport_shuttle'
+            elif 'beach' in name_lower:
+                self.icon = 'beach_access'
+            elif 'security' in name_lower:
+                self.icon = 'security'
+            elif 'elevator' in name_lower or 'lift' in name_lower:
+                self.icon = 'elevator'
+            elif 'garden' in name_lower:
+                self.icon = 'yard'
+            else:
+                self.icon = 'hotel' # Default
+        
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
 
 class GlobalSetting(models.Model):
     # SMTP Settings

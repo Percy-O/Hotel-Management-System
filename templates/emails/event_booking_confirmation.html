@@ -1,0 +1,56 @@
+{% extends 'emails/base_email.html' %}
+
+{% block content %}
+    <h1>Event Booking Confirmed! ✅</h1>
+    <p>Dear {{ user.first_name|default:user.username }},</p>
+    
+    <p>Thank you for choosing <strong>{{ company_name }}</strong>. Your event booking has been successfully confirmed.</p>
+    
+    <div class="info-box">
+        <div class="info-row">
+            <span class="info-label">Event Name</span>
+            <span class="info-value">{{ booking.event_name }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Venue</span>
+            <span class="info-value">{{ booking.hall.name }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Date & Time</span>
+            <span class="info-value">{{ booking.start_time|date:"M d, Y" }} | {{ booking.start_time|time:"H:i" }} - {{ booking.end_time|time:"H:i" }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Booking Reference</span>
+            <span class="info-value">#{{ booking.id }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Total Amount</span>
+            <span class="info-value">${{ booking.total_price }} (PAID)</span>
+        </div>
+    </div>
+
+    {% if password %}
+    <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 8px; margin: 20px 0;">
+        <h3 style="color: #166534; margin-top: 0;">Account Created</h3>
+        <p style="margin-bottom: 5px;">An account has been created for you to manage your bookings.</p>
+        <p><strong>Username:</strong> {{ user.username }}</p>
+        <p><strong>Password:</strong> {{ password }}</p>
+        <p style="font-size: 12px; color: #666;">Please change your password after logging in.</p>
+    </div>
+    {% endif %}
+
+    {% if qr_url %}
+    <div style="text-align: center; margin: 30px 0;">
+        <p><strong>Scan this QR Code at the venue entrance:</strong></p>
+        <img src="{{ qr_url }}" alt="Entry QR Code" style="max-width: 200px; border: 1px solid #ddd; padding: 10px; border-radius: 8px;">
+    </div>
+    {% endif %}
+
+    <div style="text-align: center;">
+        <a href="http://{{ request.get_host }}{% url 'event_booking_detail' booking.pk %}" class="btn">View Booking Details</a>
+    </div>
+    
+    <p>We look forward to hosting your event!</p>
+    
+    <p>Best regards,<br>{{ company_name }} Event Team</p>
+{% endblock %}

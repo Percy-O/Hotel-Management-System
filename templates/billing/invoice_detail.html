@@ -4,39 +4,50 @@
 {% block header_subtitle %}View and manage invoice #{{ invoice.id }}{% endblock %}
 
 {% block header_actions %}
-<!-- Actions moved to main content for better responsiveness -->
+<div class="hidden md:flex gap-3">
+    <a href="{% url 'download_receipt' invoice.id %}" class="flex items-center gap-2 px-4 py-2 bg-surface-dark border border-border-dark text-text-main rounded-lg text-sm font-medium hover:bg-white/5 transition-colors">
+        <span class="material-symbols-outlined text-[20px]">download</span>
+        Download Receipt
+    </a>
+    {% if invoice.status == 'PENDING' %}
+    <a href="{% url 'make_payment' invoice.pk %}" class="flex items-center gap-2 px-4 py-2 bg-primary text-slate-900 rounded-lg text-sm font-bold hover:bg-primary-hover transition-colors shadow-lg shadow-primary/20">
+        <span class="material-symbols-outlined text-[20px]">credit_card</span>
+        Pay Now
+    </a>
+    {% endif %}
+</div>
 {% endblock %}
 
 {% block dashboard_content %}
     <div class="flex flex-col gap-6 max-w-3xl mx-auto">
         
-        <!-- Quick Actions (Mobile Friendly) -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <a href="{% url 'download_receipt' invoice.booking.pk %}" class="flex items-center justify-center gap-2 px-4 py-3 bg-primary text-slate-900 rounded-xl text-sm font-bold hover:bg-primary-hover transition-colors shadow-lg shadow-primary/20">
+        <!-- Quick Actions (Mobile Only) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:hidden">
+            <a href="{% url 'download_receipt' invoice.id %}" class="flex items-center justify-center gap-2 px-4 py-3 bg-surface-dark border border-border-dark text-text-main rounded-xl text-sm font-bold hover:bg-white/5 transition-colors">
                 <span class="material-symbols-outlined text-[20px]">download</span>
                 Download Receipt
             </a>
             {% if invoice.status == 'PENDING' %}
-            <a href="{% url 'make_payment' invoice.pk %}" class="flex items-center justify-center gap-2 px-4 py-3 bg-surface-dark border border-border-dark rounded-xl text-sm font-medium text-text-main hover:bg-primary/5 transition-colors shadow-sm">
+            <a href="{% url 'make_payment' invoice.pk %}" class="flex items-center justify-center gap-2 px-4 py-3 bg-primary text-slate-900 rounded-xl text-sm font-bold hover:bg-primary-hover transition-colors shadow-lg shadow-primary/20">
                 <span class="material-symbols-outlined text-[20px]">credit_card</span>
                 Pay Now
             </a>
             {% endif %}
         </div>
 
-        <div class="w-full bg-surface-light dark:bg-surface-dark rounded-2xl border border-border-light dark:border-border-dark shadow-xl overflow-hidden relative">
+        <div class="w-full bg-surface-dark rounded-2xl border border-border-dark shadow-xl overflow-hidden relative">
             <!-- Status Banner -->
             <div class="absolute top-4 right-4 sm:top-6 sm:right-6">
                 <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide
-                    {% if invoice.status == 'PAID' %}bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400
-                    {% elif invoice.status == 'PENDING' %}bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400
-                    {% else %}bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400{% endif %}">
+                    {% if invoice.status == 'PAID' %}bg-green-500/10 text-green-400 border border-green-500/20
+                    {% elif invoice.status == 'PENDING' %}bg-yellow-500/10 text-yellow-400 border border-yellow-500/20
+                    {% else %}bg-red-500/10 text-red-400 border border-red-500/20{% endif %}">
                     {{ invoice.get_status_display }}
                 </span>
             </div>
 
             <!-- Invoice Header -->
-            <div class="p-6 sm:p-8 border-b border-border-light dark:border-border-dark bg-gray-50/50 dark:bg-[#1A2C23]/50">
+            <div class="p-6 sm:p-8 border-b border-border-dark bg-background-dark/30">
                 <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6 sm:mb-8">
                     <div class="size-12 rounded-xl bg-primary flex items-center justify-center text-slate-900 shrink-0 overflow-hidden">
                         {% if site_settings.hotel_logo %}
@@ -46,23 +57,32 @@
                         {% endif %}
                     </div>
                     <div>
-                        <h3 class="text-lg font-bold text-slate-900 dark:text-white">{{ site_settings.hotel_name }}</h3>
-                        <p class="text-text-secondary-light dark:text-text-secondary-dark text-sm">Official Invoice</p>
+                        <h3 class="text-lg font-bold text-text-main">{{ site_settings.hotel_name }}</h3>
+                        <p class="text-text-secondary-dark text-sm">Official Invoice</p>
                     </div>
                 </div>
                 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
                     <div>
-                        <p class="text-xs text-text-secondary-light dark:text-text-secondary-dark uppercase tracking-wider mb-1">Billed To</p>
-                        <p class="text-slate-900 dark:text-white font-medium text-lg">{{ invoice.booking.guest_name }}</p>
-                        <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark break-all">{{ invoice.booking.guest_email }}</p>
-                        <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">{{ invoice.booking.guest_phone }}</p>
+                        <p class="text-xs text-text-secondary-dark uppercase tracking-wider mb-1">Billed To</p>
+                        {% if invoice.orders.exists %}
+                            {% with order=invoice.orders.first %}
+                            <p class="text-text-main font-medium text-lg">{{ order.user.first_name }} {{ order.user.last_name }}</p>
+                            <p class="text-sm text-text-secondary-dark break-all">{{ order.user.email }}</p>
+                            {% endwith %}
+                        {% elif invoice.booking %}
+                            <p class="text-text-main font-medium text-lg">{{ invoice.booking.guest_name }}</p>
+                            <p class="text-sm text-text-secondary-dark break-all">{{ invoice.booking.guest_email }}</p>
+                            <p class="text-sm text-text-secondary-dark">{{ invoice.booking.guest_phone }}</p>
+                        {% else %}
+                             <p class="text-text-main font-medium text-lg">Guest</p>
+                        {% endif %}
                     </div>
                     <div class="sm:text-right sm:pr-16">
-                        <p class="text-xs text-text-secondary-light dark:text-text-secondary-dark uppercase tracking-wider mb-1">Invoice Details</p>
-                        <p class="text-slate-900 dark:text-white font-mono font-medium text-lg">#{{ invoice.id }}</p>
-                        <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Issued: {{ invoice.issued_date|date:"M d, Y" }}</p>
-                        <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Due: {{ invoice.due_date|default:"Immediate" }}</p>
+                        <p class="text-xs text-text-secondary-dark uppercase tracking-wider mb-1">Invoice Details</p>
+                        <p class="text-text-main font-mono font-medium text-lg">#{{ invoice.id }}</p>
+                        <p class="text-sm text-text-secondary-dark">Issued: {{ invoice.issued_date|date:"M d, Y" }}</p>
+                        <p class="text-sm text-text-secondary-dark">Due: {{ invoice.due_date|default:"Immediate" }}</p>
                     </div>
                 </div>
             </div>
@@ -70,39 +90,59 @@
             <!-- Items -->
             <div class="p-6 sm:p-8">
                 <!-- Mobile-friendly Card Layout for Items -->
-                <div class="bg-background-light dark:bg-background-dark rounded-xl border border-border-light dark:border-border-dark p-4 sm:p-6 space-y-4 mb-8">
+                <div class="bg-background-dark rounded-xl border border-border-dark p-4 sm:p-6 space-y-4 mb-8">
                     {% if invoice.orders.exists %}
                         <!-- Room Service Orders -->
                         {% for order in invoice.orders.all %}
                             <div class="mb-4">
-                                <p class="text-sm font-bold text-slate-900 dark:text-white mb-2">Room Service Order #{{ order.id }}</p>
+                                <p class="text-sm font-bold text-text-main mb-2">Room Service Order #{{ order.order_id|default:order.id }}</p>
                                 {% for item in order.items.all %}
-                                <div class="flex justify-between items-start text-sm text-text-secondary-light dark:text-text-secondary-dark pl-2 border-l-2 border-border-light dark:border-border-dark mb-1">
+                                <div class="flex justify-between items-start text-sm text-text-secondary-dark pl-2 border-l-2 border-border-dark mb-1">
                                     <span>{{ item.quantity }}x {{ item.menu_item.name }}</span>
-                                    <span>{{ site_settings.currency_symbol }}{{ item.subtotal }}</span>
+                                    <span class="text-text-main">{{ site_settings.currency_symbol }}{{ item.subtotal }}</span>
                                 </div>
                                 {% endfor %}
                             </div>
                         {% endfor %}
-                    {% else %}
+                    {% elif invoice.booking %}
                         <!-- Standard Room Charge -->
                         <div class="flex justify-between items-start">
                              <div>
-                                 <p class="text-sm font-medium text-slate-900 dark:text-white">Room Charge - {{ invoice.booking.room.room_type.name }}</p>
-                                 <p class="text-xs text-text-secondary-light dark:text-text-secondary-dark mt-0.5">
+                                 <p class="text-sm font-medium text-text-main">Room Charge - {{ invoice.booking.room.room_type.name }}</p>
+                                 <p class="text-xs text-text-secondary-dark mt-0.5">
                                     Room {{ invoice.booking.room.room_number }} ({{ invoice.booking.check_in_date|date:"M d" }} - {{ invoice.booking.check_out_date|date:"M d" }})
                                  </p>
                              </div>
-                             <p class="text-sm font-medium text-slate-900 dark:text-white text-right">{{ site_settings.currency_symbol }}{{ invoice.amount }}</p>
+                             <p class="text-sm font-medium text-text-main text-right">{{ site_settings.currency_symbol }}{{ invoice.amount }}</p>
+                        </div>
+                    {% elif invoice.event_booking %}
+                         <div class="flex justify-between items-start">
+                             <div>
+                                 <p class="text-sm font-medium text-text-main">Event Booking - {{ invoice.event_booking.event_name }}</p>
+                                 <p class="text-xs text-text-secondary-dark mt-0.5">
+                                    {{ invoice.event_booking.hall.name }} ({{ invoice.event_booking.start_time|date:"M d, Y" }})
+                                 </p>
+                             </div>
+                             <p class="text-sm font-medium text-text-main text-right">{{ site_settings.currency_symbol }}{{ invoice.amount }}</p>
+                        </div>
+                    {% elif invoice.gym_membership %}
+                         <div class="flex justify-between items-start">
+                             <div>
+                                 <p class="text-sm font-medium text-text-main">Gym Membership - {{ invoice.gym_membership.plan.name }}</p>
+                                 <p class="text-xs text-text-secondary-dark mt-0.5">
+                                    Duration: {{ invoice.gym_membership.plan.duration_days }} Days
+                                 </p>
+                             </div>
+                             <p class="text-sm font-medium text-text-main text-right">{{ site_settings.currency_symbol }}{{ invoice.amount }}</p>
                         </div>
                     {% endif %}
                     
                     <!-- Divider -->
-                    <div class="border-t border-border-light dark:border-border-dark my-2"></div>
+                    <div class="border-t border-border-dark my-2"></div>
                     
                     <!-- Total -->
                     <div class="flex justify-between items-center">
-                         <p class="text-base font-bold text-slate-900 dark:text-white">Total Due</p>
+                         <p class="text-base font-bold text-text-main">Total Due</p>
                          <p class="text-xl font-bold text-primary text-right">{{ site_settings.currency_symbol }}{{ invoice.amount }}</p>
                     </div>
                 </div>
@@ -110,15 +150,15 @@
                 <!-- Payment History -->
                 {% if invoice.payments.exists %}
                 <div class="mb-8">
-                    <h4 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-4">Payment History</h4>
-                    <div class="bg-gray-50 dark:bg-[#1A2C23] rounded-xl p-4 border border-border-light dark:border-border-dark">
+                    <h4 class="text-sm font-bold text-text-main uppercase tracking-wider mb-4">Payment History</h4>
+                    <div class="bg-background-dark rounded-xl p-4 border border-border-dark">
                         <ul class="space-y-3">
                             {% for payment in invoice.payments.all %}
                             <li class="flex justify-between items-center text-sm">
-                                <span class="text-text-secondary-light dark:text-text-secondary-dark">
+                                <span class="text-text-secondary-dark">
                                     {{ payment.payment_date|date:"M d, Y" }} <span class="hidden sm:inline">via {{ payment.get_payment_method_display }}</span>
                                 </span>
-                                <span class="text-green-600 dark:text-green-400 font-medium">-{{ site_settings.currency_symbol }}{{ payment.amount }}</span>
+                                <span class="text-green-400 font-medium">-{{ site_settings.currency_symbol }}{{ payment.amount }}</span>
                             </li>
                             {% endfor %}
                         </ul>
@@ -127,7 +167,7 @@
                 {% endif %}
 
                 <!-- Actions -->
-                <div class="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-border-light dark:border-border-dark">
+                <div class="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-border-dark">
                     {% if user.is_staff %}
                     <a href="{% url 'invoice_list' %}" class="w-full sm:w-auto text-center px-6 py-2.5 border border-border-light dark:border-border-dark rounded-lg text-sm font-medium text-slate-900 dark:text-white hover:bg-gray-50 dark:hover:bg-[#234833] transition-colors">
                         Back to List

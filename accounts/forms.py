@@ -35,10 +35,17 @@ class RegistrationForm(forms.ModelForm):
 class HotelSignupForm(RegistrationForm):
     hotel_name = forms.CharField(max_length=100, required=True, label="Hotel Name")
     subdomain = forms.CharField(max_length=100, required=False, label="Hotel Subdomain", help_text="Leave blank to generate from hotel name")
+    
+    # Location Fields
+    address = forms.CharField(max_length=255, required=True, label="Hotel Address")
+    city = forms.CharField(max_length=100, required=True, label="City")
+    state = forms.CharField(max_length=100, required=True, label="State/Province")
+    country = forms.CharField(max_length=100, required=True, label="Country")
+    
     billing_cycle = forms.ChoiceField(choices=[('monthly', 'Monthly'), ('yearly', 'Yearly')], required=True, widget=forms.RadioSelect, initial='monthly')
 
     class Meta(RegistrationForm.Meta):
-        fields = RegistrationForm.Meta.fields + ('hotel_name', 'subdomain', 'billing_cycle')
+        fields = RegistrationForm.Meta.fields + ('hotel_name', 'subdomain', 'address', 'city', 'state', 'country', 'billing_cycle')
 
     def clean_subdomain(self):
         subdomain = self.cleaned_data.get('subdomain')
@@ -83,6 +90,8 @@ class UserForm(forms.ModelForm):
                     (User.Role.RECEPTIONIST, 'Receptionist'),
                     (User.Role.STAFF, 'Staff'),
                     (User.Role.CLEANER, 'Cleaner'),
+                    (User.Role.KITCHEN, 'Kitchen Staff'),
+                    (User.Role.BAR, 'Bar Staff'),
                     (User.Role.GUEST, 'Guest'),
                 ]
                 self.fields['role'].choices = allowed_roles

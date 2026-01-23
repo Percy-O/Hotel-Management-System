@@ -82,12 +82,16 @@ def is_admin(user):
 
 @login_required
 def invoice_list(request):
+    # Base: Invoices for the current user (Guest View)
     invoices = Invoice.objects.filter(booking__user=request.user).order_by('-issued_date')
     
     # Financial Reports (Transactions, Monthly/Weekly Sales) - Only for Staff/Admin
     context = {'invoices': invoices}
     
-    if request.user.is_staff:
+    # Check if user is staff OR manager/admin via role
+    is_staff_or_admin = request.user.is_staff or request.user.role in ['ADMIN', 'MANAGER']
+    
+    if is_staff_or_admin:
         # Transactions (All Payments)
         transactions = Payment.objects.all().order_by('-payment_date')
         
@@ -103,13 +107,18 @@ def invoice_list(request):
         weekly_sales = Payment.objects.filter(payment_date__gte=start_of_week).aggregate(total=models.Sum('amount'))['total'] or 0
         yearly_sales = Payment.objects.filter(payment_date__gte=start_of_year).aggregate(total=models.Sum('amount'))['total'] or 0
         
+        # Admin Invoice View: Show ALL invoices for the current TENANT
+        all_invoices = Invoice.objects.all()
+        if request.tenant:
+            all_invoices = all_invoices.filter(tenant=request.tenant)
+            
         # Update context
         context.update({
             'transactions': transactions,
             'monthly_sales': monthly_sales,
             'weekly_sales': weekly_sales,
             'yearly_sales': yearly_sales,
-            'invoices': Invoice.objects.all().order_by('-issued_date') # Staff sees all invoices
+            'invoices': all_invoices.order_by('-issued_date') # Staff sees all invoices
         })
         
     return render(request, 'billing/invoice_list.html', context)
@@ -139,7 +148,7 @@ def invoice_detail(request, pk):
     elif invoice.gym_membership: invoice_user = invoice.gym_membership.user
     elif invoice.orders.exists(): invoice_user = invoice.orders.first().user
     
-    if not request.user.is_staff and invoice_user != request.user:
+    if not (request.user.is_staff or request.user.role in ['ADMIN', 'MANAGER']) and invoice_user != request.user:
         messages.error(request, "Access denied.")
         return redirect('home')
     return render(request, 'billing/invoice_detail.html', {'invoice': invoice})
@@ -274,10 +283,13 @@ def payment_selection(request, invoice_id):
     }
     return render(request, 'billing/payment_selection.html', context)
 
+from django.contrib.auth import get_user_model
+
 def verify_payment(request, gateway):
     """
     Callback for payment verification
     """
+    User = get_user_model()
     ref = request.GET.get('reference') or request.GET.get('tx_ref') # Paystack uses reference, FW uses tx_ref
     invoice_id = request.GET.get('invoice_id')
     
@@ -316,7 +328,39 @@ def verify_payment(request, gateway):
                         order.save()
                         
                         # Notify Kitchen/Staff
-                        # (Notification logic here)
+                        has_food = order.items.filter(menu_item__category='FOOD').exists()
+                        has_drink = order.items.filter(menu_item__category='DRINK').exists()
+                        
+                        roles_to_notify = [User.Role.ADMIN, User.Role.MANAGER]
+                        if has_food:
+                            roles_to_notify.append(User.Role.KITCHEN)
+                        if has_drink:
+                            roles_to_notify.append(User.Role.BAR)
+                            
+                        # Find users with these roles in the current tenant
+                        tenant_users = User.objects.filter(
+                            memberships__tenant=invoice.tenant,
+                            role__in=roles_to_notify
+                        ).distinct()
+                        
+                        for staff in tenant_users:
+                            # Only notify if role matches the content (e.g. Kitchen doesn't need to know about Drink-only)
+                            # But Admin/Manager always gets it.
+                            should_notify = False
+                            if staff.role in [User.Role.ADMIN, User.Role.MANAGER]:
+                                should_notify = True
+                            elif staff.role == User.Role.KITCHEN and has_food:
+                                should_notify = True
+                            elif staff.role == User.Role.BAR and has_drink:
+                                should_notify = True
+                                
+                            if should_notify:
+                                Notification.objects.create(
+                                    recipient=staff,
+                                    title="New Order Received",
+                                    message=f"Order #{order.order_id or order.id} ({'Food' if has_food else ''}{' & ' if has_food and has_drink else ''}{'Drink' if has_drink else ''}) needs attention.",
+                                    link=reverse('staff_order_list')
+                                )
                         
                 redirect_url = 'my_orders'
                 redirect_pk = None

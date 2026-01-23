@@ -1,0 +1,54 @@
+{% extends 'dashboard_base.html' %}
+
+{% block header_title %}Hotel Facilities{% endblock %}
+{% block header_subtitle %}Manage facilities displayed on homepage{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'facility_create' %}" class="btn btn-primary flex items-center gap-2">
+    <span class="material-symbols-outlined">add</span>
+    Add Facility
+</a>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for facility in facilities %}
+    <div class="bg-surface-dark p-6 rounded-2xl border border-border-dark flex flex-col group relative overflow-hidden">
+        <div class="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div class="flex gap-2">
+                <a href="{% url 'facility_update' facility.pk %}" class="p-2 bg-background-dark rounded-full text-text-main hover:text-primary transition-colors">
+                    <span class="material-symbols-outlined text-sm">edit</span>
+                </a>
+                <a href="{% url 'facility_delete' facility.pk %}" class="p-2 bg-background-dark rounded-full text-text-main hover:text-red-500 transition-colors">
+                    <span class="material-symbols-outlined text-sm">delete</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-4">
+            <span class="material-symbols-outlined text-3xl">{{ facility.icon|default:'hotel' }}</span>
+        </div>
+        
+        <h3 class="text-xl font-bold text-text-main mb-2">{{ facility.name }}</h3>
+        <p class="text-text-secondary-dark text-sm mb-4 flex-1">{{ facility.description }}</p>
+        
+        <div class="flex items-center justify-between text-xs text-text-secondary-dark border-t border-border-dark pt-4">
+            <span class="flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full {% if facility.is_active %}bg-green-500{% else %}bg-gray-500{% endif %}"></span>
+                {% if facility.is_active %}Active{% else %}Inactive{% endif %}
+            </span>
+            <span>Order: {{ facility.order }}</span>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-span-full flex flex-col items-center justify-center py-20 text-center">
+        <div class="w-20 h-20 bg-surface-dark rounded-full flex items-center justify-center mb-6">
+            <span class="material-symbols-outlined text-4xl text-text-secondary-dark">pool</span>
+        </div>
+        <h3 class="text-xl font-bold text-text-main mb-2">No Facilities Added</h3>
+        <p class="text-text-secondary-dark mb-6 max-w-md">Add facilities like WiFi, Pool, Gym, or Spa to display them on your public hotel homepage.</p>
+        <a href="{% url 'facility_create' %}" class="btn btn-primary">Add Your First Facility</a>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,89 +1,97 @@
-{% extends 'base_layout.html' %}
+{% extends 'base_public.html' %}
 
-{% block title %}About Us - {{ site_settings.hotel_name }}{% endblock %}
+{% block title %}About Us - {{ request.tenant.name|default:"Luxury Hotel" }}{% endblock %}
 
-{% block body_content %}
-    <!-- Navbar -->
-    <div class="min-h-screen bg-background-dark flex flex-col">
-        {% include 'includes/navbar.html' %}
+{% block content %}
+<!-- Header -->
+<div class="bg-dark-900 py-20 relative overflow-hidden">
+    <div class="absolute inset-0 opacity-20">
+        <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=2070&auto=format&fit=crop" alt="Background" class="w-full h-full object-cover">
+    </div>
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <p class="text-gold-400 font-sans text-xs tracking-[0.3em] uppercase mb-4 animate-fade-in-up">Our Story</p>
+        <h1 class="font-serif text-4xl md:text-5xl text-white mb-4 animate-fade-in-up delay-100">About {{ request.tenant.name|default:"The Hotel" }}</h1>
+    </div>
+</div>
 
-        <div class="py-20 bg-background-dark flex-grow">
+<section class="py-24 bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Hero Section -->
-        <div class="text-center mb-16">
-            <h1 class="text-4xl md:text-5xl font-bold text-text-main mb-6">About {{ site_settings.hotel_name }}</h1>
-            <p class="text-xl text-text-secondary-dark max-w-3xl mx-auto leading-relaxed">
-                {{ site_settings.hotel_description|default:"Discover a sanctuary of luxury and comfort tailored for the modern traveler. We are dedicated to providing an unforgettable experience." }}
-            </p>
-        </div>
-
-        <!-- Content Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center mb-20">
-            <div class="relative h-96 rounded-2xl overflow-hidden shadow-2xl group">
-                {% if site_settings.hotel_logo %}
-                <div class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110" style="background-image: url('{{ site_settings.hotel_logo.url }}');"></div>
+        <!-- Main Story -->
+        <div class="flex flex-col md:flex-row gap-16 items-center mb-24">
+            <div class="w-full md:w-1/2 relative">
+                <div class="absolute -top-4 -left-4 w-full h-full border-2 border-gold-500/30 z-0"></div>
+                {% if request.tenant.logo %}
+                    <img src="{{ request.tenant.logo.url }}" alt="About Us" class="relative z-10 w-full h-[500px] object-cover shadow-xl">
                 {% else %}
-                <div class="absolute inset-0 bg-surface-dark flex items-center justify-center">
-                    <span class="material-symbols-outlined text-9xl text-primary opacity-20">hotel</span>
-                </div>
+                    <img src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=2070&auto=format&fit=crop" alt="About Us" class="relative z-10 w-full h-[500px] object-cover shadow-xl">
                 {% endif %}
-                <div class="absolute inset-0 bg-black/30"></div>
             </div>
             
-            <div class="space-y-6">
-                <h2 class="text-3xl font-bold text-text-main">Our Story</h2>
-                <p class="text-text-secondary-dark leading-relaxed">
-                    Founded with a vision to redefine hospitality, {{ site_settings.hotel_name }} stands as a beacon of elegance and service. 
+            <div class="w-full md:w-1/2">
+                <h2 class="font-serif text-3xl text-dark-900 mb-6">A Legacy of Elegance</h2>
+                <p class="text-gray-600 font-light leading-relaxed text-lg mb-6">
+                    {{ request.tenant.description|default:"Discover a sanctuary of luxury and comfort tailored for the modern traveler. We are dedicated to providing an unforgettable experience." }}
+                </p>
+                <p class="text-gray-600 font-light leading-relaxed mb-8">
+                    Founded with a vision to redefine hospitality, {{ request.tenant.name|default:"The Hotel" }} stands as a beacon of elegance and service. 
                     Every corner of our hotel is designed with your comfort in mind, blending contemporary aesthetics with timeless charm.
                 </p>
-                <p class="text-text-secondary-dark leading-relaxed">
-                    Whether you are here for business or leisure, our dedicated team is committed to ensuring your stay is nothing short of perfection.
-                </p>
                 
-                <div class="pt-4 grid grid-cols-2 gap-6">
+                <div class="grid grid-cols-2 gap-8 border-t border-gray-100 pt-8">
                     <div>
-                        <span class="block text-3xl font-bold text-primary mb-1">50+</span>
-                        <span class="text-sm text-text-secondary-dark uppercase tracking-wider">Luxury Rooms</span>
+                        <span class="block text-4xl font-serif text-gold-500 mb-2">50+</span>
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Luxury Suites</span>
                     </div>
                     <div>
-                        <span class="block text-3xl font-bold text-primary mb-1">24/7</span>
-                        <span class="text-sm text-text-secondary-dark uppercase tracking-wider">Service</span>
+                        <span class="block text-4xl font-serif text-gold-500 mb-2">24/7</span>
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Concierge Service</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Values Section -->
-        <div class="bg-surface-dark rounded-3xl p-12 border border-border-dark">
-            <h2 class="text-3xl font-bold text-text-main text-center mb-12">Why Choose Us</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="text-center space-y-4">
-                    <div class="size-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto text-primary">
+        <!-- Values/Why Choose Us -->
+        <div class="bg-gray-50 py-16 px-8 md:px-16 border-t border-gray-100">
+            <div class="text-center mb-12">
+                <h2 class="font-serif text-3xl text-dark-900 mb-4">Why Choose Us</h2>
+                <div class="w-16 h-0.5 bg-gold-500 mx-auto"></div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+                <div class="text-center group">
+                    <div class="w-16 h-16 mx-auto bg-white border border-gray-200 rounded-full flex items-center justify-center text-gold-500 mb-6 group-hover:bg-gold-500 group-hover:text-white transition-all duration-300 shadow-sm">
                         <span class="material-symbols-outlined text-3xl">diamond</span>
                     </div>
-                    <h3 class="text-xl font-bold text-text-main">Premium Comfort</h3>
-                    <p class="text-text-secondary-dark text-sm">Experience the pinnacle of luxury with our carefully curated amenities and spaces.</p>
+                    <h3 class="font-serif text-xl text-dark-900 mb-3">Premium Comfort</h3>
+                    <p class="text-gray-500 font-light text-sm leading-relaxed">Experience the pinnacle of luxury with our carefully curated amenities and spaces designed for your relaxation.</p>
                 </div>
-                <div class="text-center space-y-4">
-                    <div class="size-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto text-primary">
+                
+                <div class="text-center group">
+                    <div class="w-16 h-16 mx-auto bg-white border border-gray-200 rounded-full flex items-center justify-center text-gold-500 mb-6 group-hover:bg-gold-500 group-hover:text-white transition-all duration-300 shadow-sm">
                         <span class="material-symbols-outlined text-3xl">restaurant</span>
                     </div>
-                    <h3 class="text-xl font-bold text-text-main">Exquisite Dining</h3>
-                    <p class="text-text-secondary-dark text-sm">Savor culinary masterpieces prepared by our world-class chefs.</p>
+                    <h3 class="font-serif text-xl text-dark-900 mb-3">Exquisite Dining</h3>
+                    <p class="text-gray-500 font-light text-sm leading-relaxed">Savor culinary masterpieces prepared by our world-class chefs using only the finest local ingredients.</p>
                 </div>
-                <div class="text-center space-y-4">
-                    <div class="size-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto text-primary">
+                
+                <div class="text-center group">
+                    <div class="w-16 h-16 mx-auto bg-white border border-gray-200 rounded-full flex items-center justify-center text-gold-500 mb-6 group-hover:bg-gold-500 group-hover:text-white transition-all duration-300 shadow-sm">
                         <span class="material-symbols-outlined text-3xl">spa</span>
                     </div>
-                    <h3 class="text-xl font-bold text-text-main">Relaxation</h3>
-                    <p class="text-text-secondary-dark text-sm">Unwind and rejuvenate in our state-of-the-art wellness centers.</p>
+                    <h3 class="font-serif text-xl text-dark-900 mb-3">Wellness & Spa</h3>
+                    <p class="text-gray-500 font-light text-sm leading-relaxed">Unwind and rejuvenate in our state-of-the-art wellness centers, offering a range of therapeutic treatments.</p>
                 </div>
             </div>
         </div>
     </div>
-        </div>
-        
-        <!-- Footer -->
-        {% include 'includes/footer.html' %}
-    </div>
+</section>
+
+<style>
+    @keyframes fade-in-up {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in-up { animation: fade-in-up 1s ease-out forwards; opacity: 0; }
+    .delay-100 { animation-delay: 0.2s; }
+</style>
 {% endblock %}

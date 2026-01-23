@@ -3,17 +3,23 @@
 {% block header_title %}Booking Details{% endblock %}
 {% block header_subtitle %}#{{ booking.pk }} - {{ booking.event_name }}{% endblock %}
 {% block header_actions %}
-    <a href="{% url 'event_booking_list' %}" class="btn btn-outline flex items-center gap-2">
-        <span class="material-symbols-outlined">arrow_back</span>
-        Back
-    </a>
+    <div class="flex gap-3">
+        <button onclick="window.print()" class="btn btn-outline flex items-center gap-2">
+            <span class="material-symbols-outlined">print</span>
+            Print Receipt
+        </button>
+        <a href="{% url 'event_booking_list' %}" class="btn btn-outline flex items-center gap-2">
+            <span class="material-symbols-outlined">arrow_back</span>
+            Back
+        </a>
+    </div>
 {% endblock %}
 
 {% block dashboard_content %}
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 print:block">
     <div class="lg:col-span-2 space-y-8">
         <!-- Status Card -->
-        <div class="bg-surface-dark p-6 rounded-2xl border border-border-dark flex items-center justify-between">
+        <div class="bg-surface-dark p-6 rounded-2xl border border-border-dark flex items-center justify-between print:hidden">
             <div>
                 <p class="text-sm text-text-secondary-dark uppercase tracking-wider mb-1">Current Status</p>
                 <span class="text-2xl font-bold 
@@ -40,39 +46,57 @@
              {% endif %}
         </div>
 
-        <!-- Info Grid -->
-        <div class="bg-surface-dark p-8 rounded-2xl border border-border-dark">
-            <h3 class="text-lg font-bold text-text-main mb-6">Reservation Info</h3>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+        <!-- Receipt / Ticket View -->
+        <div class="bg-white text-black p-8 rounded-2xl border border-gray-200 shadow-lg relative overflow-hidden">
+            <!-- Header -->
+            <div class="flex justify-between items-start border-b-2 border-black pb-6 mb-6">
                 <div>
-                    <span class="text-xs text-text-secondary-dark uppercase block mb-1">Hall</span>
-                    <p class="text-base text-text-main font-medium">{{ booking.hall.name }}</p>
+                    <h2 class="text-3xl font-serif font-bold uppercase tracking-widest">{{ site_settings.hotel_name|default:"Luxury Hotel" }}</h2>
+                    <p class="text-sm uppercase tracking-wide text-gray-600">Event Reservation Receipt</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm font-bold">Booking ID</p>
+                    <p class="text-xl font-mono">#{{ booking.pk }}</p>
+                </div>
+            </div>
+
+            <!-- Event Details -->
+            <div class="grid grid-cols-2 gap-8 mb-8">
+                <div>
+                    <p class="text-xs uppercase tracking-wider text-gray-500 mb-1">Event Name</p>
+                    <p class="text-xl font-bold">{{ booking.event_name }}</p>
                 </div>
                 <div>
-                    <span class="text-xs text-text-secondary-dark uppercase block mb-1">Booked By</span>
-                    <p class="text-base text-text-main font-medium">{{ booking.user.get_full_name|default:booking.user.username }}</p>
+                    <p class="text-xs uppercase tracking-wider text-gray-500 mb-1">Venue</p>
+                    <p class="text-xl font-bold">{{ booking.hall.name }}</p>
                 </div>
                 <div>
-                    <span class="text-xs text-text-secondary-dark uppercase block mb-1">Start Time</span>
-                    <p class="text-base text-text-main font-medium">{{ booking.start_time|date:"M d, Y - H:i" }}</p>
+                    <p class="text-xs uppercase tracking-wider text-gray-500 mb-1">Start Time</p>
+                    <p class="text-lg">{{ booking.start_time|date:"F d, Y" }} <span class="font-bold">{{ booking.start_time|date:"H:i" }}</span></p>
                 </div>
                 <div>
-                    <span class="text-xs text-text-secondary-dark uppercase block mb-1">End Time</span>
-                    <p class="text-base text-text-main font-medium">{{ booking.end_time|date:"M d, Y - H:i" }}</p>
+                    <p class="text-xs uppercase tracking-wider text-gray-500 mb-1">End Time</p>
+                    <p class="text-lg">{{ booking.end_time|date:"F d, Y" }} <span class="font-bold">{{ booking.end_time|date:"H:i" }}</span></p>
                 </div>
-                <div class="col-span-full">
-                    <span class="text-xs text-text-secondary-dark uppercase block mb-1">Notes</span>
-                    <p class="text-base text-text-secondary-light dark:text-text-secondary-dark italic bg-background-dark p-4 rounded-lg">
-                        {{ booking.notes|default:"No additional notes." }}
-                    </p>
-                </div>
+            </div>
+
+            <!-- Barcode / QR Code Section -->
+            <div class="flex flex-col items-center justify-center border-t-2 border-dashed border-gray-300 pt-8 mt-8">
+                {% if booking.qr_code %}
+                    <img src="{{ booking.qr_code.url }}" alt="QR Code" class="w-48 h-48 mb-4">
+                    <p class="text-xs uppercase tracking-widest text-gray-500">Scan for Entry</p>
+                {% else %}
+                    <div class="w-48 h-48 bg-gray-100 flex items-center justify-center mb-4">
+                        <span class="text-gray-400 text-xs">QR Available upon Confirmation</span>
+                    </div>
+                {% endif %}
+                <p class="text-sm font-mono mt-2">{{ booking.status }}</p>
             </div>
         </div>
     </div>
 
     <!-- Pricing Sidebar -->
-    <div class="space-y-6">
+    <div class="space-y-6 print:hidden">
         <div class="bg-surface-dark p-6 rounded-2xl border border-border-dark">
             <h3 class="text-lg font-bold text-text-main mb-4">Payment Summary</h3>
             <div class="space-y-3 pb-4 border-b border-border-dark">
@@ -89,4 +113,14 @@
         </div>
     </div>
 </div>
+
+<style media="print">
+    @page { size: auto;  margin: 0mm; }
+    body { background-color: white; color: black; }
+    nav, footer, aside, .btn, .print\:hidden { display: none !important; }
+    .print\:block { display: block !important; }
+    .bg-surface-dark { background-color: white !important; border: none !important; color: black !important; }
+    .text-text-main { color: black !important; }
+    .text-text-secondary-dark { color: #666 !important; }
+</style>
 {% endblock %}

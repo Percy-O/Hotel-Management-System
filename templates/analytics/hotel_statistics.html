@@ -1,0 +1,262 @@
+{% extends 'dashboard_base.html' %}
+{% load static %}
+
+{% block header_title %}Hotel Statistics{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- Setup Data ---
+        // Use 'safe' filter directly to output JSON arrays/objects into JS variables.
+        // This avoids quoting and escaping issues.
+        let trendLabels = {{ chart_labels|safe }};
+        let trendData = {{ chart_values|safe }};
+        let breakdownData = {{ revenue_breakdown_json|safe }};
+        
+        // Handle empty data case for initial render
+        if (!trendLabels) trendLabels = [];
+        if (!trendData) trendData = [];
+        if (!breakdownData) breakdownData = {};
+        
+        const breakdownLabels = Object.keys(breakdownData);
+        const breakdownValues = Object.values(breakdownData);
+        
+        const currencySymbol = '{{ site_settings.currency_symbol }}';
+
+        // --- Helper: No Data Overlay ---
+        function showNoDataOverlay(canvasId, show) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            const parent = canvas.parentElement;
+            
+            // Check if overlay exists
+            let overlay = parent.querySelector('.no-data-overlay');
+            
+            if (show) {
+                if (!overlay) {
+                    overlay = document.createElement('div');
+                    overlay.className = 'no-data-overlay absolute inset-0 flex items-center justify-center bg-surface-dark/80 z-10';
+                    overlay.innerHTML = '<p class="text-text-secondary-dark font-medium">No data available for this period</p>';
+                    parent.appendChild(overlay);
+                }
+            } else {
+                if (overlay) overlay.remove();
+            }
+        }
+
+        // --- Trend Chart (Line) ---
+        const trendCanvas = document.getElementById('salesTrendChart');
+        let trendChart = null;
+        
+        if (trendCanvas) {
+            // Check for empty data
+            const hasTrendData = trendData.length > 0 && trendData.some(val => val > 0);
+            showNoDataOverlay('salesTrendChart', !hasTrendData);
+            
+            const ctxTrend = trendCanvas.getContext('2d');
+            trendChart = new Chart(ctxTrend, {
+                type: 'line',
+                data: {
+                    labels: trendLabels,
+                    datasets: [{
+                        label: 'Sales',
+                        data: trendData,
+                        borderColor: '#13EC6D',
+                        backgroundColor: 'rgba(19, 236, 109, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true,
+                        pointBackgroundColor: '#13EC6D',
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return currencySymbol + context.parsed.y.toLocaleString();
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                            ticks: { color: '#9CA3AF' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#9CA3AF' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- Breakdown Chart (Doughnut) ---
+        const breakdownCanvas = document.getElementById('revenueBreakdownChart');
+        if (breakdownCanvas) {
+            // Check for empty data
+            const hasBreakdownData = breakdownValues.length > 0 && breakdownValues.some(val => val > 0);
+            showNoDataOverlay('revenueBreakdownChart', !hasBreakdownData);
+
+            const ctxBreakdown = breakdownCanvas.getContext('2d');
+            new Chart(ctxBreakdown, {
+                type: 'doughnut',
+                data: {
+                    labels: breakdownLabels,
+                    datasets: [{
+                        data: breakdownValues,
+                        backgroundColor: [
+                            '#13EC6D', // Green (Primary)
+                            '#3B82F6', // Blue
+                            '#F59E0B', // Yellow
+                            '#EC4899'  // Pink
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: { color: '#E5E7EB', padding: 20 }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const val = context.parsed;
+                                    const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                    const pct = total > 0 ? ((val / total) * 100).toFixed(1) + '%' : '0%';
+                                    return context.label + ': ' + currencySymbol + val.toLocaleString() + ' (' + pct + ')';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- AJAX Filter ---
+        const periodSelect = document.querySelector('select[name="period"]');
+        if (periodSelect) {
+            periodSelect.addEventListener('change', function() {
+                const period = this.value;
+                const url = new URL(window.location.href);
+                url.searchParams.set('period', period);
+                
+                // Update URL without reload
+                window.history.pushState({}, '', url);
+
+                fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Update Trend Chart
+                    if (trendChart) {
+                        // Handle potential array vs string response (though backend sends list)
+                        // If backend sends JSON string, we parse. If list, we use directly.
+                        // Based on views.py: return JsonResponse({'chart_labels': chart_labels...}) where chart_labels is a list.
+                        // BUT: in initial context it was json.dumps. In AJAX it is raw list?
+                        // Let's check views.py again. 
+                        // Views: context['chart_labels'] = json.dumps(chart_labels)
+                        // AJAX: return JsonResponse({'chart_labels': chart_labels...}) -> JsonResponse serializes the list.
+                        // So data.chart_labels is an Array.
+                        
+                        trendChart.data.labels = data.chart_labels;
+                        trendChart.data.datasets[0].data = data.chart_values;
+                        trendChart.update();
+                    }
+
+                    // Update Tables
+                    const tablesContainer = document.getElementById('tables-container');
+                    if (tablesContainer) {
+                        tablesContainer.innerHTML = data.tables_html;
+                    }
+                })
+                .catch(error => console.error('Error fetching data:', error));
+            });
+        }
+    });
+</script>
+{% endblock %}
+{% block header_subtitle %}Overview of sales, guests, and performance metrics.{% endblock %}
+
+{% block header_actions %}
+<form method="get" action="" class="flex gap-3 items-center">
+    <select name="period" class="px-4 py-2 bg-surface-dark border border-border-dark rounded-lg text-sm text-text-main focus:outline-none focus:border-primary">
+        <option value="all">All Reports</option>
+        <option value="daily">Daily Report</option>
+        <option value="weekly">Weekly Report</option>
+        <option value="monthly">Monthly Report</option>
+        <option value="quarterly">Quarterly Report</option>
+        <option value="yearly">Yearly Report</option>
+    </select>
+
+    <button type="submit" formaction="{% url 'download_statistics_excel' %}" class="flex items-center gap-2 px-4 py-2 bg-surface-dark border border-border-dark rounded-lg text-sm font-bold text-text-main hover:bg-white/5 transition-colors">
+        <span class="material-symbols-outlined text-[18px]">table_view</span>
+        Export Excel
+    </button>
+    <button type="submit" formaction="{% url 'download_statistics_report' %}" class="flex items-center gap-2 px-4 py-2 bg-primary text-slate-900 rounded-lg text-sm font-bold hover:bg-primary-hover transition-colors shadow-lg shadow-primary/20">
+        <span class="material-symbols-outlined text-[18px]">print</span>
+        Print Report
+    </button>
+</form>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-8">
+    <!-- Charts Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Revenue Trend Chart -->
+        <div class="bg-surface-dark p-6 rounded-xl border border-border-dark shadow-sm">
+            <h3 class="text-lg font-bold text-text-main mb-4">Sales Trend</h3>
+            <div class="relative h-64 w-full">
+                <canvas id="salesTrendChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Revenue Breakdown Chart -->
+        <div class="bg-surface-dark p-6 rounded-xl border border-border-dark shadow-sm">
+            <h3 class="text-lg font-bold text-text-main mb-4">Revenue Sources</h3>
+            <div class="relative h-64 w-full flex justify-center">
+                <canvas id="revenueBreakdownChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overview Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-surface-dark p-6 rounded-xl border border-border-dark shadow-sm">
+            <h3 class="text-sm font-medium text-text-secondary-dark uppercase tracking-wider mb-2">Total Sales</h3>
+            <p class="text-3xl font-bold text-text-main">{{ site_settings.currency_symbol }}{{ total_sales|floatformat:2 }}</p>
+        </div>
+        <div class="bg-surface-dark p-6 rounded-xl border border-border-dark shadow-sm">
+            <h3 class="text-sm font-medium text-text-secondary-dark uppercase tracking-wider mb-2">Total Bookings</h3>
+            <p class="text-3xl font-bold text-text-main">{{ total_bookings }}</p>
+        </div>
+        <div class="bg-surface-dark p-6 rounded-xl border border-border-dark shadow-sm">
+            <h3 class="text-sm font-medium text-text-secondary-dark uppercase tracking-wider mb-2">Total Guests</h3>
+            <p class="text-3xl font-bold text-text-main">{{ total_guests }}</p>
+        </div>
+    </div>
+
+    <!-- Data Tables -->
+    <div id="tables-container" class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+        {% include 'analytics/partials/tables.html' %}
+    </div>
+</div>
+{% endblock %}

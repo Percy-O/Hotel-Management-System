@@ -6,8 +6,8 @@ from django.urls import reverse_lazy
 from django.contrib import messages
 from django.utils import timezone
 from datetime import timedelta
-from .models import GymPlan, GymMembership
-from .forms import GymPlanForm, GymMembershipForm
+from .models import GymPlan, GymMembership, GymAttendance
+from .forms import GymPlanForm, GymMembershipForm, PublicGymSignupForm
 
 # --- Gym Plan Management (Manager Only) ---
 
@@ -21,6 +21,17 @@ class GymPlanListView(LoginRequiredMixin, ListView):
             return GymPlan.objects.all()
         return GymPlan.objects.filter(is_active=True)
 
+class PublicGymPlanListView(ListView):
+    model = GymPlan
+    template_name = 'gym/public_plan_list.html'
+    context_object_name = 'plans'
+
+    def get_queryset(self):
+        queryset = GymPlan.objects.filter(is_active=True)
+        if hasattr(self.request, 'tenant') and self.request.tenant:
+            queryset = queryset.filter(tenant=self.request.tenant)
+        return queryset
+
 class GymPlanCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     model = GymPlan
     form_class = GymPlanForm
@@ -28,6 +39,11 @@ class GymPlanCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     success_url = reverse_lazy('gym_plan_list')
 
     def test_func(self):
+        # Check Module Limit
+        if self.request.tenant and self.request.tenant.plan:
+             if not self.request.tenant.plan.module_gym:
+                 return False
+                 
         return self.request.user.can_manage_gym
 
     def form_valid(self, form):
@@ -151,3 +167,115 @@ def cancel_membership(request, pk):
     )
     
     return redirect('gym_membership_list')
+
+class PublicGymSignupView(CreateView):
+    model = GymMembership
+    form_class = PublicGymSignupForm
+    template_name = 'gym/public_signup.html'
+    
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+    
+    def get_initial(self):
+        initial = super().get_initial()
+        plan_id = self.request.GET.get('plan')
+        if plan_id:
+            initial['plan'] = get_object_or_404(GymPlan, pk=plan_id)
+        return initial
+
+    def form_valid(self, form):
+        from django.contrib.auth import get_user_model, login
+        from django.utils.crypto import get_random_string
+        from billing.models import Invoice
+        
+        User = get_user_model()
+        user = self.request.user
+        
+        if not user.is_authenticated:
+            email = form.cleaned_data['email']
+            full_name = form.cleaned_data['full_name']
+            phone_number = form.cleaned_data['phone_number']
+            
+            try:
+                user = User.objects.get(email=email)
+            except User.DoesNotExist:
+                username = email.split('@')[0]
+                base_username = username
+                counter = 1
+                while User.objects.filter(username=username).exists():
+                    username = f"{base_username}{counter}"
+                    counter += 1
+                
+                password = get_random_string(8)
+                user = User.objects.create_user(
+                    username=username,
+                    email=email,
+                    password=password,
+                    first_name=full_name.split(' ')[0],
+                    last_name=' '.join(full_name.split(' ')[1:]) if ' ' in full_name else '',
+                    phone_number=phone_number,
+                    role=User.Role.GUEST
+                )
+                login(self.request, user)
+        
+        plan = form.cleaned_data['plan']
+        start_date = form.cleaned_data['start_date']
+        end_date = start_date + timedelta(days=plan.duration_days)
+        
+        form.instance.user = user
+        form.instance.end_date = end_date
+        form.instance.status = 'PENDING'
+        
+        response = super().form_valid(form)
+        
+        # Create Invoice
+        Invoice.objects.create(
+            gym_membership=self.object,
+            amount=plan.price,
+            status=Invoice.Status.PENDING,
+            due_date=timezone.now().date(),
+            tenant=self.request.tenant if hasattr(self.request, 'tenant') else None
+        )
+        
+        return redirect('payment_selection', invoice_id=self.object.invoices.first().pk)
+
+@login_required
+def gym_check_in(request):
+    # Find active membership
+    membership = GymMembership.objects.filter(
+        user=request.user, 
+        status='ACTIVE',
+        end_date__gte=timezone.now().date()
+    ).first()
+    
+    if not membership:
+        messages.error(request, "No active gym membership found.")
+        return redirect('dashboard')
+        
+    # Check if already checked in today/currently
+    active_attendance = GymAttendance.objects.filter(membership=membership, check_out__isnull=True).first()
+    if active_attendance:
+        messages.warning(request, "You are already checked in.")
+    else:
+        GymAttendance.objects.create(membership=membership)
+        messages.success(request, "Checked in to Gym successfully.")
+        
+    return redirect('dashboard')
+
+@login_required
+def gym_check_out(request):
+    membership = GymMembership.objects.filter(user=request.user).first() # Simplify lookup
+    if not membership:
+        return redirect('dashboard')
+        
+    active_attendance = GymAttendance.objects.filter(membership__user=request.user, check_out__isnull=True).first()
+    if active_attendance:
+        active_attendance.check_out = timezone.now()
+        active_attendance.save()
+        messages.success(request, "Checked out from Gym.")
+    else:
+        messages.info(request, "You were not checked in.")
+        
+    return redirect('dashboard')

@@ -127,6 +127,10 @@
                             <span class="text-text-secondary-dark">Expires</span>
                             <span class="font-mono text-white">{{ membership.end_date|date:"M d, Y" }}</span>
                         </div>
+                        <div class="mt-4 pt-4 border-t border-white/5 flex gap-2">
+                            <a href="{% url 'gym_check_in' %}" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-xs font-bold uppercase rounded transition-colors flex-1 text-center">Check In</a>
+                            <a href="{% url 'gym_check_out' %}" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-xs font-bold uppercase rounded transition-colors flex-1 text-center">Check Out</a>
+                        </div>
                     </div>
                 </div>
                 {% endfor %}

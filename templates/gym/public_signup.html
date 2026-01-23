@@ -1,0 +1,89 @@
+{% extends 'base_public.html' %}
+{% load static %}
+
+{% block title %}Join Gym - {{ request.tenant.name }}{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="bg-dark-900 py-20 relative overflow-hidden">
+    <div class="absolute inset-0 opacity-20">
+        <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=2070&auto=format&fit=crop" alt="Background" class="w-full h-full object-cover">
+    </div>
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <p class="text-gold-400 font-sans text-xs tracking-[0.3em] uppercase mb-4 animate-fade-in-up">Wellness</p>
+        <h1 class="font-serif text-4xl md:text-5xl text-white mb-4 animate-fade-in-up delay-100">Join Our Gym</h1>
+    </div>
+</div>
+
+<section class="py-24 bg-dark-900">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="bg-dark-800 border border-white/10 p-8 md:p-12 relative overflow-hidden rounded-sm shadow-2xl">
+            <!-- Decorative Elements -->
+            <div class="absolute top-0 right-0 -mt-16 -mr-16 w-32 h-32 bg-gold-500/10 rounded-full blur-2xl"></div>
+            <div class="absolute bottom-0 left-0 -mb-16 -ml-16 w-32 h-32 bg-gold-500/10 rounded-full blur-2xl"></div>
+
+            <form method="post" class="space-y-8 relative z-10">
+                {% csrf_token %}
+                
+                {% if form.errors %}
+                <div class="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-lg mb-6">
+                    <p class="font-bold mb-2">Please correct the following errors:</p>
+                    <ul class="list-disc list-inside text-sm">
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <li>{{ field|title }}: {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <!-- Guest Details (If not logged in) -->
+                {% if not user.is_authenticated %}
+                <div class="space-y-6">
+                    <h3 class="text-white font-serif text-2xl border-b border-white/10 pb-4">Personal Details</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                            <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Full Name</label>
+                            {{ form.full_name }}
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Phone Number</label>
+                            {{ form.phone_number }}
+                        </div>
+                        <div class="col-span-1 md:col-span-2 space-y-2">
+                            <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Email Address</label>
+                            {{ form.email }}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Membership Details -->
+                <div class="space-y-6">
+                    <h3 class="text-white font-serif text-2xl border-b border-white/10 pb-4">Membership Plan</h3>
+                    
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Select Plan</label>
+                        {{ form.plan }}
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Start Date</label>
+                        {{ form.start_date }}
+                    </div>
+                </div>
+
+                <div class="pt-8 border-t border-white/10">
+                    <button type="submit" class="w-full bg-gold-500 hover:bg-gold-600 text-white font-bold py-4 uppercase tracking-widest transition-all duration-300 shadow-lg hover:shadow-gold-500/20">
+                        Proceed to Payment
+                    </button>
+                    <p class="text-center text-gray-500 text-xs mt-4">
+                        By proceeding, you agree to our <a href="#" class="text-gold-400 hover:text-white transition-colors">Terms of Service</a>.
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

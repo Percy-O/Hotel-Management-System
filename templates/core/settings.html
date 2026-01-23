@@ -160,18 +160,38 @@
                     <!-- Custom Theme Controls -->
                     <div id="custom-theme-controls" class="mt-6 space-y-4 p-4 bg-background-dark/50 rounded-xl border border-border-dark {% if form.theme.value != 'theme-custom' %}hidden{% endif %}">
                         <h4 class="text-sm font-bold text-text-main">Custom Colors</h4>
-                        <div class="grid grid-cols-3 gap-4">
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                             <div>
                                 <label class="block text-xs text-text-secondary-dark mb-1">Primary</label>
                                 {% render_field form.custom_primary_color class="h-10 w-full rounded cursor-pointer" oninput="updateCustomPreview()" %}
+                            </div>
+                            <div>
+                                <label class="block text-xs text-text-secondary-dark mb-1">Secondary</label>
+                                {% render_field form.custom_secondary_color class="h-10 w-full rounded cursor-pointer" oninput="updateCustomPreview()" %}
+                            </div>
+                            <div>
+                                <label class="block text-xs text-text-secondary-dark mb-1">Accent (Gold)</label>
+                                {% render_field form.custom_accent_color class="h-10 w-full rounded cursor-pointer" oninput="updateCustomPreview()" %}
                             </div>
                             <div>
                                 <label class="block text-xs text-text-secondary-dark mb-1">Background</label>
                                 {% render_field form.custom_background_color class="h-10 w-full rounded cursor-pointer" oninput="updateCustomPreview()" %}
                             </div>
                             <div>
-                                <label class="block text-xs text-text-secondary-dark mb-1">Surface</label>
+                                <label class="block text-xs text-text-secondary-dark mb-1">Surface/Card</label>
                                 {% render_field form.custom_surface_color class="h-10 w-full rounded cursor-pointer" oninput="updateCustomPreview()" %}
+                            </div>
+                            <div>
+                                <label class="block text-xs text-text-secondary-dark mb-1">Text Color</label>
+                                {% render_field form.custom_text_color class="h-10 w-full rounded cursor-pointer" oninput="updateCustomPreview()" %}
+                            </div>
+                            <div>
+                                <label class="block text-xs text-text-secondary-dark mb-1">Button Bg</label>
+                                {% render_field form.custom_button_color class="h-10 w-full rounded cursor-pointer" oninput="updateCustomPreview()" %}
+                            </div>
+                            <div>
+                                <label class="block text-xs text-text-secondary-dark mb-1">Button Text</label>
+                                {% render_field form.custom_button_text_color class="h-10 w-full rounded cursor-pointer" oninput="updateCustomPreview()" %}
                             </div>
                         </div>
                     </div>
@@ -564,11 +584,17 @@
         const primary = document.querySelector('[name="custom_primary_color"]').value;
         const background = document.querySelector('[name="custom_background_color"]').value;
         const surface = document.querySelector('[name="custom_surface_color"]').value;
+        const text = document.querySelector('[name="custom_text_color"]').value;
+        const button = document.querySelector('[name="custom_button_color"]').value;
+        const buttonText = document.querySelector('[name="custom_button_text_color"]').value;
 
         applyPreviewStyles({
             primary: primary,
             background: background,
-            surface: surface
+            surface: surface,
+            textMain: text,
+            button: button,
+            buttonText: buttonText
         });
     }
 
@@ -586,18 +612,29 @@
         previewIconBg.style.backgroundColor = config.primary + '20'; // 12% opacity
         previewIconBg.style.color = config.primary;
         
-        previewButton.style.backgroundColor = config.primary;
+        previewButton.style.backgroundColor = config.button || config.primary;
+        previewButton.style.color = config.buttonText || (config.surface === '#ffffff' ? '#ffffff' : '#000000'); // Simple fallback
         
         // Text colors (handle light mode exception)
         if (config.textMain) {
             previewTextMain.style.backgroundColor = config.textMain;
-            previewTextSub.style.backgroundColor = config.textSub;
+            previewTextSub.style.backgroundColor = config.textMain; // Use main text for sub too but opacity handled by div? No, div has bg-current opacity-20.
+            // Actually previewTextMain has "bg-current opacity-20" class?
+            // HTML: <div class="h-3 w-24 bg-current opacity-20 rounded mb-1.5" id="preview-text-main"></div>
+            // So setting color on parent or changing backgroundColor directly?
+            // The existing code sets backgroundColor directly.
+            
+            previewTextMain.style.backgroundColor = config.textMain;
+            previewTextSub.style.backgroundColor = config.textMain;
+            previewTextSub.style.opacity = '0.6';
+            
             previewCard.style.color = config.textMain;
         } else {
             // Default dark mode text logic
             previewTextMain.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
             previewTextSub.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
             previewCard.style.color = '#ffffff';
+            previewButton.style.color = '#000000'; // Default button text
         }
     }
 
