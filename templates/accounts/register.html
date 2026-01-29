@@ -1,9 +1,9 @@
-{% extends 'base.html' %}
+{% extends 'base_public.html' %}
 {% load widget_tweaks %}
 
 {% block title %}Register - {{ request.tenant.name|default:"IHotel" }}{% endblock %}
 
-{% block extra_css %}
+{% block extra_head %}
 <style>
     /* Custom Scrollbar for Suggestions */
     .scrollbar-thin::-webkit-scrollbar {
@@ -349,17 +349,17 @@
 
 {% else %}
     <!-- Tenant Registration View -->
-    <div class="min-h-screen flex items-center justify-center bg-background-dark py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div class="min-h-screen flex items-center justify-center bg-dark-900 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
         <!-- Decorative Elements -->
-        <div class="absolute top-0 right-0 -mt-20 -mr-20 w-80 h-80 bg-primary/10 rounded-full blur-3xl"></div>
+        <div class="absolute top-0 right-0 -mt-20 -mr-20 w-80 h-80 bg-gold-500/10 rounded-full blur-3xl"></div>
         <div class="absolute bottom-0 left-0 -mb-20 -ml-20 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl"></div>
 
-        <div class="max-w-2xl w-full bg-surface-dark p-8 md:p-12 rounded-2xl border border-white/10 shadow-2xl relative z-10">
+        <div class="max-w-2xl w-full bg-dark-800 p-8 md:p-12 rounded-2xl border border-white/10 shadow-2xl relative z-10">
             <div class="text-center mb-8">
                  {% if request.tenant.logo %}
                     <img src="{{ request.tenant.logo.url }}" alt="{{ request.tenant.name }}" class="h-12 mx-auto mb-4 object-contain">
                 {% else %}
-                    <div class="size-12 rounded-full bg-primary flex items-center justify-center text-slate-900 mx-auto mb-4">
+                    <div class="size-12 rounded-full bg-gold-500 flex items-center justify-center text-slate-900 mx-auto mb-4">
                         <span class="material-symbols-outlined text-[24px]">hotel</span>
                     </div>
                 {% endif %}
@@ -425,7 +425,7 @@
                         </label>
 
                         {% if site_settings.enable_events %}
-                        <label class="relative flex items-center p-4 rounded-xl border border-border-dark cursor-pointer hover:border-primary/50 bg-background-dark transition-all group">
+                        <label class="relative flex items-center p-4 rounded-xl border border-white/10 cursor-pointer hover:border-gold-500/50 bg-dark-900 transition-all group">
                             <input type="radio" name="visit_purpose" value="event" class="peer sr-only">
                             <div class="size-12 rounded-lg bg-purple-500/10 text-purple-500 flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
                                 <span class="material-symbols-outlined">celebration</span>
@@ -434,12 +434,12 @@
                                 <h3 class="text-white font-bold">Event Booking</h3>
                                 <p class="text-xs text-gray-400">Host a wedding, conference, or party</p>
                             </div>
-                            <div class="size-5 rounded-full border-2 border-gray-600 peer-checked:border-primary peer-checked:bg-primary ml-auto transition-colors"></div>
+                            <div class="size-5 rounded-full border-2 border-gray-600 peer-checked:border-gold-500 peer-checked:bg-gold-500 ml-auto transition-colors"></div>
                         </label>
                         {% endif %}
 
                         {% if site_settings.enable_gym %}
-                        <label class="relative flex items-center p-4 rounded-xl border border-border-dark cursor-pointer hover:border-primary/50 bg-background-dark transition-all group">
+                        <label class="relative flex items-center p-4 rounded-xl border border-white/10 cursor-pointer hover:border-gold-500/50 bg-dark-900 transition-all group">
                             <input type="radio" name="visit_purpose" value="gym" class="peer sr-only">
                             <div class="size-12 rounded-lg bg-green-500/10 text-green-500 flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
                                 <span class="material-symbols-outlined">fitness_center</span>
@@ -448,7 +448,7 @@
                                 <h3 class="text-white font-bold">Gym Membership</h3>
                                 <p class="text-xs text-gray-400">Join our fitness center and stay fit</p>
                             </div>
-                            <div class="size-5 rounded-full border-2 border-gray-600 peer-checked:border-primary peer-checked:bg-primary ml-auto transition-colors"></div>
+                            <div class="size-5 rounded-full border-2 border-gray-600 peer-checked:border-gold-500 peer-checked:bg-gold-500 ml-auto transition-colors"></div>
                         </label>
                         {% endif %}
                     </div>
@@ -485,9 +485,9 @@
                             {% if form.password_confirm.errors %}<p class="text-red-400 text-xs mt-1">{{ form.password_confirm.errors.0 }}</p>{% endif %}
                         </div>
                         
-                        <div class="bg-primary/10 border border-primary/20 rounded-lg p-4 mt-6">
+                        <div class="bg-gold-500/10 border border-gold-500/20 rounded-lg p-4 mt-6">
                             <div class="flex gap-3">
-                                <span class="material-symbols-outlined text-primary">info</span>
+                                <span class="material-symbols-outlined text-gold-500">info</span>
                                 <p class="text-sm text-gray-300">
                                     By clicking "Create Account", you agree to our Terms of Service and Privacy Policy.
                                 </p>
@@ -498,13 +498,13 @@
 
                 <!-- Navigation Buttons -->
                 <div class="flex gap-4 mt-8">
-                    <button type="button" id="prev-btn" class="hidden flex-1 py-3 px-4 border border-border-dark text-sm font-bold rounded-lg text-white hover:bg-surface-light transition-all">
+                    <button type="button" id="prev-btn" class="hidden flex-1 py-3 px-4 border border-white/10 text-sm font-bold rounded-lg text-white hover:bg-white/5 transition-all">
                         Back
                     </button>
-                    <button type="button" id="next-btn" class="flex-1 py-3 px-4 bg-primary hover:bg-primary-hover text-slate-900 text-sm font-bold rounded-lg transition-all shadow-lg shadow-primary/20">
+                    <button type="button" id="next-btn" class="flex-1 py-3 px-4 bg-gold-500 hover:bg-gold-400 text-slate-900 text-sm font-bold rounded-lg transition-all shadow-lg shadow-gold-500/20">
                         Next Step
                     </button>
-                    <button type="submit" id="submit-btn" class="hidden flex-1 py-3 px-4 bg-primary hover:bg-primary-hover text-slate-900 text-sm font-bold rounded-lg transition-all shadow-lg shadow-primary/20">
+                    <button type="submit" id="submit-btn" class="hidden flex-1 py-3 px-4 bg-gold-500 hover:bg-gold-400 text-slate-900 text-sm font-bold rounded-lg transition-all shadow-lg shadow-gold-500/20">
                         Create Account
                     </button>
                 </div>
@@ -512,7 +512,7 @@
                 <div class="text-center mt-6">
                     <p class="text-sm text-gray-400">
                         Already have an account? 
-                        <a href="{% url 'login' %}" class="font-medium text-primary hover:text-white transition-colors">
+                        <a href="{% url 'login' %}" class="font-medium text-gold-500 hover:text-white transition-colors">
                             Sign in
                         </a>
                     </p>

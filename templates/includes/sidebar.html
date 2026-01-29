@@ -98,10 +98,13 @@
                             {% include "includes/components/sidebar_item.html" with url=u label="Event Halls" %}
                             
                             {% url 'event_booking_list' as u %}
-                            {% include "includes/components/sidebar_item.html" with url=u label="Bookings" %}
-                        </div>
+                        {% include "includes/components/sidebar_item.html" with url=u label="Bookings" %}
+
+                        {% url 'event_booking_verify' as u %}
+                        {% include "includes/components/sidebar_item.html" with url=u label="Verify Booking" %}
                     </div>
-                    {% endif %}
+                </div>
+                {% endif %}
                 {% endif %}
 
                 <!-- Gym Menu -->
@@ -111,7 +114,7 @@
                         {% include "includes/components/sidebar_submenu_header.html" with id="gym-menu" icon="fitness_center" label="Gym & Fitness" %}
                         <div id="gym-menu" class="hidden pl-10 space-y-1">
                             {% url 'gym_membership_list' as u %}
-                            {% include "includes/components/sidebar_item.html" with url=u label="Memberships" %}
+                            {% include "includes/components/sidebar_item.html" with url=u label="Members & Verify" %}
                             
                             {% url 'gym_plan_list' as u %}
                             {% include "includes/components/sidebar_item.html" with url=u label="Plans" %}

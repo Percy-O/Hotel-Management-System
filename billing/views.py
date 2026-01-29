@@ -368,7 +368,7 @@ def verify_payment(request, gateway):
             elif invoice.booking:
                 booking = invoice.booking
                 # Only update status if not already checked in/completed
-                if booking.status not in [Booking.Status.CHECKED_IN, Booking.Status.COMPLETED, Booking.Status.CANCELLED]:
+                if booking.status not in [Booking.Status.CHECKED_IN, Booking.Status.CHECKED_OUT, Booking.Status.CANCELLED]:
                     booking.status = Booking.Status.CONFIRMED
                     booking.save()
                 redirect_url = 'booking_detail'

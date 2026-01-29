@@ -18,15 +18,15 @@
                 <span class="material-symbols-outlined">dashboard</span>
                 Overview
             </a>
-            <a href="/admin/tenants/tenant/" class="flex items-center gap-3 px-4 py-3 rounded-xl text-text-secondary-dark hover:bg-white/5 hover:text-white transition-colors">
+            <a href="/admin/tenants/tenant/" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-white/5 hover:text-white transition-colors">
                 <span class="material-symbols-outlined">domain</span>
                 All Tenants
             </a>
-            <a href="/admin/auth/user/" class="flex items-center gap-3 px-4 py-3 rounded-xl text-text-secondary-dark hover:bg-white/5 hover:text-white transition-colors">
+            <a href="/admin/auth/user/" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-white/5 hover:text-white transition-colors">
                 <span class="material-symbols-outlined">group</span>
                 Global Users
             </a>
-            <a href="/admin/tenants/plan/" class="flex items-center gap-3 px-4 py-3 rounded-xl text-text-secondary-dark hover:bg-white/5 hover:text-white transition-colors">
+            <a href="/admin/tenants/plan/" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-white/5 hover:text-white transition-colors">
                 <span class="material-symbols-outlined">payments</span>
                 Subscription Plans
             </a>
@@ -43,11 +43,11 @@
     <main class="flex-1 p-8 overflow-y-auto">
         <header class="flex justify-between items-center mb-8">
             <div>
-                <h2 class="text-3xl font-bold text-text-main">Platform Overview</h2>
-                <p class="text-text-secondary-dark">Manage your SaaS ecosystem</p>
+                <h2 class="text-3xl font-bold text-white">Platform Overview</h2>
+                <p class="text-gray-400">Manage your SaaS ecosystem</p>
             </div>
             <div class="flex items-center gap-4">
-                <span class="text-text-secondary-dark">{{ user.email }}</span>
+                <span class="text-gray-400">{{ user.email }}</span>
                 <div class="size-10 rounded-full bg-primary flex items-center justify-center text-white font-bold">
                     SA
                 </div>
@@ -63,8 +63,8 @@
                     </div>
                     <span class="text-green-400 text-sm font-medium">+5 this week</span>
                 </div>
-                <h3 class="text-3xl font-bold text-text-main mb-1">{{ total_tenants }}</h3>
-                <p class="text-text-secondary-dark">Active Hotels</p>
+                <h3 class="text-3xl font-bold text-white mb-1">{{ total_tenants }}</h3>
+                <p class="text-gray-400">Active Hotels</p>
             </div>
 
             <div class="bg-surface-dark p-6 rounded-2xl border border-border-dark">
@@ -73,8 +73,8 @@
                         <span class="material-symbols-outlined text-2xl">group</span>
                     </div>
                 </div>
-                <h3 class="text-3xl font-bold text-text-main mb-1">{{ total_users }}</h3>
-                <p class="text-text-secondary-dark">Total Users</p>
+                <h3 class="text-3xl font-bold text-white mb-1">{{ total_users }}</h3>
+                <p class="text-gray-400">Total Users</p>
             </div>
 
             <div class="bg-surface-dark p-6 rounded-2xl border border-border-dark">
@@ -83,8 +83,8 @@
                         <span class="material-symbols-outlined text-2xl">payments</span>
                     </div>
                 </div>
-                <h3 class="text-3xl font-bold text-text-main mb-1">${{ total_revenue }}</h3>
-                <p class="text-text-secondary-dark">Platform Revenue</p>
+                <h3 class="text-3xl font-bold text-white mb-1">${{ total_revenue }}</h3>
+                <p class="text-gray-400">Platform Revenue</p>
             </div>
 
             <div class="bg-surface-dark p-6 rounded-2xl border border-border-dark">
@@ -93,52 +93,52 @@
                         <span class="material-symbols-outlined text-2xl">book_online</span>
                     </div>
                 </div>
-                <h3 class="text-3xl font-bold text-text-main mb-1">{{ total_bookings }}</h3>
-                <p class="text-text-secondary-dark">Total Bookings</p>
+                <h3 class="text-3xl font-bold text-white mb-1">{{ total_bookings }}</h3>
+                <p class="text-gray-400">Total Bookings</p>
             </div>
         </div>
 
         <!-- Quick Actions -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div class="bg-surface-dark p-6 rounded-2xl border border-border-dark">
-                <h3 class="text-xl font-bold text-text-main mb-4">Quick Actions</h3>
+                <h3 class="text-xl font-bold text-white mb-4">Quick Actions</h3>
                 <div class="grid grid-cols-2 gap-4">
                     <a href="/admin/tenants/tenant/add/" class="p-4 bg-background-dark rounded-xl hover:bg-primary/5 border border-border-dark hover:border-primary/30 transition-all group">
                         <span class="material-symbols-outlined text-primary mb-2 group-hover:scale-110 transition-transform">add_business</span>
-                        <h4 class="font-bold text-text-main">Add Tenant</h4>
-                        <p class="text-xs text-text-secondary-dark mt-1">Onboard new hotel</p>
+                        <h4 class="font-bold text-white">Add Tenant</h4>
+                        <p class="text-xs text-gray-400 mt-1">Onboard new hotel</p>
                     </a>
                     <a href="/admin/tenants/plan/add/" class="p-4 bg-background-dark rounded-xl hover:bg-purple-500/5 border border-border-dark hover:border-purple-500/30 transition-all group">
                         <span class="material-symbols-outlined text-purple-500 mb-2 group-hover:scale-110 transition-transform">post_add</span>
-                        <h4 class="font-bold text-text-main">Create Plan</h4>
-                        <p class="text-xs text-text-secondary-dark mt-1">Add subscription tier</p>
+                        <h4 class="font-bold text-white">Create Plan</h4>
+                        <p class="text-xs text-gray-400 mt-1">Add subscription tier</p>
                     </a>
                 </div>
             </div>
 
             <div class="bg-surface-dark p-6 rounded-2xl border border-border-dark">
-                <h3 class="text-xl font-bold text-text-main mb-4">System Health</h3>
+                <h3 class="text-xl font-bold text-white mb-4">System Health</h3>
                 <div class="space-y-4">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-3">
                             <div class="size-2 rounded-full bg-green-500"></div>
-                            <span class="text-text-main">Database Status</span>
+                            <span class="text-white">Database Status</span>
                         </div>
                         <span class="text-green-400 text-sm font-medium">Operational</span>
                     </div>
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-3">
                             <div class="size-2 rounded-full bg-green-500"></div>
-                            <span class="text-text-main">Storage Usage</span>
+                            <span class="text-white">Storage Usage</span>
                         </div>
-                        <span class="text-text-secondary-dark text-sm">45% Used</span>
+                        <span class="text-gray-400 text-sm">45% Used</span>
                     </div>
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-3">
                             <div class="size-2 rounded-full bg-green-500"></div>
-                            <span class="text-text-main">API Latency</span>
+                            <span class="text-white">API Latency</span>
                         </div>
-                        <span class="text-text-secondary-dark text-sm">24ms</span>
+                        <span class="text-gray-400 text-sm">24ms</span>
                     </div>
                 </div>
             </div>

@@ -1,4 +1,4 @@
-{% extends 'base_layout.html' %}
+{% extends 'base_public.html' %}
 {% load static %}
 
 {% block title %}IHotel - AI-Driven Hotel Management{% endblock %}
@@ -280,6 +280,8 @@
     </section>
 
     <!-- Footer -->
+    {% block footer %}
     {% include 'includes/saas_footer.html' %}
+    {% endblock %}
 </div>
 {% endblock %}

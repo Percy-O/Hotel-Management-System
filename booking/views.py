@@ -130,11 +130,48 @@ def create_booking(request, room_type_id):
                 if not booking.guest_email and booking.user:
                     booking.guest_email = booking.user.email
 
-                booking.status = Booking.Status.CONFIRMED # Or PENDING depending on flow
+                # Default to PENDING for everyone initially
+                booking.status = Booking.Status.PENDING
                 booking.save()
                 
-                messages.success(request, "Booking created successfully.")
-                return redirect('booking_detail', pk=booking.pk)
+                # Create Invoice
+                invoice = Invoice.objects.create(
+                    tenant=request.tenant,
+                    booking=booking,
+                    amount=booking.total_price,
+                    status=Invoice.Status.PENDING,
+                    invoice_type=Invoice.Type.BOOKING,
+                    due_date=booking.check_in_date.date()
+                )
+                
+                # Handle Payment Logic
+                if can_manage:
+                    payment_method = form.cleaned_data.get('payment_method')
+                    if payment_method in ['CASH', 'TRANSFER']:
+                        # Immediate Confirmation
+                        booking.status = Booking.Status.CONFIRMED
+                        booking.save()
+                        
+                        invoice.status = Invoice.Status.PAID
+                        invoice.save()
+                        
+                        Payment.objects.create(
+                            invoice=invoice,
+                            amount=invoice.amount,
+                            payment_method=payment_method,
+                            transaction_id=f"MANUAL-{timezone.now().timestamp()}"
+                        )
+                        
+                        messages.success(request, f"Booking confirmed and paid via {payment_method}.")
+                        return redirect('booking_detail', pk=booking.pk)
+                    else:
+                        # Staff selected Online Payment -> Redirect to payment page
+                        messages.success(request, "Booking created. Proceeding to payment.")
+                        return redirect('payment_selection', invoice_id=invoice.pk)
+                
+                # Guest Flow (Online Booking)
+                messages.success(request, "Booking created. Please complete payment to confirm.")
+                return redirect('payment_selection', invoice_id=invoice.pk)
     else:
         if request.user.is_authenticated:
              initial_data.update({

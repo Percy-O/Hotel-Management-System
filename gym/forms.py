@@ -17,6 +17,15 @@ class GymMembershipForm(forms.ModelForm):
             'start_date': forms.DateInput(attrs={'type': 'date'}),
         }
 
+class StaffGymMembershipForm(GymMembershipForm):
+    # For staff to register guests manually
+    guest_email = forms.EmailField(required=False, help_text="Enter email for new guest or existing user search")
+    guest_name = forms.CharField(required=False, help_text="Enter full name for new guest")
+    guest_phone = forms.CharField(required=False, help_text="Enter phone for new guest")
+    
+    class Meta(GymMembershipForm.Meta):
+        fields = ['plan', 'start_date', 'guest_email', 'guest_name', 'guest_phone']
+
 class PublicGymSignupForm(forms.ModelForm):
     email = forms.EmailField(required=True, label="Email Address")
     full_name = forms.CharField(required=True, label="Full Name")
@@ -34,9 +43,9 @@ class PublicGymSignupForm(forms.ModelForm):
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         
-        self.fields['email'].widget.attrs.update={'class': 'w-full p-4 bg-white/5 border border-white/10 text-white rounded-lg focus:outline-none focus:border-gold-500', 'placeholder': 'john@example.com'}
-        self.fields['full_name'].widget.attrs.update={'class': 'w-full p-4 bg-white/5 border border-white/10 text-white rounded-lg focus:outline-none focus:border-gold-500', 'placeholder': 'John Doe'}
-        self.fields['phone_number'].widget.attrs.update={'class': 'w-full p-4 bg-white/5 border border-white/10 text-white rounded-lg focus:outline-none focus:border-gold-500', 'placeholder': '+1 234 567 890'}
+        self.fields['email'].widget.attrs.update({'class': 'w-full p-4 bg-white/5 border border-white/10 text-white rounded-lg focus:outline-none focus:border-gold-500', 'placeholder': 'john@example.com'})
+        self.fields['full_name'].widget.attrs.update({'class': 'w-full p-4 bg-white/5 border border-white/10 text-white rounded-lg focus:outline-none focus:border-gold-500', 'placeholder': 'John Doe'})
+        self.fields['phone_number'].widget.attrs.update({'class': 'w-full p-4 bg-white/5 border border-white/10 text-white rounded-lg focus:outline-none focus:border-gold-500', 'placeholder': '+1 234 567 890'})
 
         if user and user.is_authenticated:
             self.fields['email'].initial = user.email

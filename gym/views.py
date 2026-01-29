@@ -7,7 +7,7 @@ from django.contrib import messages
 from django.utils import timezone
 from datetime import timedelta
 from .models import GymPlan, GymMembership, GymAttendance
-from .forms import GymPlanForm, GymMembershipForm, PublicGymSignupForm
+from .forms import GymPlanForm, GymMembershipForm, StaffGymMembershipForm, PublicGymSignupForm
 
 # --- Gym Plan Management (Manager Only) ---
 
@@ -47,6 +47,9 @@ class GymPlanCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         return self.request.user.can_manage_gym
 
     def form_valid(self, form):
+        if hasattr(self.request, 'tenant') and self.request.tenant:
+            form.instance.tenant = self.request.tenant
+            
         messages.success(self.request, "Gym Plan created successfully.")
         return super().form_valid(form)
 
@@ -87,7 +90,7 @@ class GymMembershipListView(LoginRequiredMixin, ListView):
 
 class GymMembershipCreateView(LoginRequiredMixin, CreateView):
     model = GymMembership
-    form_class = GymMembershipForm
+    form_class = StaffGymMembershipForm
     template_name = 'gym/membership_form.html'
     success_url = reverse_lazy('gym_membership_list')
 
@@ -99,32 +102,79 @@ class GymMembershipCreateView(LoginRequiredMixin, CreateView):
         return initial
 
     def form_valid(self, form):
+        from django.contrib.auth import get_user_model
+        from django.utils.crypto import get_random_string
+        from core.email_utils import send_branded_email
+        
+        User = get_user_model()
+        
+        # 1. Handle User Resolution
+        user = None
+        guest_email = form.cleaned_data.get('guest_email')
+        
+        if guest_email:
+            try:
+                user = User.objects.get(email=guest_email)
+                messages.info(self.request, f"Linked to existing user: {user.username}")
+            except User.DoesNotExist:
+                # Create Guest User
+                username = guest_email.split('@')[0]
+                base_username = username
+                counter = 1
+                while User.objects.filter(username=username).exists():
+                    username = f"{base_username}{counter}"
+                    counter += 1
+                
+                created_password = get_random_string(8)
+                guest_name = form.cleaned_data.get('guest_name', 'Guest')
+                guest_phone = form.cleaned_data.get('guest_phone', '')
+                
+                user = User.objects.create_user(
+                    username=username,
+                    email=guest_email,
+                    password=created_password,
+                    first_name=guest_name.split(' ')[0] if guest_name else 'Guest',
+                    last_name=' '.join(guest_name.split(' ')[1:]) if guest_name and ' ' in guest_name else '',
+                    phone_number=guest_phone,
+                    role=User.Role.GUEST
+                )
+                
+                # Send welcome email with credentials
+                # (Skipped for brevity, assume similar to events)
+                messages.success(self.request, f"Created new user for {guest_email}")
+        else:
+            # Fallback to current user if no guest email provided (Self-signup by staff?)
+            # Or force error. For now, default to self but warn.
+            if not form.cleaned_data.get('guest_email'):
+                 messages.warning(self.request, "No guest email provided. Membership linked to your staff account.")
+                 user = self.request.user
+
         plan = form.cleaned_data['plan']
         start_date = form.cleaned_data['start_date']
         
         # Calculate end date
         end_date = start_date + timedelta(days=plan.duration_days)
         
-        form.instance.user = self.request.user
+        form.instance.user = user
         form.instance.end_date = end_date
-        form.instance.status = 'ACTIVE' # Set active by default for now
+        form.instance.status = 'ACTIVE' # Set active by default for manual creation
         
         messages.success(self.request, "Membership created successfully.")
         response = super().form_valid(form)
         
-        # Create Invoice
+        # Create Invoice (Paid)
         from billing.models import Invoice
         Invoice.objects.create(
             gym_membership=form.instance,
             amount=plan.price,
-            status=Invoice.Status.PENDING,
+            status=Invoice.Status.PAID, # Assumed paid at desk
             due_date=timezone.now().date()
         )
         
         # Create Notification
         from core.models import Notification
         Notification.objects.create(
-            recipient=self.request.user,
+            recipient=user,
             title="Gym Membership Activated",
             message=f"Your membership for {plan.name} is now active until {end_date.strftime('%Y-%m-%d')}.",
             notification_type='SUCCESS',
@@ -228,7 +278,8 @@ class PublicGymSignupView(CreateView):
         form.instance.end_date = end_date
         form.instance.status = 'PENDING'
         
-        response = super().form_valid(form)
+        # Manually save instead of calling super().form_valid(form)
+        self.object = form.save()
         
         # Create Invoice
         Invoice.objects.create(

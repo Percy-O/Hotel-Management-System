@@ -1,24 +1,20 @@
-{% extends 'base_layout.html' %}
+{% extends 'base_public.html' %}
 {% load widget_tweaks %}
 
 {% block title %}{{ hall.name }} - Details{% endblock %}
 
-{% block body_content %}
-<div class="min-h-screen bg-background-dark flex flex-col">
-    <!-- Navbar -->
-    {% include 'includes/navbar.html' %}
-
+{% block content %}
     <!-- Main Content -->
-    <div class="flex-grow pt-32 pb-20 px-4 sm:px-6 lg:px-8">
+    <div class="flex-grow pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-dark-900">
         <div class="max-w-7xl mx-auto">
             <!-- Header -->
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
                 <div>
-                    <h1 class="text-4xl md:text-5xl font-bold text-text-main mb-4">{{ hall.name }}</h1>
-                    <p class="text-text-secondary-dark text-lg">Hall Details & Booking Information</p>
+                    <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">{{ hall.name }}</h1>
+                    <p class="text-gray-400 text-lg">Hall Details & Booking Information</p>
                 </div>
                 <div>
-                    <a href="{% url 'event_booking_create' %}?hall={{ hall.pk }}" class="inline-flex items-center justify-center px-8 py-4 bg-primary text-slate-900 font-bold rounded-xl hover:bg-white hover:text-slate-900 transition-colors shadow-lg shadow-primary/20 gap-2">
+                    <a href="{% url 'event_booking_create' %}?hall={{ hall.pk }}" class="inline-flex items-center justify-center px-8 py-4 bg-gold-500 text-slate-900 font-bold rounded-xl hover:bg-white hover:text-slate-900 transition-colors shadow-lg shadow-gold-500/20 gap-2">
                         <span class="material-symbols-outlined">calendar_add_on</span>
                         Book Now
                     </a>
@@ -28,39 +24,39 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <!-- Main Info -->
                 <div class="lg:col-span-2 space-y-8">
-                    <div class="bg-surface-dark rounded-3xl border border-border-dark overflow-hidden shadow-2xl">
+                    <div class="bg-dark-800 rounded-3xl border border-white/10 overflow-hidden shadow-2xl">
                         {% if hall.image %}
                         <div class="h-64 md:h-[500px] w-full relative">
                             <img src="{{ hall.image.url }}" alt="{{ hall.name }}" class="w-full h-full object-cover">
-                            <div class="absolute inset-0 bg-gradient-to-t from-surface-dark via-transparent to-transparent opacity-60"></div>
+                            <div class="absolute inset-0 bg-gradient-to-t from-dark-800 via-transparent to-transparent opacity-60"></div>
                         </div>
                         {% endif %}
                         
                         <div class="p-8 md:p-12">
                             <div class="flex items-center justify-between mb-8">
-                                <h2 class="text-2xl font-bold text-text-main">About this Venue</h2>
+                                <h2 class="text-2xl font-bold text-white">About this Venue</h2>
                                 <span class="px-4 py-2 rounded-full text-sm font-bold border {% if hall.is_active %}bg-green-500/10 text-green-400 border-green-500/20{% else %}bg-red-500/10 text-red-400 border-red-500/20{% endif %}">
                                     {% if hall.is_active %}Available{% else %}Unavailable{% endif %}
                                 </span>
                             </div>
                             
-                            <p class="text-text-secondary-dark leading-relaxed mb-10 text-lg">{{ hall.description }}</p>
+                            <p class="text-gray-400 leading-relaxed mb-10 text-lg">{{ hall.description }}</p>
                             
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div class="bg-background-dark p-6 rounded-2xl border border-border-dark">
-                                    <span class="text-xs text-text-secondary-dark uppercase tracking-wider font-bold">Capacity</span>
+                                <div class="bg-dark-900 p-6 rounded-2xl border border-white/10">
+                                    <span class="text-xs text-gray-400 uppercase tracking-wider font-bold">Capacity</span>
                                     <div class="flex items-center gap-3 mt-2">
-                                        <span class="material-symbols-outlined text-primary text-3xl">groups</span>
-                                        <span class="text-2xl font-bold text-text-main">{{ hall.capacity }} <span class="text-sm font-normal text-text-secondary-dark">Guests</span></span>
+                                        <span class="material-symbols-outlined text-gold-500 text-3xl">groups</span>
+                                        <span class="text-2xl font-bold text-white">{{ hall.capacity }} <span class="text-sm font-normal text-gray-400">Guests</span></span>
                                     </div>
                                 </div>
-                                <div class="bg-background-dark p-6 rounded-2xl border border-border-dark">
-                                    <span class="text-xs text-text-secondary-dark uppercase tracking-wider font-bold">Pricing</span>
+                                <div class="bg-dark-900 p-6 rounded-2xl border border-white/10">
+                                    <span class="text-xs text-gray-400 uppercase tracking-wider font-bold">Pricing</span>
                                     <div class="flex items-center gap-3 mt-2">
-                                        <span class="material-symbols-outlined text-primary text-3xl">payments</span>
-                                        <span class="text-2xl font-bold text-text-main">
+                                        <span class="material-symbols-outlined text-gold-500 text-3xl">payments</span>
+                                        <span class="text-2xl font-bold text-white">
                                             {{ site_settings.currency_symbol }}{{ hall.price }}
-                                            <span class="text-sm font-normal text-text-secondary-dark">/ {{ hall.get_pricing_type_display }}</span>
+                                            <span class="text-sm font-normal text-gray-400">/ {{ hall.get_pricing_type_display }}</span>
                                         </span>
                                     </div>
                                 </div>
@@ -68,12 +64,12 @@
 
                             <!-- Amenities (if any) -->
                             {% if hall.amenities %}
-                            <div class="mt-10 pt-10 border-t border-border-dark">
-                                <h3 class="text-lg font-bold text-text-main mb-6">Amenities</h3>
+                            <div class="mt-10 pt-10 border-t border-white/10">
+                                <h3 class="text-lg font-bold text-white mb-6">Amenities</h3>
                                 <div class="flex flex-wrap gap-3">
                                     {% for amenity in hall.amenities.split %}
-                                    <span class="px-4 py-2 rounded-lg bg-background-dark border border-border-dark text-text-secondary-dark flex items-center gap-2">
-                                        <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+                                    <span class="px-4 py-2 rounded-lg bg-dark-900 border border-white/10 text-gray-400 flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-gold-500 text-sm">check_circle</span>
                                         {{ amenity }}
                                     </span>
                                     {% endfor %}
@@ -83,11 +79,11 @@
             
                             <!-- Gallery Section -->
                             {% if hall.images.exists %}
-                            <div class="mt-12 pt-12 border-t border-border-dark">
-                                <h3 class="text-xl font-bold text-text-main mb-6">Gallery</h3>
+                            <div class="mt-12 pt-12 border-t border-white/10">
+                                <h3 class="text-xl font-bold text-white mb-6">Gallery</h3>
                                 <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                                     {% for img in hall.images.all %}
-                                    <div class="relative aspect-square rounded-xl overflow-hidden border border-border-dark group cursor-pointer hover:border-primary/50 transition-colors">
+                                    <div class="relative aspect-square rounded-xl overflow-hidden border border-white/10 group cursor-pointer hover:border-gold-500/50 transition-colors">
                                         <img src="{{ img.image.url }}" alt="Gallery Image" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
                                     </div>
                                     {% endfor %}
@@ -102,7 +98,7 @@
                 <div class="space-y-8">
                     <!-- Management Actions (Only for staff) -->
                     {% if user.is_staff and user.can_manage_events %}
-                    <div class="bg-surface-dark p-8 rounded-3xl border border-white/10">
+                    <div class="bg-dark-800 p-8 rounded-3xl border border-white/10">
                         <h3 class="text-xl font-bold text-white mb-6">Management</h3>
                         <div class="space-y-4">
                             <a href="{% url 'event_hall_update' hall.pk %}" class="flex items-center justify-center w-full py-3 border border-white/20 rounded-xl text-white hover:bg-white/5 transition-colors">
@@ -116,18 +112,18 @@
                     {% endif %}
                     
                     <!-- Need Help? -->
-                    <div class="bg-surface-dark p-8 rounded-3xl border border-white/10">
+                    <div class="bg-dark-800 p-8 rounded-3xl border border-white/10">
                         <h3 class="text-xl font-bold text-white mb-4">Need Help?</h3>
                         <p class="text-gray-400 mb-6">Contact our event specialists to discuss your requirements.</p>
                         <div class="space-y-4">
                             <div class="flex items-center gap-4 text-gray-300">
-                                <div class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-primary">
+                                <div class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gold-500">
                                     <span class="material-symbols-outlined">call</span>
                                 </div>
                                 <span>{{ site_settings.contact_phone }}</span>
                             </div>
                             <div class="flex items-center gap-4 text-gray-300">
-                                <div class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-primary">
+                                <div class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gold-500">
                                     <span class="material-symbols-outlined">mail</span>
                                 </div>
                                 <span>{{ site_settings.contact_email }}</span>
@@ -138,8 +134,4 @@
             </div>
         </div>
     </div>
-
-    <!-- Footer -->
-    {% include 'includes/footer.html' %}
-</div>
 {% endblock %}
