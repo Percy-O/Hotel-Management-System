@@ -22,27 +22,27 @@
 </div>
 
 <!-- Venues List -->
-<section class="py-24 bg-white">
+<section class="py-24 bg-dark-900">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="space-y-24">
             {% for hall in halls %}
             <div class="flex flex-col {% if forloop.counter|divisibleby:2 %}md:flex-row-reverse{% else %}md:flex-row{% endif %} gap-12 items-center">
                 <!-- Image -->
                 <div class="w-full md:w-1/2">
-                    <div class="relative h-[400px] group overflow-hidden shadow-2xl rounded-sm">
+                    <div class="relative h-[400px] group overflow-hidden rounded-sm shadow-2xl border border-white/5">
                         {% if hall.image %}
                             <img src="{{ hall.image.url }}" alt="{{ hall.name }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
                         {% else %}
                             <img src="https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=2098&auto=format&fit=crop" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
                         {% endif %}
-                        <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors"></div>
+                        <div class="absolute inset-0 bg-black/30 group-hover:bg-transparent transition-colors"></div>
                     </div>
                 </div>
 
                 <!-- Content -->
                 <div class="w-full md:w-1/2">
-                    <h2 class="font-serif text-4xl text-dark-900 mb-4">{{ hall.name }}</h2>
-                    <div class="flex items-center gap-6 mb-6 text-sm text-gray-500 uppercase tracking-widest">
+                    <h2 class="font-serif text-4xl text-white mb-4">{{ hall.name }}</h2>
+                    <div class="flex items-center gap-6 mb-6 text-sm text-gray-400 uppercase tracking-widest">
                         <span class="flex items-center gap-2">
                             <span class="material-symbols-outlined text-gold-500">groups</span>
                             Up to {{ hall.capacity }} Guests
@@ -52,20 +52,21 @@
                             {{ site_settings.currency_symbol }}{{ hall.price }} / {{ hall.get_pricing_type_display }}
                         </span>
                     </div>
-                    <p class="text-gray-600 leading-relaxed mb-8 font-light">
+                    <p class="text-gray-400 leading-relaxed mb-8 font-light">
                         {{ hall.description|default:"Experience the grandeur of this exquisitely designed venue, perfect for weddings, galas, and corporate gatherings. Featuring state-of-the-art audiovisual equipment and customizable layouts." }}
                     </p>
                     
                     {% if hall.amenities %}
                     <div class="flex flex-wrap gap-3 mb-8">
                         {% for amenity in hall.amenities.split %}
-                        <span class="px-3 py-1 bg-gray-100 text-gray-600 text-xs uppercase tracking-wider rounded-full">{{ amenity }}</span>
+                        <span class="px-3 py-1 bg-white/5 border border-white/10 text-gray-300 text-xs uppercase tracking-wider rounded-full">{{ amenity }}</span>
                         {% endfor %}
                     </div>
                     {% endif %}
 
-                    <a href="{% url 'public_event_booking_create' %}?hall={{ hall.pk }}" class="inline-flex items-center gap-2 px-8 py-4 bg-dark-900 hover:bg-gold-500 text-white text-sm font-bold uppercase tracking-widest transition-colors">
+                    <a href="{% url 'public_event_booking_create' %}?hall={{ hall.pk }}" class="inline-flex items-center gap-2 px-8 py-4 bg-gold-500 hover:bg-gold-400 text-dark-900 text-sm font-bold uppercase tracking-widest transition-all shadow-lg shadow-gold-500/20 hover:shadow-gold-500/30 rounded-lg">
                         Book This Venue
+                        <span class="material-symbols-outlined text-lg">arrow_forward</span>
                     </a>
                 </div>
             </div>

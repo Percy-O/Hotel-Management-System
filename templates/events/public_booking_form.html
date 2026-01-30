@@ -1,105 +1,142 @@
 {% extends 'base_public.html' %}
 {% load static %}
+{% load widget_tweaks %}
 
 {% block title %}Book Event - {{ request.tenant.name }}{% endblock %}
 
 {% block content %}
-<!-- Header -->
-<div class="bg-dark-900 py-20 relative overflow-hidden">
-    <div class="absolute inset-0 opacity-20">
-        <img src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=2069&auto=format&fit=crop" alt="Background" class="w-full h-full object-cover">
+<div class="min-h-screen flex bg-dark-900 relative">
+    
+    <!-- Left Side: Atmospheric Image & Details (Desktop Only) -->
+    <div class="hidden lg:block lg:w-1/2 relative overflow-hidden fixed-h-screen">
+         <div class="absolute inset-0 bg-dark-900/40 z-10"></div> <!-- Overlay -->
+         <img src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=2069&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover transition-transform duration-10000 hover:scale-110" alt="Event Atmosphere">
+         
+         <!-- Welcome Text Overlay -->
+         <div class="absolute bottom-0 left-0 w-full p-16 z-20 bg-gradient-to-t from-dark-900 via-dark-900/60 to-transparent">
+             <p class="text-gold-400 font-sans text-xs tracking-[0.3em] uppercase mb-4 animate-fade-in-up">Celebrations & Gatherings</p>
+             <h2 class="text-5xl font-serif text-white font-bold mb-6 leading-tight">Host Your Unforgettable Event</h2>
+             <div class="space-y-4 border-l-2 border-gold-500 pl-6">
+                <p class="text-gray-200 text-lg font-light">"From intimate gatherings to grand celebrations, we provide the perfect canvas for your memories."</p>
+             </div>
+             
+             <!-- Quick Stats or Info -->
+             <div class="mt-12 grid grid-cols-2 gap-8 border-t border-white/10 pt-8">
+                 <div>
+                     <span class="block text-3xl font-serif text-white mb-1">5+</span>
+                     <span class="text-xs text-gold-400 uppercase tracking-widest">Luxury Venues</span>
+                 </div>
+                 <div>
+                     <span class="block text-3xl font-serif text-white mb-1">100%</span>
+                     <span class="text-xs text-gold-400 uppercase tracking-widest">Customizable</span>
+                 </div>
+             </div>
+         </div>
     </div>
-    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <p class="text-gold-400 font-sans text-xs tracking-[0.3em] uppercase mb-4 animate-fade-in-up">Celebrations</p>
-        <h1 class="font-serif text-4xl md:text-5xl text-white mb-4 animate-fade-in-up delay-100">Book Your Event</h1>
-    </div>
-</div>
 
-<section class="py-24 bg-dark-900">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="bg-dark-800 border border-white/10 p-8 md:p-12 relative overflow-hidden rounded-sm shadow-2xl">
-            <!-- Decorative Elements -->
-            <div class="absolute top-0 right-0 -mt-16 -mr-16 w-32 h-32 bg-gold-500/10 rounded-full blur-2xl"></div>
-            <div class="absolute bottom-0 left-0 -mb-16 -ml-16 w-32 h-32 bg-gold-500/10 rounded-full blur-2xl"></div>
+    <!-- Right Side: Booking Form -->
+    <div class="w-full lg:w-1/2 flex flex-col justify-center px-4 sm:px-6 lg:px-12 relative pt-32 pb-24 bg-dark-900 overflow-y-auto">
+        <!-- Subtle Background Pattern -->
+        <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(#B8A045 1px, transparent 1px); background-size: 24px 24px;"></div>
 
-            <form method="post" class="space-y-8 relative z-10">
+        <div class="max-w-xl w-full mx-auto relative z-10">
+            <!-- Header -->
+            <div class="mb-12">
+                <h1 class="text-3xl font-serif font-bold text-white mb-3">Event Reservation</h1>
+                <p class="text-gray-400 text-sm">Fill in the details below to secure your venue.</p>
+            </div>
+
+            <form method="post" class="space-y-8">
                 {% csrf_token %}
                 
                 {% if form.errors %}
-                <div class="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-lg mb-6">
-                    <p class="font-bold mb-2">Please correct the following errors:</p>
-                    <ul class="list-disc list-inside text-sm">
-                        {% for field, errors in form.errors.items %}
-                            {% for error in errors %}
-                                <li>{{ field|title }}: {{ error }}</li>
-                            {% endfor %}
-                        {% endfor %}
-                    </ul>
+                <div class="bg-red-500/10 border border-red-500/20 rounded-xl p-6 mb-8 backdrop-blur-sm">
+                    <div class="flex items-start gap-4">
+                        <span class="material-symbols-outlined text-red-400 mt-1">error</span>
+                        <div>
+                            <h3 class="text-red-400 font-bold text-sm uppercase tracking-wider mb-2">Please correct errors</h3>
+                            <ul class="space-y-1 text-sm text-red-300/80">
+                                {% for field, errors in form.errors.items %}
+                                    {% for error in errors %}
+                                        <li><span class="capitalize text-red-300">{{ field }}:</span> {{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
                 </div>
                 {% endif %}
 
                 <!-- Guest Details (If not logged in) -->
                 {% if not user.is_authenticated %}
-                <div class="space-y-6">
-                    <h3 class="text-white font-serif text-2xl border-b border-white/10 pb-4">Contact Details</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="space-y-2">
-                            <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Full Name</label>
-                            {{ form.full_name }}
+                <div class="space-y-6 animate-fade-in-up">
+                    <div class="flex items-center gap-4 pb-2 border-b border-white/5">
+                        <span class="flex items-center justify-center size-8 rounded-full bg-gold-500/10 text-gold-500 text-sm font-bold">1</span>
+                        <h3 class="text-white font-serif text-xl">Contact Details</h3>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div class="space-y-1.5 group">
+                            <label class="text-xs font-bold text-gray-500 uppercase tracking-widest group-focus-within:text-gold-500 transition-colors">Full Name</label>
+                            {% render_field form.full_name class="w-full bg-dark-800 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all" placeholder="John Doe" %}
                         </div>
-                        <div class="space-y-2">
-                            <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Phone Number</label>
-                            {{ form.phone_number }}
+                        <div class="space-y-1.5 group">
+                            <label class="text-xs font-bold text-gray-500 uppercase tracking-widest group-focus-within:text-gold-500 transition-colors">Phone</label>
+                            {% render_field form.phone_number class="w-full bg-dark-800 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all" placeholder="+1 (555) 000-0000" %}
                         </div>
-                        <div class="col-span-1 md:col-span-2 space-y-2">
-                            <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Email Address</label>
-                            {{ form.email }}
+                        <div class="col-span-1 md:col-span-2 space-y-1.5 group">
+                            <label class="text-xs font-bold text-gray-500 uppercase tracking-widest group-focus-within:text-gold-500 transition-colors">Email Address</label>
+                            {% render_field form.email class="w-full bg-dark-800 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all" placeholder="john@example.com" %}
                         </div>
                     </div>
                 </div>
                 {% endif %}
 
                 <!-- Event Details -->
-                <div class="space-y-6">
-                    <h3 class="text-white font-serif text-2xl border-b border-white/10 pb-4">Event Information</h3>
+                <div class="space-y-6 animate-fade-in-up {% if not user.is_authenticated %}delay-100{% endif %}">
+                    <div class="flex items-center gap-4 pb-2 border-b border-white/5">
+                        <span class="flex items-center justify-center size-8 rounded-full bg-gold-500/10 text-gold-500 text-sm font-bold">{% if not user.is_authenticated %}2{% else %}1{% endif %}</span>
+                        <h3 class="text-white font-serif text-xl">Event Information</h3>
+                    </div>
                     
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Event Name</label>
-                        {{ form.event_name }}
+                    <div class="space-y-1.5 group">
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-widest group-focus-within:text-gold-500 transition-colors">Event Name</label>
+                        {% render_field form.event_name class="w-full bg-dark-800 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all" placeholder="e.g. Smith Wedding Reception" %}
                     </div>
 
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Select Venue</label>
-                        {{ form.hall }}
+                    <div class="space-y-1.5 group">
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-widest group-focus-within:text-gold-500 transition-colors">Select Venue</label>
+                        {% render_field form.hall class="w-full bg-dark-800 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all appearance-none" %}
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="space-y-2">
-                            <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Start Time</label>
-                            {{ form.start_time }}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div class="space-y-1.5 group">
+                            <label class="text-xs font-bold text-gray-500 uppercase tracking-widest group-focus-within:text-gold-500 transition-colors">Start Time</label>
+                            {% render_field form.start_time type="datetime-local" class="w-full bg-dark-800 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all" %}
                         </div>
-                        <div class="space-y-2">
-                            <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">End Time</label>
-                            {{ form.end_time }}
+                        <div class="space-y-1.5 group">
+                            <label class="text-xs font-bold text-gray-500 uppercase tracking-widest group-focus-within:text-gold-500 transition-colors">End Time</label>
+                            {% render_field form.end_time type="datetime-local" class="w-full bg-dark-800 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all" %}
                         </div>
                     </div>
 
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Special Requirements</label>
-                        {{ form.notes }}
+                    <div class="space-y-1.5 group">
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-widest group-focus-within:text-gold-500 transition-colors">Special Requirements</label>
+                        {% render_field form.notes class="w-full bg-dark-800 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all min-h-[120px]" placeholder="Tell us about catering needs, seating arrangements, or any other special requests..." %}
                     </div>
                 </div>
 
                 <div class="pt-8 border-t border-white/10">
-                    <button type="submit" class="w-full bg-gold-500 hover:bg-gold-600 text-white font-bold py-4 uppercase tracking-widest transition-all duration-300 shadow-lg hover:shadow-gold-500/20">
-                        Proceed to Payment
+                    <button type="submit" class="group relative w-full flex justify-center py-4 px-4 border border-transparent text-sm font-bold uppercase tracking-widest rounded-lg text-dark-900 bg-gold-500 hover:bg-gold-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gold-500 transition-all shadow-lg shadow-gold-500/20 hover:shadow-gold-500/30">
+                        Proceed to Booking
+                        <span class="material-symbols-outlined ml-2 group-hover:translate-x-1 transition-transform">arrow_forward</span>
                     </button>
-                    <p class="text-center text-gray-500 text-xs mt-4">
-                        By proceeding, you agree to our <a href="#" class="text-gold-400 hover:text-white transition-colors">Terms of Service</a>.
+                    <p class="text-center text-gray-500 text-xs mt-6">
+                        By proceeding, you agree to our <a href="#" class="text-gold-500 hover:text-white transition-colors">Terms of Service</a> & <a href="#" class="text-gold-500 hover:text-white transition-colors">Cancellation Policy</a>.
                     </p>
                 </div>
             </form>
         </div>
     </div>
-</section>
+</div>
 {% endblock %}
