@@ -10,6 +10,7 @@ from .models import Booking
 from .forms import BookingForm, AdminBookingForm
 from hotel.models import Room, RoomType
 from core.models import TenantSetting, Notification
+from billing.models import Invoice, Payment
 import qrcode
 import io
 from fpdf import FPDF

@@ -1,0 +1,20 @@
+{% extends 'base_public.html' %}
+{% load static %}
+
+{% block layout %}
+<div class="min-h-screen bg-[#020617] text-white font-sans selection:bg-blue-500 selection:text-white"
+     x-data="{ scrolled: false }"
+     @scroll.window="scrolled = (window.pageYOffset > 20)">
+
+    <!-- Navbar -->
+    {% include 'includes/saas_navbar.html' %}
+
+    <!-- Content -->
+    <main>
+        {% block saas_content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    {% include 'includes/saas_footer.html' %}
+</div>
+{% endblock %}

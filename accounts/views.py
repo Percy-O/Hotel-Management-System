@@ -101,7 +101,12 @@ def login_view(request):
             return redirect('dashboard')
     else:
         form = LoginForm()
-    return render(request, 'accounts/login.html', {'form': form})
+        
+    template_name = 'accounts/login.html'
+    if not request.tenant or request.tenant.subdomain == 'public':
+        template_name = 'accounts/login_saas.html'
+        
+    return render(request, template_name, {'form': form})
 
 def register_view(request):
     # Capture plan from GET or POST to redirect after registration
@@ -315,7 +320,11 @@ def register_view(request):
         else:
             form = RegistrationForm()
         
-    return render(request, 'accounts/register.html', {
+    template_name = 'accounts/register.html'
+    if not request.tenant or request.tenant.subdomain == 'public':
+        template_name = 'accounts/register_saas.html'
+
+    return render(request, template_name, {
         'form': form,
         'selected_plan': selected_plan
     })

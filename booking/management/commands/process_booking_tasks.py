@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.utils import timezone
+import datetime
 from booking.models import Booking
 from hotel.models import Room
 from core.models import Notification
@@ -15,11 +16,46 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.stdout.write("Starting booking processing tasks...")
+        self.cleanup_pending_bookings()
         self.process_auto_checkout()
         self.process_reminders()
         self.stdout.write("Completed booking processing tasks.")
 
-    def process_auto_checkout(self):
+    def cleanup_pending_bookings(self):
+        """
+        Auto-cancel PENDING bookings that are older than 30 minutes.
+        This releases the room for other guests.
+        """
+        timeout_minutes = 30
+        threshold = timezone.now() - datetime.timedelta(minutes=timeout_minutes)
+        
+        # Find PENDING bookings created before the threshold
+        abandoned_bookings = Booking.objects.filter(
+            status=Booking.Status.PENDING,
+            created_at__lt=threshold
+        )
+        
+        count = 0
+        for booking in abandoned_bookings:
+            try:
+                booking.status = Booking.Status.CANCELLED
+                booking.save()
+                
+                # Also cancel associated invoice if exists and pending
+                # Assuming Invoice model has a foreign key to booking
+                if hasattr(booking, 'invoices'):
+                    for invoice in booking.invoices.filter(status='PENDING'): # string check or use enum if imported
+                         invoice.status = 'CANCELLED'
+                         invoice.save()
+                
+                count += 1
+                self.stdout.write(self.style.WARNING(f'Auto-cancelled abandoned booking {booking.id}'))
+            except Exception as e:
+                self.stdout.write(self.style.ERROR(f'Error cancelling booking {booking.id}: {str(e)}'))
+                
+        if count > 0:
+            self.stdout.write(self.style.SUCCESS(f'Successfully cleaned up {count} abandoned bookings'))
+
         now = timezone.now()
         # Find bookings that are CHECKED_IN but past their checkout time
         expired_bookings = Booking.objects.filter(

@@ -87,6 +87,7 @@
 </head>
 <body class="bg-dark-900 text-[var(--color-text)] font-sans antialiased selection:bg-gold-500 selection:text-white">
 
+    {% block layout %}
     <!-- Navigation -->
     <nav x-data="{ scrolled: false, mobileOpen: false }" 
          @scroll.window="scrolled = (window.pageYOffset > 20)"
@@ -97,10 +98,12 @@
                 <!-- Logo -->
                 <div class="flex-shrink-0 flex items-center">
                     <a href="/" class="flex items-center gap-2">
-                        {% if request.tenant.logo %}
+                        {% if request.tenant and request.tenant.logo %}
                             <img src="{{ request.tenant.logo.url }}" alt="{{ request.tenant.name }}" class="h-10 w-auto object-contain">
                         {% else %}
-                            <span class="font-serif text-2xl font-bold text-white tracking-wider">{{ request.tenant.name|default:"COASTAL WHISPER" }}</span>
+                            <span class="font-serif text-2xl font-bold text-white tracking-wider">
+                                {% if request.tenant %}{{ request.tenant.name }}{% else %}COASTAL WHISPER{% endif %}
+                            </span>
                         {% endif %}
                     </a>
                 </div>
@@ -186,7 +189,9 @@
                 <!-- Brand -->
                 <div class="col-span-1 md:col-span-1">
                     <a href="/" class="block mb-6">
-                        <span class="font-serif text-3xl font-bold text-white tracking-wider">{{ request.tenant.name|default:"COASTAL WHISPER" }}</span>
+                        <span class="font-serif text-3xl font-bold text-white tracking-wider">
+                            {% if request.tenant %}{{ request.tenant.name }}{% else %}COASTAL WHISPER{% endif %}
+                        </span>
                     </a>
                     <p class="text-gray-400 text-sm leading-relaxed mb-6">
                         {{ site_settings.hotel_description|default:"Experience the epitome of luxury and comfort. Where every detail is curated for your perfect stay." }}
@@ -230,15 +235,39 @@
                     <ul class="space-y-3">
                         <li class="flex items-start gap-3 text-gray-400 text-sm">
                             <span class="material-symbols-outlined text-gold-500 text-lg">location_on</span>
-                            <span>{{ site_settings.address|default:request.tenant.address|default:"123 Luxury Ave, Paradise City" }}</span>
+                            <span>
+                                {% if site_settings.address %}
+                                    {{ site_settings.address }}
+                                {% elif request.tenant %}
+                                    {{ request.tenant.address }}
+                                {% else %}
+                                    123 Luxury Ave, Paradise City
+                                {% endif %}
+                            </span>
                         </li>
                         <li class="flex items-center gap-3 text-gray-400 text-sm">
                             <span class="material-symbols-outlined text-gold-500 text-lg">call</span>
-                            <span>{{ site_settings.contact_phone|default:request.tenant.phone_number|default:"+1 (555) 123-4567" }}</span>
+                            <span>
+                                {% if site_settings.contact_phone %}
+                                    {{ site_settings.contact_phone }}
+                                {% elif request.tenant %}
+                                    {{ request.tenant.phone_number }}
+                                {% else %}
+                                    +1 (555) 123-4567
+                                {% endif %}
+                            </span>
                         </li>
                         <li class="flex items-center gap-3 text-gray-400 text-sm">
                             <span class="material-symbols-outlined text-gold-500 text-lg">mail</span>
-                            <span>{{ site_settings.contact_email|default:request.tenant.email|default:"concierge@hotel.com" }}</span>
+                            <span>
+                                {% if site_settings.contact_email %}
+                                    {{ site_settings.contact_email }}
+                                {% elif request.tenant %}
+                                    {{ request.tenant.email }}
+                                {% else %}
+                                    concierge@hotel.com
+                                {% endif %}
+                            </span>
                         </li>
                     </ul>
                 </div>
@@ -258,7 +287,9 @@
 
             <div class="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
                 <p class="text-gray-500 text-xs">
-                    &copy; {% now "Y" %} {{ request.tenant.name|default:"Luxury Hotel" }}. All Rights Reserved.
+                    &copy; {% now "Y" %} 
+                    {% if request.tenant %}{{ request.tenant.name }}{% else %}COASTAL WHISPER{% endif %}
+                    . All Rights Reserved.
                 </p>
                 <div class="flex gap-6">
                     <a href="{% url 'privacy_policy' %}" class="text-gray-500 hover:text-white text-xs">Privacy Policy</a>
