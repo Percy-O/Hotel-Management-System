@@ -45,6 +45,39 @@ def get_available_rooms(room_type, check_in, check_out):
 
 # --- Views ---
 
+def check_room_availability(request, room_type_id):
+    """
+    AJAX API to check availability and return specific rooms.
+    """
+    room_type = get_object_or_404(RoomType, pk=room_type_id)
+    check_in_str = request.GET.get('check_in')
+    check_out_str = request.GET.get('check_out')
+    
+    if not check_in_str or not check_out_str:
+        return JsonResponse({'error': 'Missing dates'}, status=400)
+        
+    try:
+        check_in = datetime.datetime.fromisoformat(check_in_str)
+        check_out = datetime.datetime.fromisoformat(check_out_str)
+    except ValueError:
+        return JsonResponse({'error': 'Invalid date format'}, status=400)
+        
+    if check_in >= check_out:
+        return JsonResponse({'error': 'Check-out must be after check-in'}, status=400)
+        
+    available_rooms = get_available_rooms(room_type, check_in, check_out)
+    
+    rooms_data = [
+        {
+            'id': room.id, 
+            'number': room.room_number,
+            'floor': room.floor
+        } 
+        for room in available_rooms
+    ]
+    
+    return JsonResponse({'rooms': rooms_data})
+
 def create_booking(request, room_type_id):
     room_type = get_object_or_404(RoomType, pk=room_type_id)
     
@@ -72,11 +105,11 @@ def create_booking(request, room_type_id):
 
     if request.method == 'POST':
         if can_manage:
-            form = form_class(request.POST, tenant=request.tenant) if hasattr(form_class, 'tenant') else form_class(request.POST)
-            # Fix: AdminBookingForm might expect tenant kwarg if implemented, but standard ModelForm doesn't. 
-            # Looking at form definition, it doesn't seem to have __init__ override, but let's be safe.
-            # Actually, standard forms don't take tenant.
-            form = form_class(request.POST)
+            # Try to initialize with tenant if the form supports it (AdminBookingForm usually does)
+            try:
+                form = form_class(request.POST, tenant=request.tenant)
+            except TypeError:
+                form = form_class(request.POST)
         else:
             form = form_class(request.POST)
             
@@ -202,7 +235,8 @@ def booking_detail(request, pk):
         messages.error(request, "Access denied.")
         return redirect('home')
 
-    return render(request, 'booking/booking_detail.html', {'booking': booking})
+    template_name = 'booking/booking_detail_staff.html' if request.user.is_staff else 'booking/booking_detail_public.html'
+    return render(request, template_name, {'booking': booking})
 
 @login_required
 def booking_list(request):

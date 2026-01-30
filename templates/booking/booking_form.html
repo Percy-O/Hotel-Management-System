@@ -65,20 +65,17 @@
                             {% endif %}
                         </div>
 
-                        {% if available_rooms %}
-                        <div class="md:col-span-2">
-                            <label for="selected_room" class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Select Specific Room (Optional)</label>
+                        <div class="md:col-span-2 hidden" id="room-selection-container">
+                            <label for="selected_room" class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">
+                                Select Specific Room (Found <span id="available-count">0</span>)
+                            </label>
                             <select name="selected_room" id="selected_room" class="w-full bg-gray-50 border-none p-4 text-dark-900 font-sans focus:ring-1 focus:ring-gold-500 transition-colors cursor-pointer appearance-none">
                                 <option value="">Auto-assign best available room</option>
-                                {% for room in available_rooms %}
-                                    <option value="{{ room.id }}">Room {{ room.room_number }} {% if room.floor %}- Floor {{ room.floor }}{% endif %}</option>
-                                {% endfor %}
                             </select>
                             <p class="mt-2 text-xs text-gray-400 italic">
                                 If you don't select a room, we will assign the best one for your dates.
                             </p>
                         </div>
-                        {% endif %}
                     </div>
                 </div>
 
@@ -156,6 +153,81 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkInInput = document.getElementById('id_check_in_date');
+        const checkOutInput = document.getElementById('id_check_out_date');
+        const roomSelectContainer = document.getElementById('room-selection-container');
+        const roomSelect = document.getElementById('selected_room');
+        const availableCountSpan = document.getElementById('available-count');
+        const pricePerNight = {{ room_type.price_per_night }};
+        const totalAmountEl = document.getElementById('estimated-total');
+        const currencySymbol = "{{ site_settings.currency_symbol }}";
+
+        function checkAvailability() {
+            const checkIn = checkInInput.value;
+            const checkOut = checkOutInput.value;
+
+            if (checkIn && checkOut) {
+                // Calculate Total
+                const start = new Date(checkIn);
+                const end = new Date(checkOut);
+                
+                if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+                     return; // Invalid dates
+                }
+
+                const diffTime = Math.abs(end - start);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+                
+                if (diffDays > 0) {
+                    const total = diffDays * pricePerNight;
+                    totalAmountEl.textContent = `${currencySymbol}${total.toLocaleString()}`;
+                } else {
+                    totalAmountEl.textContent = "Invalid Dates";
+                }
+
+                // Fetch Rooms
+                fetch(`{% url 'check_room_availability' room_type.id %}?check_in=${checkIn}&check_out=${checkOut}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.rooms) {
+                            roomSelect.innerHTML = '<option value="">Auto-assign best available room</option>';
+                            
+                            if (data.rooms.length > 0) {
+                                data.rooms.forEach(room => {
+                                    const option = document.createElement('option');
+                                    option.value = room.id;
+                                    option.textContent = `Room ${room.number} ${room.floor ? '- Floor ' + room.floor : ''}`;
+                                    roomSelect.appendChild(option);
+                                });
+                                availableCountSpan.textContent = data.rooms.length;
+                                if(roomSelectContainer) roomSelectContainer.classList.remove('hidden');
+                            } else {
+                                if(roomSelectContainer) roomSelectContainer.classList.add('hidden');
+                                // Only alert if user explicitly changed dates, not on initial load if empty
+                                // But here we want to inform them.
+                                // alert('No rooms available for selected dates.'); 
+                                totalAmountEl.textContent = "No Rooms Available";
+                            }
+                        } else if (data.error) {
+                            console.error(data.error);
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
+        }
+
+        checkInInput.addEventListener('change', checkAvailability);
+        checkOutInput.addEventListener('change', checkAvailability);
+        checkInInput.addEventListener('input', checkAvailability); // Handle typing/clearing
+        checkOutInput.addEventListener('input', checkAvailability);
+        
+        // Run immediately in case of pre-filled data
+        checkAvailability();
+    });
+</script>
 
 <style>
     @keyframes fade-in-up {

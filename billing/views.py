@@ -371,8 +371,17 @@ def verify_payment(request, gateway):
                 if booking.status not in [Booking.Status.CHECKED_IN, Booking.Status.CHECKED_OUT, Booking.Status.CANCELLED]:
                     booking.status = Booking.Status.CONFIRMED
                     booking.save()
-                redirect_url = 'booking_detail'
-                redirect_pk = booking.pk
+                
+                # Check if Staff or Public
+                if request.user.is_staff:
+                    redirect_url = 'booking_detail'
+                    redirect_pk = booking.pk
+                else:
+                    # Public Success Page
+                    return render(request, 'booking/booking_success.html', {
+                        'booking': booking, 
+                        'site_settings': TenantSetting.objects.filter(tenant=invoice.tenant).first()
+                    })
                 
             elif invoice.event_booking:
                 booking = invoice.event_booking

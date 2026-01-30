@@ -14,4 +14,7 @@ urlpatterns = [
     path('booking/<int:pk>/pass/', views.view_barcode_pass, name='view_barcode_pass'),
     path('my-bookings/', views.my_bookings, name='my_bookings'),
     path('booking/<int:pk>/extend/', views.extend_booking, name='extend_booking'),
+    
+    # AJAX API
+    path('api/availability/<int:room_type_id>/', views.check_room_availability, name='check_room_availability'),
 ]

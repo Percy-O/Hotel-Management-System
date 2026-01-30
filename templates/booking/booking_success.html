@@ -1,0 +1,54 @@
+{% extends 'base_public.html' %}
+
+{% block title %}Booking Confirmed - {{ request.tenant.name|default:"Luxury Hotel" }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full bg-white shadow-xl shadow-gray-200/50 rounded-2xl overflow-hidden border-t-4 border-gold-500 animate-fade-in-up">
+        <div class="p-8 text-center">
+            <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <span class="material-symbols-outlined text-4xl text-green-600">check_circle</span>
+            </div>
+            
+            <h2 class="font-serif text-3xl text-dark-900 mb-2">Booking Confirmed!</h2>
+            <p class="text-gray-500 mb-8">Thank you for your reservation. Your booking has been successfully processed.</p>
+            
+            <div class="bg-gray-50 rounded-xl p-6 mb-8 text-left border border-gray-100">
+                <div class="flex justify-between mb-3">
+                    <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Booking Ref</span>
+                    <span class="font-mono font-bold text-dark-900">{{ booking.booking_id }}</span>
+                </div>
+                <div class="flex justify-between mb-3">
+                    <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Room Type</span>
+                    <span class="font-serif text-dark-900">{{ booking.room.room_type.name }}</span>
+                </div>
+                <div class="flex justify-between mb-3">
+                    <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Dates</span>
+                    <span class="text-sm text-dark-900">{{ booking.check_in_date|date:"M d" }} - {{ booking.check_out_date|date:"M d, Y" }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Amount Paid</span>
+                    <span class="font-bold text-gold-600">{{ site_settings.currency_symbol }}{{ booking.total_price }}</span>
+                </div>
+            </div>
+            
+            <div class="space-y-4">
+                <a href="{% url 'download_receipt' booking.invoices.first.pk %}" class="block w-full py-4 bg-dark-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-black transition-colors rounded-lg">
+                    Download Receipt
+                </a>
+                <a href="{% url 'home' %}" class="block w-full py-4 border border-gray-200 text-gray-500 text-xs font-bold uppercase tracking-widest hover:bg-gray-50 transition-colors rounded-lg">
+                    Return to Home
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes fade-in-up {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in-up { animation: fade-in-up 0.6s ease-out forwards; }
+</style>
+{% endblock %}

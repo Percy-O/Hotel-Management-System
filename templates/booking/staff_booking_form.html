@@ -45,6 +45,13 @@
                     {% render_field form.check_out_date class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm" %}
                     {{ form.check_out_date.errors }}
                 </div>
+                
+                <div class="md:col-span-2 hidden" id="room-selection-div">
+                    <label class="block text-sm font-medium text-text-main mb-2">Select Specific Room (<span id="available-count">0</span> Available)</label>
+                    <select name="selected_room" id="selected_room" class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-text-main focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
+                        <option value="">Auto-assign best available room</option>
+                    </select>
+                </div>
             </div>
 
             <div class="mt-8 flex justify-end">
@@ -126,6 +133,45 @@
 </div>
 
 <script>
+    // Availability Logic
+    const checkInInput = document.getElementById('id_check_in_date');
+    const checkOutInput = document.getElementById('id_check_out_date');
+    const roomSelectionDiv = document.getElementById('room-selection-div');
+    const roomSelect = document.getElementById('selected_room');
+    const availableCountSpan = document.getElementById('available-count');
+
+    function checkAvailability() {
+        const checkIn = checkInInput.value;
+        const checkOut = checkOutInput.value;
+
+        if (checkIn && checkOut) {
+            fetch(`{% url 'check_room_availability' room_type.id %}?check_in=${checkIn}&check_out=${checkOut}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.rooms) {
+                        roomSelect.innerHTML = '<option value="">Auto-assign best available room</option>';
+                        if (data.rooms.length > 0) {
+                            data.rooms.forEach(room => {
+                                const option = document.createElement('option');
+                                option.value = room.id;
+                                option.textContent = `Room ${room.number} ${room.floor ? '- Floor ' + room.floor : ''}`;
+                                roomSelect.appendChild(option);
+                            });
+                            availableCountSpan.textContent = data.rooms.length;
+                            roomSelectionDiv.classList.remove('hidden');
+                        } else {
+                            roomSelectionDiv.classList.add('hidden');
+                            alert('No rooms available for these dates!');
+                        }
+                    }
+                })
+                .catch(err => console.error(err));
+        }
+    }
+
+    checkInInput.addEventListener('change', checkAvailability);
+    checkOutInput.addEventListener('change', checkAvailability);
+
     // Multi-step Logic
     const steps = document.querySelectorAll('.step-content');
     const indicators = document.querySelectorAll('.step-indicator');
