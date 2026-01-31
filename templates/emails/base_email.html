@@ -51,7 +51,7 @@
                         <img src="{{ logo_url }}" alt="{{ company_name }}" class="logo">
                     {% else %}
                         <div class="brand-name" style="color: {{ primary_color|default:'#3b82f6' }};">
-                            {{ company_name|default:'IHotel' }}
+                            {{ company_name|default:'Spaxce' }}
                         </div>
                     {% endif %}
                 </td>
@@ -67,12 +67,12 @@
             <!-- Footer -->
             <tr>
                 <td class="footer">
-                    <p>&copy; {% now "Y" %} {{ company_name|default:'IHotel' }}. All rights reserved.</p>
+                    <p>&copy; {% now "Y" %} {{ company_name|default:'Spaxce' }}. All rights reserved.</p>
                     <p>
                         {% if tenant %}
                             You are receiving this email because you are a valued guest/member of {{ company_name }}.
                         {% else %}
-                            You are receiving this email regarding your IHotel account.
+                            You are receiving this email regarding your Spaxce account.
                         {% endif %}
                     </p>
                 </td>

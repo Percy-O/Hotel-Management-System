@@ -76,6 +76,8 @@ class TenantSetting(models.Model):
     
     custom_background_color = models.CharField(max_length=7, default='#0f172a', help_text="Hex code for background color", blank=True)
     custom_surface_color = models.CharField(max_length=7, default='#1e293b', help_text="Hex code for surface/card color", blank=True)
+    custom_card_background_color = models.CharField(max_length=7, default='#0f172a', help_text="Hex code for listing cards (Rooms, Halls, Plans)", blank=True)
+    custom_section_background_color = models.CharField(max_length=7, default='#0f172a', help_text="Hex code for page sections", blank=True)
     custom_text_color = models.CharField(max_length=7, default='#ffffff', help_text="Hex code for main text color", blank=True)
     
     custom_button_color = models.CharField(max_length=7, default='#f59e0b', help_text="Hex code for button background color", blank=True)
@@ -269,11 +271,11 @@ class GlobalSetting(models.Model):
     # SMTP Settings
     email_host = models.CharField(max_length=255, default='mail.techohr.com.ng')
     email_port = models.IntegerField(default=465)
-    email_host_user = models.CharField(max_length=255, default='ihotel@techohr.com.ng')
+    email_host_user = models.CharField(max_length=255, default='spaxce@techohr.com.ng')
     email_host_password = models.CharField(max_length=255, blank=True)
     email_use_tls = models.BooleanField(default=False)
     email_use_ssl = models.BooleanField(default=True)
-    default_from_email = models.EmailField(default='ihotel@techohr.com.ng')
+    default_from_email = models.EmailField(default='spaxce@techohr.com.ng')
 
     def __str__(self):
         return "Global Site Settings"

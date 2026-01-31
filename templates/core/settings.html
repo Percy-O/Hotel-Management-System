@@ -182,6 +182,14 @@
                                 {% render_field form.custom_surface_color class="h-10 w-full rounded cursor-pointer" oninput="updateCustomPreview()" %}
                             </div>
                             <div>
+                                <label class="block text-xs text-text-secondary-dark mb-1">Card Bg (Listings)</label>
+                                {% render_field form.custom_card_background_color class="h-10 w-full rounded cursor-pointer" oninput="updateCustomPreview()" %}
+                            </div>
+                            <div>
+                                <label class="block text-xs text-text-secondary-dark mb-1">Section Bg</label>
+                                {% render_field form.custom_section_background_color class="h-10 w-full rounded cursor-pointer" oninput="updateCustomPreview()" %}
+                            </div>
+                            <div>
                                 <label class="block text-xs text-text-secondary-dark mb-1">Text Color</label>
                                 {% render_field form.custom_text_color class="h-10 w-full rounded cursor-pointer" oninput="updateCustomPreview()" %}
                             </div>

@@ -11,7 +11,7 @@
         {% else %}
             <img src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=2070&auto=format&fit=crop" alt="Luxury Hotel" class="w-full h-full object-cover animate-scale-slow">
         {% endif %}
-        <div class="absolute inset-0 bg-black/30"></div>
+        <div class="absolute inset-0 bg-black/60"></div>
         <div class="absolute inset-0 bg-gradient-to-t from-[#0F172A] via-transparent to-transparent opacity-90"></div>
     </div>
 
@@ -25,7 +25,7 @@
             </div>
         </div>
         <h1 class="font-serif text-5xl md:text-7xl lg:text-8xl text-white mb-8 leading-tight animate-fade-in-up delay-100">
-            Experience the <br>
+            Welcome to <br>
             <span class="italic text-gold-200">{{ request.tenant.name|default:"Coastal Whisper" }}</span>
         </h1>
         <p class="text-gray-200 text-lg font-light max-w-2xl mx-auto mb-12 animate-fade-in-up delay-200 leading-relaxed">
@@ -76,7 +76,7 @@
 </div>
 
 <!-- Introduction -->
-<section class="py-24 bg-[#0F172A]">
+<section class="py-24" style="background-color: var(--color-section-background);">
     <div class="max-w-3xl mx-auto text-center px-4">
         <span class="text-gold-500 font-bold tracking-[0.2em] uppercase text-xs mb-4 block">Introduction</span>
         <h2 class="font-serif text-4xl md:text-5xl text-white mb-8">Our Sanctuaries</h2>
@@ -89,44 +89,59 @@
 </section>
 
 <!-- Rooms Showcase (New Card Design) -->
-<section id="rooms" class="pb-24 bg-[#0F172A] px-4 sm:px-6 lg:px-8">
+<section id="rooms" class="pb-24 px-4 sm:px-6 lg:px-8" style="background-color: var(--color-section-background);">
     <div class="max-w-7xl mx-auto">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {% for type in room_types|slice:":6" %}
-            <div class="group relative h-[600px] w-full overflow-hidden cursor-pointer bg-dark-800 border border-white/5">
-                <!-- Image -->
-                <a href="{% url 'room_detail' type.pk %}" class="block h-full w-full">
-                    {% if type.image %}
-                        <img src="{{ type.image.url }}" alt="{{ type.name }}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 opacity-80 group-hover:opacity-100">
-                    {% else %}
-                        <img src="https://images.unsplash.com/photo-1618773928121-c32242e63f39?q=80&w=2070&auto=format&fit=crop" alt="Room" class="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 opacity-80 group-hover:opacity-100">
-                    {% endif %}
+            <div class="group flex flex-col h-[550px] w-full bg-slate-900 rounded-lg overflow-hidden border border-white/10 hover:border-gold-500/50 transition-all duration-300 shadow-xl hover:shadow-2xl hover:shadow-gold-500/10" style="background-color: var(--color-card-background) !important;">
+                <!-- Image Area (65%) -->
+                <div class="relative h-[65%] overflow-hidden">
+                    <a href="{% url 'room_detail' type.pk %}" class="block h-full w-full">
+                        {% if type.image %}
+                            <img src="{{ type.image.url }}" alt="{{ type.name }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                        {% else %}
+                            <img src="https://images.unsplash.com/photo-1618773928121-c32242e63f39?q=80&w=2070&auto=format&fit=crop" alt="Room" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                        {% endif %}
+                        <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors"></div>
+                    </a>
                     
-                    <!-- Gradient Overlay -->
-                    <div class="absolute inset-0 bg-gradient-to-t from-[#0F172A] via-[#0F172A]/40 to-transparent opacity-90 transition-opacity duration-500 group-hover:opacity-70"></div>
-                    
-                    <!-- Content Positioned at Bottom -->
-                    <div class="absolute bottom-0 left-0 w-full p-8 translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
-                        <div class="border-l-2 border-gold-500 pl-6 mb-6">
-                            <h3 class="font-serif text-3xl text-white mb-2 leading-none">{{ type.name }}</h3>
-                            <p class="text-gray-400 font-sans text-xs uppercase tracking-widest flex items-center gap-2">
-                                <span class="material-symbols-outlined text-sm">person</span> {{ type.capacity }} Guests
-                                <span class="mx-2">&bull;</span>
-                                <span class="material-symbols-outlined text-sm">square_foot</span> 45 m²
-                            </p>
+                    <!-- Price Badge (Floating) -->
+                    <div class="absolute bottom-4 left-4 bg-black/70 backdrop-blur-md px-4 py-2 border-l-2 border-gold-500">
+                        <p class="text-gold-400 font-serif text-xl italic">
+                            {{ site_settings.currency_symbol }}{{ type.price_per_night }} <span class="text-xs text-gray-400 font-sans not-italic uppercase">/ Night</span>
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Content Area (35%) -->
+                <div class="flex flex-col justify-between p-6 h-[35%] bg-slate-900 relative" style="background-color: var(--color-card-background) !important;">
+                    <!-- Hover Glow Effect -->
+                    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-1 bg-gold-500/0 group-hover:bg-gold-500/50 blur-sm transition-all duration-500"></div>
+
+                    <div>
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-serif text-2xl text-white leading-tight group-hover:text-gold-400 transition-colors">
+                                <a href="{% url 'room_detail' type.pk %}">{{ type.name }}</a>
+                            </h3>
                         </div>
                         
-                        <div class="flex items-end justify-between border-t border-white/10 pt-6 opacity-80 group-hover:opacity-100 transition-opacity duration-500">
-                            <p class="text-gold-400 font-serif text-2xl italic">
-                                {{ site_settings.currency_symbol }}{{ type.price_per_night }} 
-                                <span class="text-xs font-sans text-gray-500 not-italic uppercase tracking-wider">/ Night</span>
+                        <div class="flex gap-4 mt-1 mb-3">
+                            <p class="text-gray-400 font-sans text-xs uppercase tracking-widest flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm text-gold-500">person</span> {{ type.capacity }} Guests
                             </p>
-                            <span class="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-white group-hover:bg-gold-500 group-hover:border-gold-500 transition-all duration-300">
-                                <span class="material-symbols-outlined text-sm">arrow_forward</span>
-                            </span>
+                            <p class="text-gray-400 font-sans text-xs uppercase tracking-widest flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm text-gold-500">square_foot</span> 45 m²
+                            </p>
                         </div>
                     </div>
-                </a>
+
+                    <div class="flex items-center justify-between border-t border-white/5 pt-4 mt-auto">
+                        <span class="text-xs text-gray-500 uppercase tracking-wider">Luxury Collection</span>
+                        <a href="{% url 'room_detail' type.pk %}" class="text-gold-400 text-xs font-bold uppercase tracking-widest hover:text-white transition-colors flex items-center gap-1 group-hover:gap-2 duration-300">
+                            View Details <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                        </a>
+                    </div>
+                </div>
             </div>
             {% empty %}
             <!-- Placeholder -->
@@ -206,7 +221,7 @@
 
 <!-- Events Section (Conditional) -->
 {% if site_settings.enable_events %}
-<section id="events" class="py-24 bg-[#0F172A] relative overflow-hidden">
+<section id="events" class="py-24 relative overflow-hidden" style="background-color: var(--color-section-background);">
     <!-- Decorative Background -->
     <div class="absolute top-0 right-0 -mt-20 -mr-20 w-96 h-96 bg-gold-500/10 rounded-full blur-3xl"></div>
     <div class="absolute bottom-0 left-0 -mb-20 -ml-20 w-96 h-96 bg-gold-500/10 rounded-full blur-3xl"></div>

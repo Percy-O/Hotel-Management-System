@@ -1,101 +1,161 @@
 {% extends 'base_public.html' %}
 {% load static %}
 
+{% block title %}Payment - {{ invoice.id }}{% endblock %}
+
 {% block content %}
-<div class="min-h-screen bg-background-dark py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
-    <div class="max-w-md w-full space-y-8">
+<div class="min-h-screen bg-background py-16 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+    <div class="max-w-lg w-full space-y-8 relative">
+        
+        <!-- Background Glow -->
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-primary/5 blur-3xl rounded-full -z-10 pointer-events-none"></div>
+
         <div class="text-center">
-            <h2 class="mt-6 text-3xl font-extrabold text-text-main">
-                Complete Your Payment
+            <div class="size-16 rounded-full bg-button/10 flex items-center justify-center mx-auto mb-6 text-button border border-button/20">
+                <span class="material-symbols-outlined text-3xl">credit_card</span>
+            </div>
+            <h2 class="text-3xl font-serif font-bold text-[var(--color-text)] tracking-wide">
+                Complete Payment
             </h2>
-            <p class="mt-2 text-sm text-text-secondary-dark">
-                Please complete payment to confirm your {{ context_type }}.
+            <p class="mt-2 text-sm text-[var(--color-text)] opacity-60">
+                Securely pay for your {{ context_type }}
             </p>
         </div>
         
-        <div class="bg-surface-dark py-8 px-4 shadow rounded-lg sm:px-10 border border-border-dark">
+        <div class="bg-surface p-8 shadow-2xl rounded-2xl border border-border backdrop-blur-sm relative overflow-hidden">
+            <!-- Top Decoration -->
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-50"></div>
+
             <!-- Invoice Summary -->
-            <div class="mb-6 pb-6 border-b border-border-dark">
-                <div class="flex justify-between mb-2">
-                    <span class="text-text-secondary-dark">Invoice ID</span>
-                    <span class="text-text-main font-medium">#{{ invoice.id }}</span>
+            <div class="mb-8 pb-8 border-b border-border border-dashed">
+                <div class="flex justify-between mb-4">
+                    <span class="text-sm text-[var(--color-text)] opacity-60">Invoice ID</span>
+                    <span class="text-sm font-mono font-bold text-[var(--color-text)] bg-background px-2 py-1 rounded border border-border">#{{ invoice.id }}</span>
                 </div>
                 
-                <div class="flex justify-between mb-2">
-                    <span class="text-text-secondary-dark">Description</span>
-                    <span class="text-text-main font-medium text-right">{{ description }}</span>
+                <div class="flex justify-between mb-4">
+                    <span class="text-sm text-[var(--color-text)] opacity-60">Description</span>
+                    <span class="text-sm font-medium text-[var(--color-text)] text-right">{{ description }}</span>
                 </div>
 
-                {% if context_type == 'booking' %}
-                <div class="flex justify-between mb-2">
-                    <span class="text-text-secondary-dark">Room Type</span>
-                    <span class="text-text-main font-medium">{{ context_obj.room.room_type.name }}</span>
+                <!-- Context Specific Details -->
+                <div class="bg-background/50 rounded-xl p-4 border border-border space-y-3">
+                    {% if context_type == 'booking' %}
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-3">
+                                <span class="material-symbols-outlined text-primary text-lg">bed</span>
+                                <span class="text-sm text-[var(--color-text)] opacity-80">Room Type</span>
+                            </div>
+                            <span class="text-sm font-medium text-[var(--color-text)]">{{ context_obj.room.room_type.name }}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-3">
+                                <span class="material-symbols-outlined text-primary text-lg">calendar_month</span>
+                                <span class="text-sm text-[var(--color-text)] opacity-80">Dates</span>
+                            </div>
+                            <span class="text-xs font-medium text-[var(--color-text)] bg-surface px-2 py-1 rounded border border-border">
+                                {{ context_obj.check_in_date|date:"M d" }} - {{ context_obj.check_out_date|date:"M d, Y" }}
+                            </span>
+                        </div>
+                    {% elif context_type == 'event' %}
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-3">
+                                <span class="material-symbols-outlined text-primary text-lg">meeting_room</span>
+                                <span class="text-sm text-[var(--color-text)] opacity-80">Hall</span>
+                            </div>
+                            <span class="text-sm font-medium text-[var(--color-text)]">{{ context_obj.hall.name }}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-3">
+                                <span class="material-symbols-outlined text-primary text-lg">event</span>
+                                <span class="text-sm text-[var(--color-text)] opacity-80">Date</span>
+                            </div>
+                            <span class="text-sm font-medium text-[var(--color-text)]">{{ context_obj.start_time|date:"M d, Y" }}</span>
+                        </div>
+                    {% elif context_type == 'gym' %}
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-3">
+                                <span class="material-symbols-outlined text-primary text-lg">fitness_center</span>
+                                <span class="text-sm text-[var(--color-text)] opacity-80">Plan</span>
+                            </div>
+                            <span class="text-sm font-medium text-[var(--color-text)]">{{ context_obj.plan.name }}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-3">
+                                <span class="material-symbols-outlined text-primary text-lg">schedule</span>
+                                <span class="text-sm text-[var(--color-text)] opacity-80">Duration</span>
+                            </div>
+                            <span class="text-sm font-medium text-[var(--color-text)]">{{ context_obj.plan.duration_days }} Days</span>
+                        </div>
+                    {% elif context_type == 'service' %}
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-3">
+                                <span class="material-symbols-outlined text-primary text-lg">receipt_long</span>
+                                <span class="text-sm text-[var(--color-text)] opacity-80">Order ID</span>
+                            </div>
+                            <span class="text-sm font-medium text-[var(--color-text)]">#{{ context_obj.order_id|default:context_obj.id }}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-3">
+                                <span class="material-symbols-outlined text-primary text-lg">shopping_bag</span>
+                                <span class="text-sm text-[var(--color-text)] opacity-80">Items</span>
+                            </div>
+                            <span class="text-sm font-medium text-[var(--color-text)]">{{ context_obj.items.count }} Item(s)</span>
+                        </div>
+                    {% endif %}
                 </div>
-                <div class="flex justify-between mb-2">
-                    <span class="text-text-secondary-dark">Dates</span>
-                    <span class="text-text-main font-medium text-xs">{{ context_obj.check_in_date|date:"M d" }} - {{ context_obj.check_out_date|date:"M d, Y" }}</span>
-                </div>
-                {% elif context_type == 'event' %}
-                <div class="flex justify-between mb-2">
-                    <span class="text-text-secondary-dark">Hall</span>
-                    <span class="text-text-main font-medium">{{ context_obj.hall.name }}</span>
-                </div>
-                <div class="flex justify-between mb-2">
-                    <span class="text-text-secondary-dark">Date</span>
-                    <span class="text-text-main font-medium">{{ context_obj.start_time|date:"M d, Y" }}</span>
-                </div>
-                {% elif context_type == 'gym' %}
-                <div class="flex justify-between mb-2">
-                    <span class="text-text-secondary-dark">Plan</span>
-                    <span class="text-text-main font-medium">{{ context_obj.plan.name }}</span>
-                </div>
-                <div class="flex justify-between mb-2">
-                    <span class="text-text-secondary-dark">Duration</span>
-                    <span class="text-text-main font-medium">{{ context_obj.plan.duration_days }} Days</span>
-                </div>
-                {% elif context_type == 'service' %}
-                <div class="flex justify-between mb-2">
-                    <span class="text-text-secondary-dark">Order ID</span>
-                    <span class="text-text-main font-medium">#{{ context_obj.order_id|default:context_obj.id }}</span>
-                </div>
-                <div class="flex justify-between mb-2">
-                    <span class="text-text-secondary-dark">Items</span>
-                    <span class="text-text-main font-medium">{{ context_obj.items.count }} Item(s)</span>
-                </div>
-                {% endif %}
 
-                <div class="flex justify-between mt-4 pt-4 border-t border-border-dark">
-                    <span class="text-lg font-bold text-text-main">Total Amount</span>
-                    <span class="text-lg font-bold text-primary">{{ site_settings.currency_symbol }}{{ invoice.amount }}</span>
+                <div class="flex justify-between items-end mt-6 pt-6 border-t border-border">
+                    <span class="text-sm font-medium text-[var(--color-text)] opacity-60 uppercase tracking-wider">Total Amount</span>
+                    <span class="text-3xl font-bold text-primary">{{ site_settings.currency_symbol }}{{ invoice.amount }}</span>
                 </div>
             </div>
 
             <!-- Payment Options -->
             <div class="space-y-4">
+                <p class="text-xs text-[var(--color-text)] opacity-50 uppercase tracking-widest text-center mb-4">Select Payment Method</p>
+                
                 {% if paystack_enabled %}
-                <button onclick="payWithPaystack()" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
-                    Pay with Paystack
+                <button onclick="payWithPaystack()" class="group w-full flex items-center justify-between p-4 border border-border rounded-xl hover:border-blue-500 hover:bg-blue-500/5 transition-all duration-300">
+                    <div class="flex items-center gap-4">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/0/0b/Paystack_Logo.png" alt="Paystack" class="h-6 object-contain filter grayscale group-hover:grayscale-0 transition-all">
+                        <span class="text-sm font-bold text-[var(--color-text)] group-hover:text-blue-500 transition-colors">Pay with Paystack</span>
+                    </div>
+                    <span class="material-symbols-outlined text-gray-500 group-hover:text-blue-500 group-hover:translate-x-1 transition-all">arrow_forward</span>
                 </button>
                 {% endif %}
 
                 {% if flutterwave_enabled %}
-                <button onclick="payWithFlutterwave()" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-colors">
-                    Pay with Flutterwave
+                <button onclick="payWithFlutterwave()" class="group w-full flex items-center justify-between p-4 border border-border rounded-xl hover:border-orange-500 hover:bg-orange-500/5 transition-all duration-300">
+                    <div class="flex items-center gap-4">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/cf/Flutterwave_Logo.png" alt="Flutterwave" class="h-6 object-contain filter grayscale group-hover:grayscale-0 transition-all">
+                        <span class="text-sm font-bold text-[var(--color-text)] group-hover:text-orange-500 transition-colors">Pay with Flutterwave</span>
+                    </div>
+                    <span class="material-symbols-outlined text-gray-500 group-hover:text-orange-500 group-hover:translate-x-1 transition-all">arrow_forward</span>
                 </button>
                 {% endif %}
                 
                 {% if not paystack_enabled and not flutterwave_enabled %}
-                <div class="text-center p-4 bg-red-500/10 text-red-500 rounded-md border border-red-500/20">
-                    No online payment methods are currently active. Please contact support.
+                <div class="flex items-center gap-3 p-4 bg-red-500/10 text-red-400 rounded-xl border border-red-500/20">
+                    <span class="material-symbols-outlined">error_outline</span>
+                    <span class="text-sm font-medium">No online payment methods available. Please contact support.</span>
                 </div>
                 {% endif %}
             </div>
             
-            <div class="mt-6 text-center">
-                <a href="{% url 'home' %}" class="text-sm font-medium text-gold-500 hover:text-gold-400">
+            <div class="mt-8 text-center">
+                <a href="{% url 'home' %}" class="inline-flex items-center gap-2 text-sm font-medium text-[var(--color-text)] opacity-60 hover:opacity-100 hover:text-primary transition-all">
+                    <span class="material-symbols-outlined text-lg">arrow_back</span>
                     Cancel and Return Home
                 </a>
             </div>
+        </div>
+        
+        <div class="text-center">
+             <p class="text-xs text-[var(--color-text)] opacity-40">
+                <span class="material-symbols-outlined text-[10px] align-middle">lock</span>
+                Payments are secure and encrypted
+            </p>
         </div>
     </div>
 </div>

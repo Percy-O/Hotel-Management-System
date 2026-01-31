@@ -111,7 +111,7 @@ def send_branded_email(subject, template_name, context, recipient_list, tenant=N
     """
     
     # 1. Determine Branding
-    company_name = "IHotel"
+    company_name = "Spaxce"
     logo_url = None
     primary_color = "#3b82f6" # Blue-500
     

@@ -1,48 +1,64 @@
 {% extends 'dashboard_base.html' %}
+{% load static %}
 
 {% block header_title %}Complete Payment{% endblock %}
 {% block header_subtitle %}Secure Payment Gateway{% endblock %}
 
 {% block dashboard_content %}
-<div class="flex justify-center items-center min-h-[60vh]">
-    <div class="w-full max-w-md bg-surface-dark rounded-xl border border-border-dark p-8 shadow-xl text-center">
+<div class="flex justify-center items-center min-h-[60vh] py-12">
+    <div class="w-full max-w-md bg-surface-dark rounded-2xl border border-border-dark shadow-2xl overflow-hidden relative">
+        <!-- Top Gradient Line -->
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/50 via-primary to-primary/50"></div>
         
-        <div class="mb-8">
-            {% if payment_method == 'PAYSTACK' %}
-                <div class="size-16 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span class="material-symbols-outlined text-3xl text-blue-500">credit_card</span>
-                </div>
-                <h3 class="text-xl font-bold text-text-main">Pay with Paystack</h3>
-            {% elif payment_method == 'FLUTTERWAVE' %}
-                <div class="size-16 bg-orange-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span class="material-symbols-outlined text-3xl text-orange-500">payments</span>
-                </div>
-                <h3 class="text-xl font-bold text-text-main">Pay with Flutterwave</h3>
-            {% endif %}
-            <p class="text-text-secondary-dark mt-2">You are about to pay <span class="text-primary font-bold">{{ site_settings.currency_symbol }}{{ amount }}</span></p>
-        </div>
+        <div class="p-8 text-center">
+            
+            <div class="mb-8">
+                {% if payment_method == 'PAYSTACK' %}
+                    <div class="size-20 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-6 ring-4 ring-blue-500/5">
+                        <span class="material-symbols-outlined text-4xl text-blue-500">credit_card</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-2">Pay with Paystack</h3>
+                {% elif payment_method == 'FLUTTERWAVE' %}
+                    <div class="size-20 bg-orange-500/10 rounded-full flex items-center justify-center mx-auto mb-6 ring-4 ring-orange-500/5">
+                        <span class="material-symbols-outlined text-4xl text-orange-500">payments</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-2">Pay with Flutterwave</h3>
+                {% endif %}
+                
+                <p class="text-text-secondary-dark text-sm">
+                    You are about to pay <span class="text-white font-bold text-lg ml-1">{{ site_settings.currency_symbol }}{{ amount }}</span>
+                </p>
+            </div>
 
-        <!-- Simulation Buttons (Since we are in test mode without real JS SDKs setup fully) -->
-        <div class="space-y-4">
-            <p class="text-xs text-text-secondary-dark bg-background-dark p-3 rounded-lg border border-border-dark">
-                <span class="font-bold text-yellow-500">TEST MODE:</span> This will simulate a successful transaction callback.
-            </p>
+            <!-- Simulation Buttons -->
+            <div class="space-y-4">
+                <div class="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4 flex items-start gap-3 text-left">
+                    <span class="material-symbols-outlined text-yellow-500 shrink-0">warning</span>
+                    <div>
+                        <p class="text-xs font-bold text-yellow-500 uppercase tracking-wider mb-1">Test Mode Active</p>
+                        <p class="text-xs text-text-secondary-dark leading-relaxed">
+                            This will simulate a successful transaction callback without charging real money.
+                        </p>
+                    </div>
+                </div>
+                
+                <a href="{% url 'payment_callback' invoice.pk %}?method={{ payment_method }}&ref=SIM-{{ invoice.id }}" class="group flex items-center justify-center gap-2 w-full py-3.5 bg-primary hover:bg-primary-hover text-slate-900 font-bold rounded-xl transition-all shadow-lg shadow-primary/20 hover:shadow-primary/30">
+                    <span>Simulate Success</span>
+                    <span class="material-symbols-outlined text-lg group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                </a>
+                
+                <a href="{% url 'make_payment' invoice.pk %}" class="flex items-center justify-center gap-2 w-full py-3.5 bg-background-dark border border-border-dark text-text-secondary-dark font-bold rounded-xl hover:bg-white/5 hover:text-white transition-colors">
+                    Cancel Transaction
+                </a>
+            </div>
             
-            <a href="{% url 'payment_callback' invoice.pk %}?method={{ payment_method }}&ref=SIM-{{ invoice.id }}" class="block w-full py-3 bg-primary text-slate-900 font-bold rounded-lg hover:bg-primary-hover transition-colors shadow-lg shadow-primary/20">
-                Simulate Successful Payment
-            </a>
-            
-            <a href="{% url 'make_payment' invoice.pk %}" class="block w-full py-3 bg-background-dark border border-border-dark text-text-main font-bold rounded-lg hover:bg-border-dark transition-colors">
-                Cancel Transaction
-            </a>
+            <div class="mt-8 pt-6 border-t border-border-dark">
+                <p class="text-xs text-text-secondary-dark opacity-50 flex items-center justify-center gap-1">
+                    <span class="material-symbols-outlined text-xs">lock</span>
+                    256-bit SSL Encrypted
+                </p>
+            </div>
         </div>
-        
-        <!-- 
-        Real Integration Notes:
-        1. For Paystack: Use Paystack Inline JS with {{ paystack_public_key }}
-        2. For Flutterwave: Use Flutterwave Inline JS with {{ flutterwave_public_key }}
-        3. On success, redirect to {% url 'payment_callback' invoice.pk %}?ref=...
-        -->
     </div>
 </div>
 {% endblock %}

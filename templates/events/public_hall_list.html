@@ -7,75 +7,104 @@
 <!-- Page Header -->
 <div class="relative h-[50vh] min-h-[400px] flex items-center justify-center overflow-hidden">
     <div class="absolute inset-0 z-0">
-        <img src="https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=2098&auto=format&fit=crop" alt="Events Background" class="w-full h-full object-cover">
-        <div class="absolute inset-0 bg-black/50"></div>
+        <img src="https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=2098&auto=format&fit=crop" alt="Events Background" class="w-full h-full object-cover animate-scale-slow">
+        <div class="absolute inset-0 bg-black/60"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-dark-900 via-transparent to-transparent"></div>
     </div>
     <div class="relative z-10 text-center px-4 max-w-4xl mx-auto">
         <p class="text-gold-400 font-sans text-sm md:text-base tracking-[0.3em] uppercase mb-6 animate-fade-in-up">Celebrations & Conferences</p>
         <h1 class="font-serif text-5xl md:text-7xl text-white mb-6 leading-tight animate-fade-in-up delay-100">
             Exceptional <span class="italic text-gold-200">Venues</span>
         </h1>
-        <p class="text-gray-200 text-lg font-light max-w-2xl mx-auto animate-fade-in-up delay-200">
+        <p class="text-gray-300 text-lg font-light max-w-2xl mx-auto animate-fade-in-up delay-200">
             Discover the perfect setting for your next event, where elegance meets functionality.
         </p>
     </div>
 </div>
 
 <!-- Venues List -->
-<section class="py-24 bg-dark-900">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="space-y-24">
+<section class="py-24 relative" style="background-color: var(--color-section-background);">
+    <!-- Background Pattern -->
+    <div class="absolute inset-0 opacity-[0.02] pointer-events-none" style="background-image: radial-gradient(#B8A045 1px, transparent 1px); background-size: 32px 32px;"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
             {% for hall in halls %}
-            <div class="flex flex-col {% if forloop.counter|divisibleby:2 %}md:flex-row-reverse{% else %}md:flex-row{% endif %} gap-12 items-center">
-                <!-- Image -->
-                <div class="w-full md:w-1/2">
-                    <div class="relative h-[400px] group overflow-hidden rounded-sm shadow-2xl border border-white/5">
+            <div class="group flex flex-col h-[600px] w-full bg-slate-900 rounded-lg overflow-hidden border border-white/10 hover:border-gold-500/50 transition-all duration-300 shadow-xl hover:shadow-2xl hover:shadow-gold-500/10" style="background-color: var(--color-card-background) !important;">
+                <!-- Image Area (60%) -->
+                <div class="relative h-[60%] overflow-hidden">
+                    <a href="{% url 'public_event_booking_create' %}?hall={{ hall.pk }}" class="block h-full w-full">
                         {% if hall.image %}
                             <img src="{{ hall.image.url }}" alt="{{ hall.name }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
                         {% else %}
-                            <img src="https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=2098&auto=format&fit=crop" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                            <img src="https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=2098&auto=format&fit=crop" alt="Venue Placeholder" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
                         {% endif %}
-                        <div class="absolute inset-0 bg-black/30 group-hover:bg-transparent transition-colors"></div>
+                        <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors"></div>
+                    </a>
+                    
+                    <!-- Price Badge -->
+                    <div class="absolute bottom-4 left-4 bg-black/70 backdrop-blur-md px-4 py-2 border-l-2 border-gold-500">
+                        <p class="text-gold-400 font-serif text-xl italic">
+                            {{ site_settings.currency_symbol }}{{ hall.price }} <span class="text-xs text-gray-400 font-sans not-italic uppercase">/ {{ hall.get_pricing_type_display }}</span>
+                        </p>
                     </div>
                 </div>
 
-                <!-- Content -->
-                <div class="w-full md:w-1/2">
-                    <h2 class="font-serif text-4xl text-white mb-4">{{ hall.name }}</h2>
-                    <div class="flex items-center gap-6 mb-6 text-sm text-gray-400 uppercase tracking-widest">
-                        <span class="flex items-center gap-2">
-                            <span class="material-symbols-outlined text-gold-500">groups</span>
-                            Up to {{ hall.capacity }} Guests
-                        </span>
-                        <span class="flex items-center gap-2">
-                            <span class="material-symbols-outlined text-gold-500">payments</span>
-                            {{ site_settings.currency_symbol }}{{ hall.price }} / {{ hall.get_pricing_type_display }}
+                <!-- Content Area (40%) -->
+                <div class="flex flex-col p-8 h-[40%] bg-slate-900 relative" style="background-color: var(--color-card-background) !important;">
+                    <div class="flex justify-between items-start mb-4">
+                        <h2 class="font-serif text-3xl text-white leading-tight group-hover:text-gold-400 transition-colors">
+                            {{ hall.name }}
+                        </h2>
+                        <span class="flex items-center gap-1 text-gray-400 text-xs uppercase tracking-wider bg-white/5 px-3 py-1 rounded-full">
+                            <span class="material-symbols-outlined text-gold-500 text-sm">groups</span> {{ hall.capacity }}
                         </span>
                     </div>
-                    <p class="text-gray-400 leading-relaxed mb-8 font-light">
-                        {{ hall.description|default:"Experience the grandeur of this exquisitely designed venue, perfect for weddings, galas, and corporate gatherings. Featuring state-of-the-art audiovisual equipment and customizable layouts." }}
+
+                    <p class="text-gray-400 font-light text-sm line-clamp-2 mb-6 flex-1">
+                        {{ hall.description|default:"Experience the grandeur of this exquisitely designed venue." }}
                     </p>
-                    
+
                     {% if hall.amenities %}
-                    <div class="flex flex-wrap gap-3 mb-8">
-                        {% for amenity in hall.amenities.split %}
-                        <span class="px-3 py-1 bg-white/5 border border-white/10 text-gray-300 text-xs uppercase tracking-wider rounded-full">{{ amenity }}</span>
+                    <div class="flex flex-wrap gap-2 mb-6">
+                        {% for amenity in hall.amenities.split|slice:":3" %}
+                        <span class="px-3 py-1 bg-white/5 border border-white/10 text-gray-400 text-[10px] uppercase tracking-wider rounded-full">{{ amenity }}</span>
                         {% endfor %}
                     </div>
                     {% endif %}
 
-                    <a href="{% url 'public_event_booking_create' %}?hall={{ hall.pk }}" class="inline-flex items-center gap-2 px-8 py-4 bg-gold-500 hover:bg-gold-400 text-dark-900 text-sm font-bold uppercase tracking-widest transition-all shadow-lg shadow-gold-500/20 hover:shadow-gold-500/30 rounded-lg">
-                        Book This Venue
-                        <span class="material-symbols-outlined text-lg">arrow_forward</span>
+                    <a href="{% url 'public_event_booking_create' %}?hall={{ hall.pk }}" class="w-full py-3 bg-gold-500 hover:bg-gold-400 text-dark-900 text-sm font-bold uppercase tracking-widest text-center rounded transition-colors shadow-lg shadow-gold-500/20">
+                        Book Venue
                     </a>
                 </div>
             </div>
             {% empty %}
-            <div class="text-center py-12">
-                <p class="text-gray-500 text-lg">No event venues available at the moment.</p>
+            <div class="text-center py-24">
+                 <div class="inline-flex items-center justify-center size-24 rounded-full bg-white/5 border border-white/10 mb-6">
+                     <span class="material-symbols-outlined text-4xl text-gray-500">meeting_room</span>
+                 </div>
+                <h3 class="font-serif text-3xl text-white mb-4">No Venues Available</h3>
+                <p class="text-gray-400 text-lg font-light">We currently don't have any event venues listed. Please check back later.</p>
             </div>
             {% endfor %}
         </div>
     </div>
 </section>
+
+<style>
+    @keyframes fade-in-up {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in-up { animation: fade-in-up 1s ease-out forwards; opacity: 0; }
+    
+    @keyframes scale-slow {
+        from { transform: scale(1); }
+        to { transform: scale(1.1); }
+    }
+    .animate-scale-slow { animation: scale-slow 20s linear infinite alternate; }
+    
+    .delay-100 { animation-delay: 0.2s; }
+    .delay-200 { animation-delay: 0.4s; }
+</style>
 {% endblock %}

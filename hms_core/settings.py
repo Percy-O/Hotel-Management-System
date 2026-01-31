@@ -157,10 +157,10 @@ EMAIL_HOST = 'mail.techohr.com.ng'
 EMAIL_PORT = 465
 EMAIL_USE_TLS = False
 EMAIL_USE_SSL = True
-EMAIL_HOST_USER = 'ihotel@techohr.com.ng'
+EMAIL_HOST_USER = 'spaxce@techohr.com.ng'
 EMAIL_HOST_PASSWORD = '@Holawahlay1'  # Make sure to set this in your environment
-DEFAULT_FROM_EMAIL = 'ihotel@techohr.com.ng'
-SERVER_EMAIL = 'ihotel@techohr.com.ng'
+DEFAULT_FROM_EMAIL = 'spaxce@techohr.com.ng'
+SERVER_EMAIL = 'spaxce@techohr.com.ng'
 
 # Site URL for Emails
 SITE_URL = 'http://127.0.0.1:8000'

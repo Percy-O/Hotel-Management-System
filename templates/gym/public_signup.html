@@ -1,5 +1,6 @@
 {% extends 'base_public.html' %}
 {% load static %}
+{% load widget_tweaks %}
 
 {% block title %}Join Gym - {{ request.tenant.name }}{% endblock %}
 
@@ -22,7 +23,32 @@
             <div class="absolute top-0 right-0 -mt-16 -mr-16 w-32 h-32 bg-gold-500/10 rounded-full blur-2xl"></div>
             <div class="absolute bottom-0 left-0 -mb-16 -ml-16 w-32 h-32 bg-gold-500/10 rounded-full blur-2xl"></div>
 
-            <form method="post" class="space-y-8 relative z-10">
+            <!-- Stepper -->
+            <div class="relative z-10 flex items-center justify-center mb-10">
+                <div class="flex items-center w-full max-w-sm relative">
+                    <div class="w-full absolute top-1/2 left-0 h-0.5 bg-white/10 -z-10"></div>
+                    
+                    <!-- Step 1 -->
+                    <div class="flex-1 flex flex-col items-center">
+                        <div class="size-8 rounded-full bg-dark-800 border-2 border-white/20 text-gray-400 font-bold text-xs flex items-center justify-center step-indicator transition-all duration-300 z-10" data-step="1">1</div>
+                        <span class="text-[10px] uppercase tracking-wider text-gray-500 mt-2 font-bold">Plan</span>
+                    </div>
+                    
+                    <!-- Step 2 -->
+                    <div class="flex-1 flex flex-col items-center">
+                        <div class="size-8 rounded-full bg-dark-800 border-2 border-white/20 text-gray-400 font-bold text-xs flex items-center justify-center step-indicator transition-all duration-300 z-10" data-step="2">2</div>
+                        <span class="text-[10px] uppercase tracking-wider text-gray-500 mt-2 font-bold">Details</span>
+                    </div>
+                    
+                    <!-- Step 3 -->
+                    <div class="flex-1 flex flex-col items-center">
+                        <div class="size-8 rounded-full bg-dark-800 border-2 border-white/20 text-gray-400 font-bold text-xs flex items-center justify-center step-indicator transition-all duration-300 z-10" data-step="3">3</div>
+                        <span class="text-[10px] uppercase tracking-wider text-gray-500 mt-2 font-bold">Confirm</span>
+                    </div>
+                </div>
+            </div>
+
+            <form method="post" class="space-y-8 relative z-10" id="gym-signup-form">
                 {% csrf_token %}
                 
                 {% if form.errors %}
@@ -38,52 +64,196 @@
                 </div>
                 {% endif %}
 
-                <!-- Guest Details (If not logged in) -->
-                {% if not user.is_authenticated %}
-                <div class="space-y-6">
-                    <h3 class="text-white font-serif text-2xl border-b border-white/10 pb-4">Personal Details</h3>
+                <!-- Step 1: Plan Selection -->
+                <div class="step-content animate-fade-in" data-step="1">
+                    <div class="space-y-6">
+                        <h3 class="text-white font-serif text-2xl border-b border-white/10 pb-4">Select Membership</h3>
+                        
+                        <div class="space-y-2">
+                            <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Membership Plan</label>
+                            {% render_field form.plan class="w-full bg-surface border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all hover:bg-surface/80" %}
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Start Date</label>
+                            {% render_field form.start_date type="date" class="w-full bg-surface border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all hover:bg-surface/80" %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Personal Details -->
+                <div class="step-content hidden animate-fade-in" data-step="2">
+                    <h3 class="text-white font-serif text-2xl border-b border-white/10 pb-4 mb-6">Personal Details</h3>
+                    
+                    {% if not user.is_authenticated %}
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="space-y-2">
                             <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Full Name</label>
-                            {{ form.full_name }}
+                            {% render_field form.full_name class="w-full bg-surface border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all hover:bg-surface/80" %}
                         </div>
                         <div class="space-y-2">
                             <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Phone Number</label>
-                            {{ form.phone_number }}
+                            {% render_field form.phone_number class="w-full bg-surface border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all hover:bg-surface/80" %}
                         </div>
                         <div class="col-span-1 md:col-span-2 space-y-2">
                             <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Email Address</label>
-                            {{ form.email }}
+                            {% render_field form.email class="w-full bg-surface border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all hover:bg-surface/80" %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="bg-surface/50 border border-white/10 rounded-lg p-6 flex items-center gap-4">
+                        <div class="size-12 rounded-full bg-gold-500/20 flex items-center justify-center text-gold-500 font-bold text-xl">
+                            {{ user.first_name|first }}{{ user.last_name|first }}
+                        </div>
+                        <div>
+                            <p class="text-white font-medium text-lg">Logged in as {{ user.get_full_name|default:user.username }}</p>
+                            <p class="text-sm text-gray-400">{{ user.email }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Step 3: Review -->
+                <div class="step-content hidden animate-fade-in" data-step="3">
+                    <h3 class="text-white font-serif text-2xl border-b border-white/10 pb-4 mb-6">Review & Confirm</h3>
+                    
+                    <div class="bg-surface/30 border border-white/10 rounded-xl p-6 space-y-4">
+                        <div class="flex justify-between border-b border-white/5 pb-3">
+                            <span class="text-gray-400 text-sm">Plan</span>
+                            <span class="text-white font-medium text-right" id="review-plan">--</span>
+                        </div>
+                        <div class="flex justify-between border-b border-white/5 pb-3">
+                            <span class="text-gray-400 text-sm">Start Date</span>
+                            <span class="text-white font-medium text-right" id="review-date">--</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400 text-sm">Member</span>
+                            <span class="text-white font-medium text-right">
+                                {% if user.is_authenticated %}
+                                    {{ user.get_full_name|default:user.username }}
+                                {% else %}
+                                    <span id="review-member">--</span>
+                                {% endif %}
+                            </span>
                         </div>
                     </div>
                 </div>
-                {% endif %}
 
-                <!-- Membership Details -->
-                <div class="space-y-6">
-                    <h3 class="text-white font-serif text-2xl border-b border-white/10 pb-4">Membership Plan</h3>
-                    
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Select Plan</label>
-                        {{ form.plan }}
-                    </div>
-
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Start Date</label>
-                        {{ form.start_date }}
-                    </div>
-                </div>
-
-                <div class="pt-8 border-t border-white/10">
-                    <button type="submit" class="w-full bg-gold-500 hover:bg-gold-600 text-white font-bold py-4 uppercase tracking-widest transition-all duration-300 shadow-lg hover:shadow-gold-500/20">
+                <!-- Navigation Buttons -->
+                <div class="pt-8 border-t border-white/10 flex gap-4">
+                    <button type="button" id="prev-btn" class="hidden flex-1 py-4 px-4 border border-white/10 text-sm font-bold uppercase tracking-widest rounded-lg text-white hover:bg-white/5 transition-all">
+                        Back
+                    </button>
+                    <button type="button" id="next-btn" class="flex-1 py-4 px-4 bg-gold-500 hover:bg-gold-400 text-dark-900 text-sm font-bold uppercase tracking-widest rounded-lg transition-all shadow-lg shadow-gold-500/20 hover:shadow-gold-500/30">
+                        Next Step
+                    </button>
+                    <button type="submit" id="submit-btn" class="hidden flex-1 py-4 px-4 bg-green-600 hover:bg-green-500 text-white text-sm font-bold uppercase tracking-widest rounded-lg transition-all shadow-lg shadow-green-600/20 hover:shadow-green-600/30">
                         Proceed to Payment
                     </button>
-                    <p class="text-center text-gray-500 text-xs mt-4">
-                        By proceeding, you agree to our <a href="#" class="text-gold-400 hover:text-white transition-colors">Terms of Service</a>.
-                    </p>
                 </div>
+                
+                <p class="text-center text-gray-500 text-xs mt-4">
+                    By proceeding, you agree to our <a href="#" class="text-gold-400 hover:text-white transition-colors">Terms of Service</a>.
+                </p>
             </form>
         </div>
     </div>
 </section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let currentStep = 1;
+        const totalSteps = 3;
+        
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const submitBtn = document.getElementById('submit-btn');
+        
+        function updateUI() {
+            // Show/Hide Content
+            document.querySelectorAll('.step-content').forEach(el => {
+                el.classList.add('hidden');
+                if(parseInt(el.dataset.step) === currentStep) el.classList.remove('hidden');
+            });
+            
+            // Update Stepper
+            document.querySelectorAll('.step-indicator').forEach(el => {
+                const step = parseInt(el.dataset.step);
+                el.classList.remove('bg-gold-500', 'text-dark-900', 'border-gold-500', 'bg-green-500', 'text-white', 'border-green-500');
+                el.classList.add('bg-dark-800', 'text-gray-400', 'border-white/20');
+                
+                if (step === currentStep) {
+                    el.classList.remove('bg-dark-800', 'text-gray-400', 'border-white/20');
+                    el.classList.add('bg-gold-500', 'text-dark-900', 'border-gold-500');
+                } else if (step < currentStep) {
+                    el.classList.remove('bg-dark-800', 'text-gray-400', 'border-white/20');
+                    el.classList.add('bg-green-500', 'text-white', 'border-green-500');
+                    el.innerHTML = '<span class="material-symbols-outlined text-[14px] font-bold">check</span>';
+                } else {
+                    el.innerHTML = step;
+                }
+            });
+            
+            // Update Buttons
+            if (prevBtn) prevBtn.classList.toggle('hidden', currentStep === 1);
+            
+            if (currentStep === totalSteps) {
+                if (nextBtn) nextBtn.classList.add('hidden');
+                if (submitBtn) submitBtn.classList.remove('hidden');
+                
+                // Populate Review Data
+                const planSelect = document.querySelector('[name="plan"]');
+                const plan = planSelect ? planSelect.options[planSelect.selectedIndex].text : "--";
+                const date = document.querySelector('[name="start_date"]')?.value || "--";
+                const memberName = document.querySelector('[name="full_name"]')?.value;
+                const memberEmail = document.querySelector('[name="email"]')?.value;
+                
+                if (document.getElementById('review-plan')) document.getElementById('review-plan').textContent = plan;
+                if (document.getElementById('review-date')) document.getElementById('review-date').textContent = new Date(date).toLocaleDateString();
+                
+                if (memberName && document.getElementById('review-member')) {
+                    document.getElementById('review-member').textContent = `${memberName} (${memberEmail})`;
+                }
+                
+            } else {
+                if (nextBtn) nextBtn.classList.remove('hidden');
+                if (submitBtn) submitBtn.classList.add('hidden');
+            }
+        }
+    
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                if (currentStep < totalSteps) {
+                    // Validate current step
+                    const currentContent = document.querySelector(`.step-content[data-step="${currentStep}"]`);
+                    const inputs = currentContent.querySelectorAll('input, select, textarea');
+                    let valid = true;
+                    
+                    inputs.forEach(input => {
+                        if (!input.checkValidity()) {
+                            valid = false;
+                            input.reportValidity();
+                        }
+                    });
+                    
+                    if (valid) {
+                        currentStep++;
+                        updateUI();
+                    }
+                }
+            });
+        }
+    
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+                if (currentStep > 1) {
+                    currentStep--;
+                    updateUI();
+                }
+            });
+        }
+        
+        updateUI();
+    });
+</script>
 {% endblock %}

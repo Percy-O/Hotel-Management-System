@@ -34,14 +34,14 @@ class Migration(migrations.Migration):
                 ("email_port", models.IntegerField(default=465)),
                 (
                     "email_host_user",
-                    models.CharField(default="ihotel@techohr.com.ng", max_length=255),
+                    models.CharField(default="spaxce@techohr.com.ng", max_length=255),
                 ),
                 ("email_host_password", models.CharField(blank=True, max_length=255)),
                 ("email_use_tls", models.BooleanField(default=False)),
                 ("email_use_ssl", models.BooleanField(default=True)),
                 (
                     "default_from_email",
-                    models.EmailField(default="ihotel@techohr.com.ng", max_length=254),
+                    models.EmailField(default="spaxce@techohr.com.ng", max_length=254),
                 ),
             ],
         ),

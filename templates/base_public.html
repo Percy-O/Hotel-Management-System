@@ -48,6 +48,9 @@
                         secondary: 'var(--color-secondary)',
                         button: 'var(--color-button)',
                         'button-text': 'var(--color-button-text)',
+                        surface: 'var(--color-surface)',
+                        border: 'var(--color-border)',
+                        'text-muted': 'var(--color-text-muted)',
                     }
                 }
             }
@@ -63,9 +66,13 @@
             --color-accent: {{ site_settings.custom_accent_color|default:'#B8A045' }};
             --color-background: {{ site_settings.custom_background_color|default:'#0F172A' }};
             --color-surface: {{ site_settings.custom_surface_color|default:'#1E293B' }};
+            --color-card-background: {{ site_settings.custom_card_background_color|default:'#0f172a' }};
+            --color-section-background: {{ site_settings.custom_section_background_color|default:'#0f172a' }};
             --color-text: {{ site_settings.custom_text_color|default:'#ffffff' }};
             --color-button: {{ site_settings.custom_button_color|default:'#B8A045' }};
             --color-button-text: {{ site_settings.custom_button_text_color|default:'#ffffff' }};
+            --color-border: rgba(255, 255, 255, 0.1);
+            --color-text-muted: #94a3b8;
         }
         
         /* Smooth Scrollbar */
@@ -85,10 +92,11 @@
     </style>
     {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-dark-900 text-[var(--color-text)] font-sans antialiased selection:bg-gold-500 selection:text-white">
+<body class="bg-dark-900 text-[var(--color-text)] font-sans antialiased selection:bg-gold-500 selection:text-white border-t-4 border-gold-500">
 
     {% block layout %}
     <!-- Navigation -->
+    {% block navbar %}
     <nav x-data="{ scrolled: false, mobileOpen: false }" 
          @scroll.window="scrolled = (window.pageYOffset > 20)"
          :class="{ 'bg-dark-900 border-b border-white/10': scrolled, 'bg-transparent': !scrolled }"
@@ -102,7 +110,7 @@
                             <img src="{{ request.tenant.logo.url }}" alt="{{ request.tenant.name }}" class="h-10 w-auto object-contain">
                         {% else %}
                             <span class="font-serif text-2xl font-bold text-white tracking-wider">
-                                {% if request.tenant %}{{ request.tenant.name }}{% else %}COASTAL WHISPER{% endif %}
+                                {% if request.tenant %}{{ request.tenant.name }}{% else %}Spaxce{% endif %}
                             </span>
                         {% endif %}
                     </a>
@@ -110,38 +118,51 @@
 
                 <!-- Desktop Menu -->
                 <div class="hidden md:flex items-center space-x-8">
-                    <a href="{% url 'home' %}" class="text-sm font-medium hover:text-gold-400 transition-colors uppercase tracking-widest">Home</a>
-                    <a href="{% url 'about_us' %}" class="text-sm font-medium hover:text-gold-400 transition-colors uppercase tracking-widest">About</a>
-                    <a href="{% url 'room_list' %}" class="text-sm font-medium hover:text-gold-400 transition-colors uppercase tracking-widest">Rooms</a>
+                    <a href="{% url 'home' %}" class="text-sm font-medium text-[var(--color-text)] hover:text-primary transition-colors uppercase tracking-widest">Home</a>
+                    <a href="{% url 'about_us' %}" class="text-sm font-medium text-[var(--color-text)] hover:text-primary transition-colors uppercase tracking-widest">About</a>
+                    <a href="{% url 'room_list' %}" class="text-sm font-medium text-[var(--color-text)] hover:text-primary transition-colors uppercase tracking-widest">Rooms</a>
                     
                     {% if site_settings.enable_events %}
-                    <a href="{% url 'public_event_hall_list' %}" class="text-sm font-medium hover:text-gold-400 transition-colors uppercase tracking-widest">Events</a>
+                    <a href="{% url 'public_event_hall_list' %}" class="text-sm font-medium text-[var(--color-text)] hover:text-primary transition-colors uppercase tracking-widest">Events</a>
                     {% endif %}
                     
                     {% if site_settings.enable_gym %}
-                    <a href="{% url 'public_gym_plan_list' %}" class="text-sm font-medium hover:text-gold-400 transition-colors uppercase tracking-widest">Wellness</a>
+                    <a href="{% url 'public_gym_plan_list' %}" class="text-sm font-medium text-[var(--color-text)] hover:text-primary transition-colors uppercase tracking-widest">Wellness</a>
                     {% endif %}
 
-                    <a href="{% url 'contact_us' %}" class="text-sm font-medium hover:text-gold-400 transition-colors uppercase tracking-widest">Contact</a>
+                    <a href="{% url 'contact_us' %}" class="text-sm font-medium text-[var(--color-text)] hover:text-primary transition-colors uppercase tracking-widest">Contact</a>
                     
                     <a href="{% url 'room_list' %}" class="px-6 py-2 bg-button text-button-text hover:opacity-90 text-sm font-bold uppercase tracking-widest transition-all duration-300">
                         Book Now
                     </a>
                     
                     {% if user.is_authenticated %}
-                        <a href="{% url 'dashboard' %}" class="text-white hover:text-gold-400 transition-colors">
+                        <a href="{% url 'dashboard' %}" class="text-[var(--color-text)] hover:text-primary transition-colors">
                             <span class="material-symbols-outlined">account_circle</span>
                         </a>
                     {% else %}
-                        <a href="{% url 'login' %}" class="text-white hover:text-gold-400 transition-colors">
+                        <a href="{% url 'login' %}" class="text-[var(--color-text)] hover:text-primary transition-colors">
                             <span class="material-symbols-outlined">person</span>
                         </a>
                     {% endif %}
+                    
+                    <!-- Theme Toggle -->
+                    <button onclick="toggleTheme()" class="text-[var(--color-text)] hover:text-primary transition-colors focus:outline-none">
+                        <!-- Sun Icon (Hidden in Light Mode) -->
+                        <span class="material-symbols-outlined block light:hidden">light_mode</span>
+                        <!-- Moon Icon (Hidden in Dark Mode) -->
+                        <span class="material-symbols-outlined hidden light:block">dark_mode</span>
+                    </button>
                 </div>
 
                 <!-- Mobile Menu Button -->
-                <div class="md:hidden flex items-center">
-                    <button @click="mobileOpen = !mobileOpen" class="text-white hover:text-gold-400 focus:outline-none">
+                <div class="md:hidden flex items-center gap-4">
+                    <button onclick="toggleTheme()" class="text-[var(--color-text)] hover:text-primary focus:outline-none">
+                         <span class="material-symbols-outlined block light:hidden">light_mode</span>
+                         <span class="material-symbols-outlined hidden light:block">dark_mode</span>
+                    </button>
+                    
+                    <button @click="mobileOpen = !mobileOpen" class="text-[var(--color-text)] hover:text-primary focus:outline-none">
                         <span class="material-symbols-outlined text-3xl">menu</span>
                     </button>
                 </div>
@@ -176,6 +197,7 @@
             </div>
         </div>
     </nav>
+    {% endblock %}
 
     <!-- Main Content -->
     <main>
@@ -190,7 +212,7 @@
                 <div class="col-span-1 md:col-span-1">
                     <a href="/" class="block mb-6">
                         <span class="font-serif text-3xl font-bold text-white tracking-wider">
-                            {% if request.tenant %}{{ request.tenant.name }}{% else %}COASTAL WHISPER{% endif %}
+                            {% if request.tenant %}{{ request.tenant.name }}{% else %}Spaxce{% endif %}
                         </span>
                     </a>
                     <p class="text-gray-400 text-sm leading-relaxed mb-6">
@@ -288,7 +310,7 @@
             <div class="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
                 <p class="text-gray-500 text-xs">
                     &copy; {% now "Y" %} 
-                    {% if request.tenant %}{{ request.tenant.name }}{% else %}COASTAL WHISPER{% endif %}
+                    {% if request.tenant %}{{ request.tenant.name }}{% else %}Spaxce{% endif %}
                     . All Rights Reserved.
                 </p>
                 <div class="flex gap-6">

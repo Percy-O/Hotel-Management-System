@@ -208,7 +208,7 @@ def create_tenant(request):
             if tenant.is_active:
                 try:
                     send_branded_email(
-                        subject=f"Welcome to IHotel - {tenant.name} Created",
+                        subject=f"Welcome to Spaxce - {tenant.name} Created",
                         template_name='emails/welcome_hotel.html',
                         context={
                             'user': request.user,
@@ -431,7 +431,7 @@ def process_payment(request, tenant_id):
             # Send Welcome Email only for new activations
             try:
                 send_branded_email(
-                    subject=f"Welcome to IHotel - {tenant.name} Active",
+                    subject=f"Welcome to Spaxce - {tenant.name} Active",
                     template_name='emails/welcome_hotel.html',
                     context={
                         'user': request.user,

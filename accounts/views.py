@@ -254,7 +254,7 @@ def register_view(request):
                     # Send Welcome Email
                     try:
                         send_branded_email(
-                            subject=f"Welcome to IHotel - {hotel_name} Created",
+                            subject=f"Welcome to Spaxce - {hotel_name} Created",
                             template_name='emails/welcome_hotel.html',
                             context={
                                 'user': user,

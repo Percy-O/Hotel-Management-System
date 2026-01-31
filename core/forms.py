@@ -16,7 +16,7 @@ class SiteSettingForm(forms.ModelForm):
         fields = [
             'theme', 
             'custom_primary_color', 'custom_secondary_color', 'custom_accent_color',
-            'custom_background_color', 'custom_surface_color', 'custom_text_color',
+            'custom_background_color', 'custom_surface_color', 'custom_card_background_color', 'custom_section_background_color', 'custom_text_color',
             'custom_button_color', 'custom_button_text_color',
             'hotel_name', 'hotel_tagline', 'hotel_description', 'hotel_logo', 'booking_id_prefix', 'currency', 
             'hero_title', 'hero_subtitle', 'hero_background', 'hero_cta_text', 'hero_cta_link',
@@ -41,6 +41,8 @@ class SiteSettingForm(forms.ModelForm):
             'custom_accent_color': forms.TextInput(attrs={'type': 'color'}),
             'custom_background_color': forms.TextInput(attrs={'type': 'color'}),
             'custom_surface_color': forms.TextInput(attrs={'type': 'color'}),
+            'custom_card_background_color': forms.TextInput(attrs={'type': 'color'}),
+            'custom_section_background_color': forms.TextInput(attrs={'type': 'color'}),
             'custom_text_color': forms.TextInput(attrs={'type': 'color'}),
             'custom_button_color': forms.TextInput(attrs={'type': 'color'}),
             'custom_button_text_color': forms.TextInput(attrs={'type': 'color'}),
